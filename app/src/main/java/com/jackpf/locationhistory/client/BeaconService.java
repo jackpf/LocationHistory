@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -37,7 +38,7 @@ public class BeaconService extends Service {
     public int onStartCommand(Intent i, int f, int id) {
         Log.d("Started");
 
-        startForeground(1, notification());
+        startForeground(1, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
         loop();
         return START_STICKY;
     }
@@ -84,6 +85,7 @@ public class BeaconService extends Service {
                 .setContentTitle("Beacon active")
                 .setSmallIcon(android.R.drawable.ic_menu_mylocation)
                 .setOngoing(true)
+                .setCategory(Notification.CATEGORY_SERVICE)
                 .build();
     }
 }

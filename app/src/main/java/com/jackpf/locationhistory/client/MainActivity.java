@@ -17,6 +17,7 @@ public class MainActivity extends Activity {
     private final PermissionsFlow permissionsFlow = new PermissionsFlow(this)
             .require(new String[]{Manifest.permission.ACCESS_FINE_LOCATION})
             .thenRequire(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION})
+            .thenRequire(new String[]{Manifest.permission.POST_NOTIFICATIONS})
             .onComplete(() -> {
                 Log.d("Starting foreground service");
                 startForegroundService(new Intent(this, BeaconService.class));
