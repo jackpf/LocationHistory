@@ -1,0 +1,37 @@
+name: PR Build
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: sbt
+
+      - uses: sbt/setup-sbt@v1
+        with:
+          sbt-runner-version: 1.11.7
+
+      - name: Build Shared
+        run: make -C shared compile publish
+
+      - name: Lint
+        run: make -C server lint
+
+      - name: Test
+        run: make -C server test
+
+      - name: Build
+        run: make -C server compile
+
+#      - name: Package
+#        run: make package
