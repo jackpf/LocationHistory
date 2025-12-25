@@ -24,6 +24,9 @@ jobs:
       - name: Build Shared
         run: make -C shared compile publish
 
+      - name: Lint
+        run: make -C server lint
+
       - name: Test
         run: make -C server test
 
