@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package beacon;
+
+service BeaconService {
+  rpc Ping(PingRequest) returns (PingResponse);
+}
+
+message PingRequest {
+  int64  timestamp = 1;
+  string device_id = 2;
+  string public_key = 3;
+  double lat = 4;
+  double lon = 5;
+}
+
+message PingResponse {
+  bool ok = 1;
+}

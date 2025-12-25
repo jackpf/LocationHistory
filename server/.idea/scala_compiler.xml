@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ScalaCompilerConfiguration">
+    <option name="separateProdTestSources" value="true" />
+    <profile name="sbt 1" modules="server,server_9093,server_9093.main,server_9093.test" />
+    <profile name="sbt 2" modules="server.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-Xfatal-warnings" />
+        <parameter value="-Ysafe-init" />
+        <parameter value="-Wvalue-discard" />
+        <parameter value="-Wunused:all" />
+        <parameter value="-Xcheck-macros" />
+        <parameter value="-Wconf:any:warning-verbose" />
+        <parameter value="-source:future" />
+        <parameter value="-no-indent" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="$PROJECT_DIR$/target/scala-3.3.7/test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 3" modules="server.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-Xfatal-warnings" />
+        <parameter value="-Ysafe-init" />
+        <parameter value="-Wvalue-discard" />
+        <parameter value="-Wunused:all" />
+        <parameter value="-Xcheck-macros" />
+        <parameter value="-Wconf:any:warning-verbose" />
+        <parameter value="-source:future" />
+        <parameter value="-no-indent" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="$PROJECT_DIR$/target/scala-3.3.7/meta" />
+      </parameters>
+    </profile>
+  </component>
+</project>
