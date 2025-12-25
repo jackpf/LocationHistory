@@ -60,24 +60,28 @@ class BeaconServiceImpl(
   ): Future[SetLocationResponse] = {
     log.debug(s"Received ping request: ${request}")
 
-    request.device match {
-      case Some(device) =>
+    (request.device, request.location) match {
+      case (Some(device), Some(location)) =>
         deviceRepo.get(Device.fromProto(device)).map {
           case Some(storedDevice) =>
-            val location = Location(
+            // TODO Add helper method(s)
+            val locationRequest = Location(
               timestamp = System.currentTimeMillis(),
-              lat = request.lat,
-              lon = request.lon,
-              accuracy = request.accuracy
+              lat = location.lat,
+              lon = location.lon,
+              accuracy = location.accuracy
             )
 
-            locationRepo.storeDeviceLocation(storedDevice, location)
+            locationRepo.storeDeviceLocation(storedDevice, locationRequest)
 
             SetLocationResponse(ok = true)
           case None => throw new RuntimeException("Device not found")
         }
-      case None =>
-        Future.failed(new IllegalArgumentException("No device provided"))
+      case _ =>
+        // TODO Test & improve error handling/exception throwing
+        Future.failed(
+          new IllegalArgumentException("No device and/or location provided")
+        )
     }
   }
 }

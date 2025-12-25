@@ -20,6 +20,12 @@ enum DeviceStatus {
   DEVICE_REGISTERED = 2;
 }
 
+message Location {
+  double lat = 1;
+  double lon = 2;
+  double accuracy = 3;
+}
+
 message PingRequest {
 
 }
@@ -47,9 +53,7 @@ message CheckDeviceResponse {
 message SetLocationRequest {
   int64  timestamp = 1;
   Device device = 2;
-  double lat = 3;
-  double lon = 4;
-  double accuracy = 5;
+  Location location = 3;
 }
 
 message SetLocationResponse {
