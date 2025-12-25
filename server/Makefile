@@ -17,7 +17,7 @@ fmt:
 
 .PHONY: test
 test:
-	$(SBT) test
+	$(SBT) -batch test
 
 .PHONY: compile
 compile:
