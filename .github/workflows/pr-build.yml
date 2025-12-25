@@ -19,6 +19,9 @@ jobs:
 
       - uses: sbt/setup-sbt@v1
 
+      - name: Build Shared
+        run: make -C shared compile publish
+
       - name: Test
         run: make -C server test
 
