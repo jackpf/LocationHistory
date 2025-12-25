@@ -38,7 +38,7 @@ public class BeaconService extends Service {
     public int onStartCommand(Intent i, int f, int id) {
         Log.d("Started");
 
-        startForeground(1, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+        persistNotification();
         loop();
         return START_STICKY;
     }
@@ -46,6 +46,7 @@ public class BeaconService extends Service {
     private void loop() {
         handler.postDelayed(() -> {
             ping();
+            persistNotification();
             loop();
         }, BEACON_INTERVAL);
     }
@@ -74,18 +75,21 @@ public class BeaconService extends Service {
         return null;
     }
 
-    private Notification notification() {
+    private void persistNotification() {
         Log.d("Starting persistent notification");
 
         NotificationChannel channel = new NotificationChannel(
-                "beacon", "Beacon", NotificationManager.IMPORTANCE_DEFAULT);
+                "beacon", "Beacon", NotificationManager.IMPORTANCE_LOW);
         getSystemService(NotificationManager.class).createNotificationChannel(channel);
 
-        return new Notification.Builder(this, "beacon")
+        Notification notification = new Notification.Builder(this, "beacon")
                 .setContentTitle("Beacon active")
                 .setSmallIcon(android.R.drawable.ic_menu_mylocation)
                 .setOngoing(true)
                 .setCategory(Notification.CATEGORY_SERVICE)
+                .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
                 .build();
+
+        startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
     }
 }
