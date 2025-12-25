@@ -13,9 +13,13 @@ lazy val versions = new {
   val mockito = "5.21.0"
 }
 
+lazy val IntegrationTest = config("it") extend Test
+
 lazy val root = (project in file("."))
+  .configs(IntegrationTest)
   .settings(
     name := "server",
+    inConfig(IntegrationTest)(Defaults.testSettings),
     libraryDependencies ++= Seq(
       "com.jackpf.locationhistory" %% "shared" % versions.sharedProtos,
       "com.thesamet.scalapb" %% "scalapb-runtime" % versions.scalapb,

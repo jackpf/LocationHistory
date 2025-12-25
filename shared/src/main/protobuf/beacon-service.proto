@@ -4,16 +4,54 @@ package beacon;
 
 service BeaconService {
   rpc Ping(PingRequest) returns (PingResponse);
+  rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse);
+  rpc CheckDevice(CheckDeviceRequest) returns (CheckDeviceResponse);
+  rpc SetLocation(SetLocationRequest) returns (SetLocationResponse);
+}
+
+message Device {
+  string device_id = 1;
+  string public_key = 2;
+}
+
+enum DeviceStatus {
+  DEVICE_UNKNOWN = 0;
+  DEVICE_PENDING = 1;
+  DEVICE_REGISTERED = 2;
 }
 
 message PingRequest {
-  int64  timestamp = 1;
-  string device_id = 2;
-  string public_key = 3;
-  double lat = 4;
-  double lon = 5;
+
 }
 
 message PingResponse {
+  string message = 1;
+}
+
+message RegisterDeviceRequest {
+  Device device = 1;
+}
+
+message RegisterDeviceResponse {
+
+}
+
+message CheckDeviceRequest {
+  Device device = 1;
+}
+
+message CheckDeviceResponse {
+  DeviceStatus status = 1;
+}
+
+message SetLocationRequest {
+  int64  timestamp = 1;
+  Device device = 2;
+  double lat = 3;
+  double lon = 4;
+  double accuracy = 5;
+}
+
+message SetLocationResponse {
   bool ok = 1;
 }
