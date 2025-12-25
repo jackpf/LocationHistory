@@ -13,7 +13,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '22'
+          java-version: '17'
           distribution: 'openjdk'
 
 #      - name: Install sbt
