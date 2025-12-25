@@ -14,7 +14,12 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '17'
-          distribution: 'openjdk'
+          distribution: 'temurin'
+          cache: sbt
+
+      - uses: sbt/setup-sbt@v1
+        with:
+          sbt-runner-version: 1.11.7
 
 #      - name: Install sbt
 #        uses: olafurpg/setup-scala@v17
@@ -28,10 +33,16 @@ jobs:
 #          username: ${{ secrets.DOCKERHUB_USERNAME }}
 #          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Test Server
+      - name: Build Shared
+        run: make -C shared compile publish
+
+      - name: Lint
+        run: make -C server lint
+
+      - name: Test
         run: make -C server test
 
-      - name: Build Server
+      - name: Build
         run: make -C server compile
 
 #      - name: Release
