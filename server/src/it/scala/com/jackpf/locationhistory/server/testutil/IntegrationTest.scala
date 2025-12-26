@@ -43,6 +43,7 @@ object IntegrationTest {
 }
 
 abstract class IntegrationTest extends DefaultSpecification {
+  sequential
   startServer()
 
   trait IntegrationContext extends DefaultScope with After {

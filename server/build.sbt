@@ -51,5 +51,7 @@ lazy val root = (project in file("."))
     ThisBuild / scalafmtOnCompile := true,
     ThisBuild / semanticdbEnabled := true,
     ThisBuild / semanticdbVersion := scalafixSemanticdb.revision,
-    IntegrationTest / parallelExecution := false
+    IntegrationTest / parallelExecution := false,
+    IntegrationTest / testOptions += Tests
+      .Argument(TestFrameworks.Specs2, "sequential")
   )
