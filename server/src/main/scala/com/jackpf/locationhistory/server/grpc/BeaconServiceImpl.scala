@@ -2,7 +2,11 @@ package com.jackpf.locationhistory.server.grpc
 
 import beacon.beacon_service.*
 import beacon.beacon_service.BeaconServiceGrpc.BeaconService
-import com.jackpf.locationhistory.server.errors.ApplicationErrors.NoDeviceProvidedException
+import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
+  DeviceNotFoundException,
+  NoDeviceProvidedException,
+  NoLocationProvidedException
+}
 import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
@@ -60,28 +64,32 @@ class BeaconServiceImpl(
   override def setLocation(
       request: SetLocationRequest
   ): Future[SetLocationResponse] = {
-    (request.device, request.location) match {
-      case (Some(device), Some(location)) =>
-        deviceRepo.get(DeviceId(device.id)).map {
-          case Some(storedDevice) =>
-            // TODO Add helper method(s)
-            val locationRequest = Location(
-              timestamp = System.currentTimeMillis(),
-              lat = location.lat,
-              lon = location.lon,
-              accuracy = location.accuracy
-            )
+    if (request.device.isEmpty)
+      Future.failed(
+        NoDeviceProvidedException().toGrpcStatus.asRuntimeException()
+      )
+    else if (request.location.isEmpty)
+      Future.failed(
+        NoLocationProvidedException().toGrpcStatus.asRuntimeException()
+      )
+    else {
+      val device = request.device.get
+      val location = request.location.get
 
-            locationRepo.storeDeviceLocation(storedDevice, locationRequest)
+      deviceRepo.get(DeviceId(device.id)).flatMap {
+        case Some(storedDevice) =>
+          locationRepo.storeDeviceLocation(
+            storedDevice,
+            Location.fromProto(location)
+          )
 
-            SetLocationResponse(ok = true)
-          case None => throw new IllegalArgumentException("Device not found")
-        }
-      case _ =>
-        // TODO Test & improve error handling/exception throwing
-        Future.failed(
-          new IllegalArgumentException("No device and/or location provided")
-        )
+          Future.successful(SetLocationResponse(ok = true))
+        case None =>
+          Future.failed(
+            DeviceNotFoundException(DeviceId(device.id)).toGrpcStatus
+              .asRuntimeException()
+          )
+      }
     }
   }
 }

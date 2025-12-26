@@ -14,11 +14,23 @@ object ApplicationErrors {
     override val status: Status = Status.INVALID_ARGUMENT
   }
 
+  case class NoLocationProvidedException(cause: Throwable = None.orNull)
+      extends ApplicationError("No location provided", cause) {
+    override val status: Status = Status.INVALID_ARGUMENT
+  }
+
   case class DeviceNotRegisteredException(
       deviceId: DeviceId.Type,
       cause: Throwable = None.orNull
   ) extends ApplicationError(s"Device ${deviceId} is not registered", cause) {
     override val status: Status = Status.INVALID_ARGUMENT
+  }
+
+  case class DeviceNotFoundException(
+      deviceId: DeviceId.Type,
+      cause: Throwable = None.orNull
+  ) extends ApplicationError(s"Device ${deviceId} does not exist", cause) {
+    override val status: Status = Status.NOT_FOUND
   }
 
   case class DeviceAlreadyRegisteredException(
@@ -28,6 +40,6 @@ object ApplicationErrors {
         s"Device ${deviceId} is already registered",
         cause
       ) {
-    override val status: Status = Status.INVALID_ARGUMENT
+    override val status: Status = Status.ALREADY_EXISTS
   }
 }
