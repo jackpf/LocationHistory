@@ -39,8 +39,11 @@ jobs:
       - name: Lint
         run: make -C server lint
 
-      - name: Test
+      - name: Unit Test
         run: make -C server test
+
+      - name: Integration Test
+        run: make -C server integration-test
 
       - name: Build
         run: make -C server compile

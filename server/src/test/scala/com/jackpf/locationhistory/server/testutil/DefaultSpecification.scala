@@ -1,7 +1,6 @@
 package com.jackpf.locationhistory.server.testutil
 
 import org.specs2.mutable.Specification
-import org.specs2.specification.BeforeAfter
 
 abstract class DefaultSpecification extends Specification {
 
@@ -19,7 +18,4 @@ abstract class DefaultSpecification extends Specification {
   protected def in[C <: DefaultScope, T](c: C)(f: C => T): T = f(c)
 }
 
-trait DefaultScope extends BeforeAfter {
-  override def before: Any = {}
-  override def after: Any = {}
-}
+trait DefaultScope

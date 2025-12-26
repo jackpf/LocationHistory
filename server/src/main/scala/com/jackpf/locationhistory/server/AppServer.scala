@@ -6,14 +6,14 @@ import io.grpc.{Server, ServerBuilder, ServerServiceDefinition}
 import scala.jdk.CollectionConverters.*
 
 class AppServer(
-    args: Args,
+    port: Int,
     services: ServerServiceDefinition*
 ) extends Logging {
-  def listen(): Server = {
-    log.info(s"Listening on port ${args.listenPort.get}")
+  def start(): Server = {
+    log.info(s"Listening on port ${port}")
 
     ServerBuilder
-      .forPort(args.listenPort.get)
+      .forPort(port)
       .addServices(services.asJava)
       .build()
       .start()

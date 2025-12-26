@@ -1,7 +1,6 @@
 package com.jackpf.locationhistory.server
 
-import beacon.beacon_service.BeaconServiceGrpc
-import com.jackpf.locationhistory.server.grpc.BeaconServiceImpl
+import com.jackpf.locationhistory.server.grpc.Services
 import com.jackpf.locationhistory.server.repo.{
   DeviceRepo,
   InMemoryDeviceRepo,
@@ -37,11 +36,8 @@ object App {
     val locationRepo: LocationRepo = new InMemoryLocationRepo
 
     new AppServer(
-      parsedArgs,
-      BeaconServiceGrpc.bindService(
-        new BeaconServiceImpl(deviceRepo, locationRepo),
-        global
-      )
-    ).listen().awaitTermination()
+      parsedArgs.listenPort.get,
+      Services(deviceRepo, locationRepo)*
+    ).start().awaitTermination()
   }
 }
