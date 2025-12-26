@@ -1,12 +1,17 @@
 package com.jackpf.locationhistory.server.repo
 
+import com.jackpf.locationhistory.server.grpc.Errors
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.model.{Location, StoredDevice}
+import com.jackpf.locationhistory.server.util.GrpcResponse.{
+  Failure,
+  GrpcTry,
+  Success
+}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
 
 class InMemoryLocationRepo extends LocationRepo {
   private val storedLocations: mutable.ArrayBuffer[(StoredDevice, Location)] =
@@ -15,17 +20,13 @@ class InMemoryLocationRepo extends LocationRepo {
   override def storeDeviceLocation(
       storedDevice: StoredDevice,
       location: Location
-  ): Future[Try[Unit]] =
+  ): Future[GrpcTry[Unit]] =
     Future.successful {
       if (storedDevice.status == DeviceStatus.Registered) {
         storedLocations += ((storedDevice, location))
         Success[Unit](())
       } else {
-        Failure(
-          new IllegalArgumentException(
-            s"Device ${storedDevice.device.id} is not registered"
-          )
-        )
+        Failure(Errors.deviceNotRegistered(storedDevice.device.id))
       }
     }
 }

@@ -1,12 +1,12 @@
 package com.jackpf.locationhistory.server.repo
 
-import com.jackpf.locationhistory.server.grpc.GrpcResponse.GrpcResponse
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
 import com.jackpf.locationhistory.server.testutil.{
   DefaultScope,
   DefaultSpecification
 }
+import com.jackpf.locationhistory.server.util.GrpcResponse.GrpcTry
 import io.grpc.Status
 import io.grpc.Status.Code
 import org.specs2.collection.IsEmpty
@@ -24,7 +24,7 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
 
   trait OneDeviceContext extends Context {
     lazy val device: Device = Device(id = DeviceId("123"), publicKey = "xxx")
-    val registerResult: Future[GrpcResponse[Unit]] =
+    val registerResult: Future[GrpcTry[Unit]] =
       deviceRepo.register(device)
   }
 
@@ -74,7 +74,7 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
       context =>
         context.registerResult must beRight.await
 
-        val registerResult2: Future[GrpcResponse[Unit]] =
+        val registerResult2: Future[GrpcTry[Unit]] =
           context.deviceRepo.register(context.device)
 
         registerResult2 must beLeft[Status].like { case e =>

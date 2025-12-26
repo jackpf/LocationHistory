@@ -11,10 +11,12 @@ import com.jackpf.locationhistory.server.testutil.{
   DefaultScope,
   DefaultSpecification
 }
+import com.jackpf.locationhistory.server.util.GrpcResponse.GrpcTry
+import io.grpc.Status
+import io.grpc.Status.Code
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Future
-import scala.util.Try
 
 class InMemoryLocationRepoTest(implicit ee: ExecutionEnv)
     extends DefaultSpecification {
@@ -30,13 +32,13 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv)
     lazy val location =
       Location(timestamp = 123L, lat = 0.1, lon = 0.2, accuracy = 0.3)
 
-    lazy val result: Future[Try[Unit]] =
+    lazy val result: Future[GrpcTry[Unit]] =
       locationRepo.storeDeviceLocation(storedDevice, location)
   }
 
   "In memory location repo" should {
     "store a device location" >> in(new StoredLocationContext {}) { context =>
-      context.result must beSuccessfulTry.await
+      context.result must beRight.await
     }
 
     "fail if storing device location for pending device" >> in(
@@ -45,10 +47,9 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv)
           StoredDevice(device, DeviceStatus.Pending)
       }
     ) { context =>
-      context.result must beFailedTry.like { case e: IllegalArgumentException =>
-        e.getMessage must beEqualTo(
-          "Device 123 is not registered"
-        )
+      context.result must beLeft[Status].like { case e =>
+        e.getCode === Code.INVALID_ARGUMENT
+        e.getDescription === "Device 123 is not registered"
       }.await
     }
   }
