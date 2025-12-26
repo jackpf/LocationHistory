@@ -7,7 +7,6 @@ import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.util.Logging
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 class BeaconServiceImpl(
     deviceRepo: DeviceRepo,
@@ -29,8 +28,8 @@ class BeaconServiceImpl(
     request.device match {
       case Some(device) =>
         deviceRepo.register(Device.fromProto(device)).flatMap {
-          case Failure(exception) => Future.failed(exception)
-          case Success(value)     => Future.successful(RegisterDeviceResponse())
+          case Left(status) => Future.failed(status.asRuntimeException())
+          case Right(value) => Future.successful(RegisterDeviceResponse())
         }
       case None =>
         Future.failed(new IllegalArgumentException("No device provided"))
@@ -53,7 +52,7 @@ class BeaconServiceImpl(
           CheckDeviceResponse(status = s)
         }
       case None =>
-        Future.failed(new IllegalArgumentException("No device provided"))
+        Future.failed(Errors.noDeviceProvided().asRuntimeException())
     }
   }
 

@@ -21,6 +21,10 @@ class DeviceTest extends IntegrationTest {
           CheckDeviceRequest(device = None)
 
         context.client.checkDevice(request) must throwA[StatusRuntimeException]
+          .like { case e =>
+            e.getStatus.getCode === io.grpc.Status.Code.INVALID_ARGUMENT
+            e.getMessage must contain("No device provided")
+          }
     }
   }
 }

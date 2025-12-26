@@ -1,16 +1,18 @@
 package com.jackpf.locationhistory.server.repo
 
+import com.jackpf.locationhistory.server.grpc.GrpcResponse.GrpcResponse
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
 import com.jackpf.locationhistory.server.testutil.{
   DefaultScope,
   DefaultSpecification
 }
+import io.grpc.Status
+import io.grpc.Status.Code
 import org.specs2.collection.IsEmpty
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Future
-import scala.util.Try
 
 class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
     extends DefaultSpecification {
@@ -22,7 +24,7 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
 
   trait OneDeviceContext extends Context {
     lazy val device: Device = Device(id = DeviceId("123"), publicKey = "xxx")
-    val registerResult: Future[Try[Unit]] =
+    val registerResult: Future[GrpcResponse[Unit]] =
       deviceRepo.register(device)
   }
 
@@ -41,11 +43,11 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
     }
 
     "register a single device" >> in(new OneDeviceContext {}) { context =>
-      context.registerResult must beSuccessfulTry.await
+      context.registerResult must beRight.await
     }
 
     "get a single device" >> in(new OneDeviceContext {}) { context =>
-      context.registerResult must beSuccessfulTry.await
+      context.registerResult must beRight.await
 
       val getResult: Future[Option[StoredDevice]] =
         context.deviceRepo.get(context.device.id)
@@ -56,7 +58,7 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
     }
 
     "get all with a single device" >> in(new OneDeviceContext {}) { context =>
-      context.registerResult must beSuccessfulTry.await
+      context.registerResult must beRight.await
 
       val getAllResult: Future[Seq[StoredDevice]] =
         context.deviceRepo.getAll
@@ -70,16 +72,14 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
 
     "fail on registering an existing device" >> in(new OneDeviceContext {}) {
       context =>
-        context.registerResult must beSuccessfulTry.await
+        context.registerResult must beRight.await
 
-        val registerResult2: Future[Try[Unit]] =
+        val registerResult2: Future[GrpcResponse[Unit]] =
           context.deviceRepo.register(context.device)
 
-        registerResult2 must beFailedTry.like {
-          case e: IllegalArgumentException =>
-            e.getMessage must beEqualTo(
-              "Device 123 is already registered"
-            )
+        registerResult2 must beLeft[Status].like { case e =>
+          e.getCode === Code.INVALID_ARGUMENT
+          e.getDescription === "Device 123 is already registered"
         }.await
     }
   }

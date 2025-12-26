@@ -17,8 +17,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object TestServer {
   val TestPort = 8080
 
-  val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
-  val locationRepo: LocationRepo = new InMemoryLocationRepo
+  private val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
+  private val locationRepo: LocationRepo = new InMemoryLocationRepo
 
   var server: Server = uninitialized
 
