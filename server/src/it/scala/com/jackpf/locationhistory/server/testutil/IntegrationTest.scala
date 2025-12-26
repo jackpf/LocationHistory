@@ -7,6 +7,10 @@ import com.jackpf.locationhistory.server.repo.{
   InMemoryLocationRepo,
   LocationRepo
 }
+import com.jackpf.locationhistory.server.testutil.IntegrationTest.{
+  resetState,
+  startServer
+}
 import com.jackpf.locationhistory.server.testutil.{
   DefaultScope,
   DefaultSpecification
@@ -19,18 +23,27 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-abstract class IntegrationTest extends DefaultSpecification {
-  private val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
-  private val locationRepo: LocationRepo = new InMemoryLocationRepo
+object IntegrationTest {
+  val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
+  val locationRepo: LocationRepo = new InMemoryLocationRepo
 
-  TestServer.start(deviceRepo, locationRepo)
+  def startServer(): Unit = TestServer.start(deviceRepo, locationRepo)
 
-  private def resetState(): Unit = {
+  def resetState(): Unit = {
     Await.result(
-      Future.sequence(Seq(deviceRepo.deleteAll(), locationRepo.deleteAll())),
+      Future.sequence(
+        Seq(
+          deviceRepo.deleteAll(),
+          locationRepo.deleteAll()
+        )
+      ),
       Duration.Inf
     ): Unit
   }
+}
+
+abstract class IntegrationTest extends DefaultSpecification {
+  startServer()
 
   trait IntegrationContext extends DefaultScope with After {
     resetState()
