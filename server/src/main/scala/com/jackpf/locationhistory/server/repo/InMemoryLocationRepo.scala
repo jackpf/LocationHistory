@@ -18,7 +18,7 @@ class InMemoryLocationRepo extends LocationRepo {
   ): Future[Try[Unit]] =
     Future.successful {
       storedLocations += ((id, location))
-      Success[Unit](())
+      Success(())
     }
 
   override def getForDevice(id: Type): Future[Seq[Location]] =
