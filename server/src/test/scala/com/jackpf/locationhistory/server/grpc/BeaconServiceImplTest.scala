@@ -10,7 +10,7 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
-trait Context  {
+trait Context {
   val deviceRepo: DeviceRepo = mock(classOf[DeviceRepo])
   val locationRepo: LocationRepo = mock(classOf[LocationRepo])
   val beaconService: BeaconService =
