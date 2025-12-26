@@ -1,5 +1,9 @@
 package com.jackpf.locationhistory.server.repo
 
+import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
+  DeviceAlreadyRegisteredException,
+  DeviceNotFoundException
+}
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
 
@@ -14,16 +18,12 @@ class InMemoryDeviceRepo(using ec: ExecutionContext) extends DeviceRepo {
   override def register(device: Device): Future[Try[Unit]] =
     get(device.id).map {
       case Some(_) =>
-        Failure[Unit](
-          new IllegalArgumentException(
-            s"Device ${device.id} is already registered"
-          )
-        )
+        Failure(DeviceAlreadyRegisteredException(device.id))
       case None =>
         val storedDevice =
           StoredDevice.fromDevice(device, status = DeviceStatus.Pending)
         storedDevices += (storedDevice.device.id -> storedDevice)
-        Success[Unit](())
+        Success(())
     }
 
   override def get(id: DeviceId.Type): Future[Option[StoredDevice]] =
@@ -35,4 +35,16 @@ class InMemoryDeviceRepo(using ec: ExecutionContext) extends DeviceRepo {
     Future.successful {
       storedDevices.values.toSeq
     }
+
+  override def delete(id: DeviceId.Type): Future[Try[Unit]] = get(id).map {
+    case Some(foundDevice) =>
+      storedDevices -= foundDevice.device.id
+      Success(())
+    case None =>
+      Failure(DeviceNotFoundException(id))
+  }
+
+  override def deleteAll(): Future[Unit] = Future.successful {
+    storedDevices.clear()
+  }
 }
