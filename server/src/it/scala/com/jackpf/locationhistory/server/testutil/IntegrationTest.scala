@@ -12,16 +12,28 @@ import com.jackpf.locationhistory.server.testutil.{
   DefaultSpecification
 }
 import io.grpc.{ManagedChannel, ManagedChannelBuilder}
-import org.specs2.specification.BeforeAfter
+import org.specs2.execute.{AsResult, Result}
+import org.specs2.specification.{AroundEach, BeforeAfter}
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
-abstract class IntegrationTest extends DefaultSpecification {
+abstract class IntegrationTest extends DefaultSpecification with AroundEach {
   private val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
   private val locationRepo: LocationRepo = new InMemoryLocationRepo
 
   TestServer.start(deviceRepo, locationRepo)
+
+  override def around[R: AsResult](r: => R): Result = {
+    Await.result(
+      Future.sequence(Seq(deviceRepo.deleteAll(), locationRepo.deleteAll())),
+      Duration.Inf
+    )
+
+    AsResult(r)
+  }
 
   trait IntegrationContext extends DefaultScope with BeforeAfter {
     val channel: ManagedChannel = ManagedChannelBuilder
@@ -33,7 +45,10 @@ abstract class IntegrationTest extends DefaultSpecification {
       BeaconServiceGrpc.blockingStub(channel)
 
     override def before: Any = {
-      println("before")
+//      Await.result(
+//        Future.sequence(Seq(deviceRepo.deleteAll(), locationRepo.deleteAll())),
+//        Duration.Inf
+//      )
     }
 
     override def after: Any = {

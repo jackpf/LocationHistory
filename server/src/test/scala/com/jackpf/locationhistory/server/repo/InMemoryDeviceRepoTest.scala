@@ -1,6 +1,9 @@
 package com.jackpf.locationhistory.server.repo
 
-import com.jackpf.locationhistory.server.errors.ApplicationErrors.DeviceAlreadyRegisteredException
+import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
+  DeviceAlreadyRegisteredException,
+  DeviceNotFoundException
+}
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
 import com.jackpf.locationhistory.server.testutil.{
@@ -39,6 +42,23 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
       val result: Future[Seq[StoredDevice]] = context.deviceRepo.getAll
 
       result must beEmpty[Seq[StoredDevice]].await
+    }
+
+    "fail on deleting a non-existing device" >> in(new NoDevicesContext {}) {
+      context =>
+        val result: Future[Try[Unit]] =
+          context.deviceRepo.delete(DeviceId("non-existing"))
+
+        result must beFailedTry.like { case e: DeviceNotFoundException =>
+          e.getMessage === "Device non-existing does not exist"
+        }.await
+    }
+
+    "delete all on empty devices" >> in(new NoDevicesContext {}) { context =>
+      val result: Future[Unit] = context.deviceRepo.deleteAll()
+
+      result must beEqualTo(()).await
+      context.deviceRepo.getAll must beEmpty[Seq[StoredDevice]].await
     }
 
     "register a single device" >> in(new OneDeviceContext {}) { context =>
@@ -80,6 +100,24 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
           case e: DeviceAlreadyRegisteredException =>
             e.getMessage === "Device 123 is already registered"
         }.await
+    }
+
+    "delete a device" >> in(new OneDeviceContext {}) { context =>
+      context.registerResult must beSuccessfulTry.await
+
+      val deleteResult: Future[Try[Unit]] =
+        context.deviceRepo.delete(context.device.id)
+
+      deleteResult must beSuccessfulTry.await
+      context.deviceRepo.get(context.device.id) must beNone.await
+      context.deviceRepo.getAll must beEmpty[Seq[StoredDevice]].await
+    }
+
+    "delete all devices" >> in(new OneDeviceContext {}) { context =>
+      val result: Future[Unit] = context.deviceRepo.deleteAll()
+
+      result must beEqualTo(()).await
+      context.deviceRepo.getAll must beEmpty[Seq[StoredDevice]].await
     }
   }
 }

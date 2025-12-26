@@ -1,6 +1,9 @@
 package com.jackpf.locationhistory.server.repo
 
-import com.jackpf.locationhistory.server.errors.ApplicationErrors.DeviceAlreadyRegisteredException
+import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
+  DeviceAlreadyRegisteredException,
+  DeviceNotFoundException
+}
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
 
@@ -32,4 +35,16 @@ class InMemoryDeviceRepo(using ec: ExecutionContext) extends DeviceRepo {
     Future.successful {
       storedDevices.values.toSeq
     }
+
+  override def delete(id: DeviceId.Type): Future[Try[Unit]] = get(id).map {
+    case Some(foundDevice) =>
+      storedDevices -= foundDevice.device.id
+      Success(())
+    case None =>
+      Failure(DeviceNotFoundException(id))
+  }
+
+  override def deleteAll(): Future[Unit] = Future.successful {
+    storedDevices.clear()
+  }
 }

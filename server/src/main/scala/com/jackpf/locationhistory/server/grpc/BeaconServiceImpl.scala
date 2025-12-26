@@ -4,6 +4,7 @@ import beacon.beacon_service.*
 import beacon.beacon_service.BeaconServiceGrpc.BeaconService
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
+  DeviceNotRegisteredException,
   NoDeviceProvidedException,
   NoLocationProvidedException
 }
@@ -70,19 +71,25 @@ class BeaconServiceImpl(
       Future.failed(NoLocationProvidedException().toGrpcError)
     else {
       val device = request.device.get
+      val deviceId = DeviceId(device.id)
       val location = request.location.get
 
-      deviceRepo.get(DeviceId(device.id)).flatMap {
+      deviceRepo.get(deviceId).flatMap {
         case Some(storedDevice) =>
-          locationRepo.storeDeviceLocation(
-            storedDevice,
-            Location.fromProto(location)
-          )
+          if (storedDevice.status == DeviceStatus.DEVICE_REGISTERED) {
 
-          Future.successful(SetLocationResponse(success = true))
+            locationRepo.storeDeviceLocation(
+              deviceId,
+              Location.fromProto(location)
+            )
+
+            Future.successful(SetLocationResponse(success = true))
+          } else {
+            Future.failed(DeviceNotRegisteredException(deviceId).toGrpcError)
+          }
         case None =>
           Future.failed(
-            DeviceNotFoundException(DeviceId(device.id)).toGrpcError
+            DeviceNotFoundException(deviceId).toGrpcError
           )
       }
     }

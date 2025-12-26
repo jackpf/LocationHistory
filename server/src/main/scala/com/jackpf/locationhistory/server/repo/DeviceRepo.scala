@@ -11,4 +11,8 @@ trait DeviceRepo {
   def get(id: DeviceId.Type): Future[Option[StoredDevice]]
 
   def getAll: Future[Seq[StoredDevice]]
+
+  def delete(id: DeviceId.Type): Future[Try[Unit]]
+
+  def deleteAll(): Future[Unit]
 }
