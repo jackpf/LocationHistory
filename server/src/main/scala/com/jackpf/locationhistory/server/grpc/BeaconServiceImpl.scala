@@ -31,13 +31,13 @@ class BeaconServiceImpl(
     request.device match {
       case Some(device) =>
         deviceRepo.register(Device.fromProto(device)).flatMap {
-          case Failure(exception) => Future.failed(exception)
-          case Success(value)     => Future.successful(RegisterDeviceResponse())
+          case Failure(exception) =>
+            Future.failed(exception.toGrpcError)
+          case Success(value) =>
+            Future.successful(RegisterDeviceResponse(success = true))
         }
       case None =>
-        Future.failed(
-          NoDeviceProvidedException().toGrpcStatus.asRuntimeException()
-        )
+        Future.failed(NoDeviceProvidedException().toGrpcError)
     }
   }
 
@@ -55,9 +55,7 @@ class BeaconServiceImpl(
           CheckDeviceResponse(status = s)
         }
       case None =>
-        Future.failed(
-          NoDeviceProvidedException().toGrpcStatus.asRuntimeException()
-        )
+        Future.failed(NoDeviceProvidedException().toGrpcError)
     }
   }
 
@@ -66,12 +64,10 @@ class BeaconServiceImpl(
   ): Future[SetLocationResponse] = {
     if (request.device.isEmpty)
       Future.failed(
-        NoDeviceProvidedException().toGrpcStatus.asRuntimeException()
+        NoDeviceProvidedException().toGrpcError
       )
     else if (request.location.isEmpty)
-      Future.failed(
-        NoLocationProvidedException().toGrpcStatus.asRuntimeException()
-      )
+      Future.failed(NoLocationProvidedException().toGrpcError)
     else {
       val device = request.device.get
       val location = request.location.get
@@ -83,11 +79,10 @@ class BeaconServiceImpl(
             Location.fromProto(location)
           )
 
-          Future.successful(SetLocationResponse(ok = true))
+          Future.successful(SetLocationResponse(success = true))
         case None =>
           Future.failed(
-            DeviceNotFoundException(DeviceId(device.id)).toGrpcStatus
-              .asRuntimeException()
+            DeviceNotFoundException(DeviceId(device.id)).toGrpcError
           )
       }
     }

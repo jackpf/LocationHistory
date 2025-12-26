@@ -11,13 +11,13 @@ object ErrorMapper {
     .withCause(applicationError)
 
   extension (throwable: Throwable) {
-    def toGrpcStatus: Status = {
-      throwable match {
-        case applicationError: ApplicationError =>
-          applicationErrorToStatus(applicationError)
-        case other =>
-          Status.INTERNAL.withDescription(other.getMessage).withCause(other)
-      }
+    def toGrpcStatus: Status = throwable match {
+      case applicationError: ApplicationError =>
+        applicationErrorToStatus(applicationError)
+      case other =>
+        Status.INTERNAL.withDescription(other.getMessage).withCause(other)
     }
+
+    def toGrpcError: Throwable = toGrpcStatus.asException()
   }
 }

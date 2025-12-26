@@ -27,7 +27,6 @@ message Location {
 }
 
 message PingRequest {
-
 }
 
 message PingResponse {
@@ -39,7 +38,7 @@ message RegisterDeviceRequest {
 }
 
 message RegisterDeviceResponse {
-
+  bool success = 1;
 }
 
 message CheckDeviceRequest {
@@ -57,5 +56,5 @@ message SetLocationRequest {
 }
 
 message SetLocationResponse {
-  bool ok = 1;
+  bool success = 1;
 }
