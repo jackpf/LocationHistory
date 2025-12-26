@@ -16,7 +16,7 @@ class InMemoryDeviceRepo(using ec: ExecutionContext) extends DeviceRepo {
       case Some(_) =>
         Failure[Unit](
           new IllegalArgumentException(
-            s"Device ${device} is already registered"
+            s"Device ${device.id} is already registered"
           )
         )
       case None =>

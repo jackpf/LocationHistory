@@ -2,85 +2,85 @@ package com.jackpf.locationhistory.server.repo
 
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
-import com.jackpf.locationhistory.server.testutil.DefaultSuite
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success, Try}
-
-trait Context {
-  val deviceRepo: DeviceRepo = new InMemoryDeviceRepo()
+import com.jackpf.locationhistory.server.testutil.{
+  DefaultScope,
+  DefaultSpecification
 }
+import org.specs2.collection.IsEmpty
+import org.specs2.concurrent.ExecutionEnv
 
-trait NoDevicesContext extends Context
+import scala.concurrent.Future
+import scala.util.Try
 
-trait OneDeviceContext extends Context {
-  lazy val device: Device = Device(id = DeviceId("123"), publicKey = "xxx")
-  val registerResult: Try[Unit] =
-    deviceRepo.register(device).futureValue
-}
-
-class InMemoryDeviceRepoTest extends DefaultSuite {
-  test("get a non-existing device") {
-    new NoDevicesContext {
-      val result: Option[StoredDevice] =
-        deviceRepo.get(DeviceId("non-existing")).futureValue
-
-      result mustBe None
-    }
+class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
+    extends DefaultSpecification {
+  trait Context extends DefaultScope {
+    val deviceRepo: DeviceRepo = new InMemoryDeviceRepo()
   }
 
-  test("get all on empty devices") {
-    new NoDevicesContext {
-      val result: Seq[StoredDevice] = deviceRepo.getAll.futureValue
+  trait NoDevicesContext extends Context
 
-      result mustBe Seq.empty
-    }
+  trait OneDeviceContext extends Context {
+    lazy val device: Device = Device(id = DeviceId("123"), publicKey = "xxx")
+    val registerResult: Future[Try[Unit]] =
+      deviceRepo.register(device)
   }
 
-  test("register a single device") {
-    new OneDeviceContext {
-      registerResult mustBe Success[Unit](())
+  "In memory device repo" should {
+    "get a non-existing device" >> in(new NoDevicesContext {}) { context =>
+      val result: Future[Option[StoredDevice]] =
+        context.deviceRepo.get(DeviceId("non-existing"))
+
+      result must beNone.await
     }
-  }
 
-  test("get a single device") {
-    new OneDeviceContext {
-      registerResult mustBe Success[Unit](())
+    "get all on empty devices" >> in(new NoDevicesContext {}) { context =>
+      val result: Future[Seq[StoredDevice]] = context.deviceRepo.getAll
 
-      val getResult: Option[StoredDevice] =
-        deviceRepo.get(device.id).futureValue
-
-      getResult mustBe Some(
-        StoredDevice(device = device, status = DeviceStatus.Pending)
-      )
+      result must beEmpty[Seq[StoredDevice]].await
     }
-  }
 
-  test("get all with single device") {
-    new OneDeviceContext {
-      registerResult mustBe Success[Unit](())
-
-      val getAllResult: Seq[StoredDevice] =
-        deviceRepo.getAll.futureValue
-
-      getAllResult mustBe Seq(
-        StoredDevice(device = device, status = DeviceStatus.Pending)
-      )
+    "register a single device" >> in(new OneDeviceContext {}) { context =>
+      context.registerResult must beSuccessfulTry.await
     }
-  }
 
-  test("fail on registering an existing device") {
-    new OneDeviceContext {
-      registerResult mustBe Success[Unit](())
+    "get a single device" >> in(new OneDeviceContext {}) { context =>
+      context.registerResult must beSuccessfulTry.await
 
-      val registerResult2: Try[Unit] = deviceRepo.register(device).futureValue
-      registerResult2 mustBe Failure[Unit](
-        new IllegalArgumentException(
-          "Device Device(123,xxx) is already registered"
+      val getResult: Future[Option[StoredDevice]] =
+        context.deviceRepo.get(context.device.id)
+
+      getResult must beSome(
+        StoredDevice(device = context.device, status = DeviceStatus.Pending)
+      ).await
+    }
+
+    "get all with a single device" >> in(new OneDeviceContext {}) { context =>
+      context.registerResult must beSuccessfulTry.await
+
+      val getAllResult: Future[Seq[StoredDevice]] =
+        context.deviceRepo.getAll
+
+      getAllResult must beEqualTo(
+        Seq(
+          StoredDevice(device = context.device, status = DeviceStatus.Pending)
         )
-      )
+      ).await
+    }
+
+    "fail on registering an existing device" >> in(new OneDeviceContext {}) {
+      context =>
+        context.registerResult must beSuccessfulTry.await
+
+        val registerResult2: Future[Try[Unit]] =
+          context.deviceRepo.register(context.device)
+
+        registerResult2 must beFailedTry.like {
+          case e: IllegalArgumentException =>
+            e.getMessage must beEqualTo(
+              "Device 123 is already registered"
+            )
+        }.await
     }
   }
 }
