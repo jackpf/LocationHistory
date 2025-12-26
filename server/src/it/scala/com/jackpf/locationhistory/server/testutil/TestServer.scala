@@ -24,8 +24,6 @@ object TestServer {
 
   def start(): Unit = synchronized {
     if (server == null) {
-      println("Starting server")
-
       server = new AppServer(
         TestPort,
         Services(deviceRepo, locationRepo)*
@@ -35,7 +33,6 @@ object TestServer {
 
   def stop(): Unit = synchronized {
     if (server != null) {
-      println("Stopping server")
       server.shutdown().awaitTermination(10, TimeUnit.SECONDS): Unit
     }
   }

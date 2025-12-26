@@ -1,25 +1,21 @@
 package com.jackpf.locationhistory.server.repo
 
-import com.jackpf.locationhistory.server.grpc.Errors
+import com.jackpf.locationhistory.server.errors.ApplicationErrors.DeviceAlreadyRegisteredException
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
-import com.jackpf.locationhistory.server.util.GrpcResponse.{
-  Failure,
-  GrpcTry,
-  Success
-}
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 class InMemoryDeviceRepo(using ec: ExecutionContext) extends DeviceRepo {
   private val storedDevices: mutable.Map[DeviceId.Type, StoredDevice] =
     mutable.Map.empty
 
-  override def register(device: Device): Future[GrpcTry[Unit]] =
+  override def register(device: Device): Future[Try[Unit]] =
     get(device.id).map {
       case Some(_) =>
-        Failure(Errors.deviceAlreadyRegistered(device.id))
+        Failure(DeviceAlreadyRegisteredException(device.id))
       case None =>
         val storedDevice =
           StoredDevice.fromDevice(device, status = DeviceStatus.Pending)

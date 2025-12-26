@@ -2,13 +2,13 @@ package com.jackpf.locationhistory.server.grpc
 
 import beacon.beacon_service.*
 import beacon.beacon_service.BeaconServiceGrpc.BeaconService
+import com.jackpf.locationhistory.server.errors.ApplicationErrors.NoDeviceProvidedException
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.util.Logging
-import com.jackpf.locationhistory.server.util.GrpcResponse.GrpcSuccess
-import com.jackpf.locationhistory.server.util.GrpcResponse.GrpcFailure
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class BeaconServiceImpl(
     deviceRepo: DeviceRepo,
@@ -30,8 +30,8 @@ class BeaconServiceImpl(
     request.device match {
       case Some(device) =>
         deviceRepo.register(Device.fromProto(device)).flatMap {
-          case GrpcFailure(status) => Future.failed(status.asRuntimeException())
-          case GrpcSuccess(_) => Future.successful(RegisterDeviceResponse())
+          case Failure(exception) => Future.failed(exception)
+          case Success(value)     => Future.successful(RegisterDeviceResponse())
         }
       case None =>
         Future.failed(new IllegalArgumentException("No device provided"))
@@ -54,7 +54,7 @@ class BeaconServiceImpl(
           CheckDeviceResponse(status = s)
         }
       case None =>
-        Future.failed(Errors.noDeviceProvided().asRuntimeException())
+        Future.failed(NoDeviceProvidedException())
     }
   }
 
