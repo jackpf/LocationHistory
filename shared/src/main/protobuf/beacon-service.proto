@@ -10,7 +10,7 @@ service BeaconService {
 }
 
 message Device {
-  string device_id = 1;
+  string id = 1;
   string public_key = 2;
 }
 

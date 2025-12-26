@@ -1,11 +1,16 @@
 package com.jackpf.locationhistory.server.testutil
 
-import munit.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.must.Matchers
 
-abstract class DefaultSuite extends FunSuite {
-  extension [A](actual: A) {
-
-    infix def ===(expected: A): Unit =
-      assertEquals(actual, expected)
-  }
+object DefaultSuite {
+//  object implicits {
+//    extension [A](f: Future[A]) {
+//
+//      def await(duration: Duration = Duration.Inf): A =
+//        Await.result(f, duration)
+//    }
+//  }
 }
+
+abstract class DefaultSuite extends AnyFunSuite with Matchers {}

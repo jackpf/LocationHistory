@@ -31,7 +31,7 @@ lazy val root = (project in file("."))
     ),
     // Test Dependencies
     libraryDependencies ++= Seq(
-      "org.scalameta" %% "munit" % versions.munit % "test,it",
+      "org.scalatest" %% "scalatest" % "3.2.19" % "test,it",
       "org.mockito" % "mockito-core" % versions.mockito % "test,it"
     ),
     ThisBuild / scalacOptions ++= Seq(

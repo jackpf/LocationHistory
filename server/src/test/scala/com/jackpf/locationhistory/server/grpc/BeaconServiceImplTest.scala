@@ -5,10 +5,10 @@ import beacon.beacon_service.{PingRequest, PingResponse}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.testutil.DefaultSuite
 import org.mockito.Mockito.mock
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
 
 trait Context {
   val deviceRepo: DeviceRepo = mock(classOf[DeviceRepo])
@@ -19,8 +19,7 @@ trait Context {
 
 trait PingContext extends Context {
   lazy val request: PingRequest
-  lazy val result: PingResponse =
-    Await.result(beaconService.ping(request), Duration.Inf)
+  lazy val result: PingResponse = beaconService.ping(request).futureValue
 }
 
 class BeaconServiceImplTest extends DefaultSuite {
@@ -28,7 +27,7 @@ class BeaconServiceImplTest extends DefaultSuite {
     new PingContext {
       override lazy val request: PingRequest = PingRequest()
 
-      result.message === "pong"
+      result.message mustBe "pong"
     }
   }
 
@@ -42,7 +41,7 @@ class BeaconServiceImplTest extends DefaultSuite {
 //        lon = 0.456
 //      )
 //
-//      result.ok === true
+//      result.ok mustBe true
 //    }
 //  }
 }
