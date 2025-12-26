@@ -2,33 +2,37 @@ package com.jackpf.locationhistory.server.grpc
 
 import beacon.beacon_service.BeaconServiceGrpc.BeaconService
 import beacon.beacon_service.{PingRequest, PingResponse}
-import com.jackpf.locationhistory.server.testutil.DefaultSuite
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-
-trait DefaultScope {
-  val beaconService: BeaconService = new BeaconServiceImpl
+import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
+import com.jackpf.locationhistory.server.testutil.{
+  DefaultScope,
+  DefaultSpecification
 }
+import org.mockito.Mockito.mock
+import org.specs2.concurrent.ExecutionEnv
 
-trait PingScope extends DefaultScope {
-  lazy val request: PingRequest
-  lazy val result: PingResponse =
-    Await.result(beaconService.ping(request), Duration.Inf)
-}
+import scala.concurrent.Future
 
-class BeaconServiceImplTest extends DefaultSuite {
-  test("can call ping endpoint") {
-    new PingScope {
-      override lazy val request: PingRequest = PingRequest(
-        timestamp = 123L,
-        deviceId = "mock-device-id",
-        publicKey = "mock-public-key",
-        lat = 0.123,
-        lon = 0.456
-      )
+class BeaconServiceImplTest(implicit ee: ExecutionEnv)
+    extends DefaultSpecification {
+  trait Context extends DefaultScope {
+    val deviceRepo: DeviceRepo = mock(classOf[DeviceRepo])
+    val locationRepo: LocationRepo = mock(classOf[LocationRepo])
+    val beaconService: BeaconService =
+      new BeaconServiceImpl(deviceRepo, locationRepo)
+  }
 
-      result.ok === true
+  trait PingContext extends Context {
+    lazy val request: PingRequest
+    lazy val result: Future[PingResponse] = beaconService.ping(request)
+  }
+
+  "Beacon service" should {
+    "call ping endpoint" >> {
+      val context: PingContext = new PingContext {
+        override lazy val request: PingRequest = PingRequest()
+      }
+
+      context.result.map(_.message) must be("pong").await
     }
   }
 }

@@ -1,21 +1,20 @@
 package com.jackpf.locationhistory.server
 
-import beacon.beacon_service.BeaconServiceGrpc
-import com.jackpf.locationhistory.server.grpc.BeaconServiceImpl
 import com.jackpf.locationhistory.server.util.Logging
-import io.grpc.{Server, ServerBuilder}
+import io.grpc.{Server, ServerBuilder, ServerServiceDefinition}
 
-import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters.*
 
-class AppServer(args: Args) extends Logging {
-  def listen()(using ec: ExecutionContext): Server = {
-    log.info(s"Listening on port ${args.listenPort.get}")
+class AppServer(
+    port: Int,
+    services: ServerServiceDefinition*
+) extends Logging {
+  def start(): Server = {
+    log.info(s"Listening on port ${port}")
 
     ServerBuilder
-      .forPort(args.listenPort.get)
-      .addService(
-        BeaconServiceGrpc.bindService(new BeaconServiceImpl, ec)
-      )
+      .forPort(port)
+      .addServices(services.asJava)
       .build()
       .start()
   }

@@ -1,5 +1,12 @@
 package com.jackpf.locationhistory.server
 
+import com.jackpf.locationhistory.server.grpc.Services
+import com.jackpf.locationhistory.server.repo.{
+  DeviceRepo,
+  InMemoryDeviceRepo,
+  InMemoryLocationRepo,
+  LocationRepo
+}
 import scopt.OptionParser
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -25,6 +32,12 @@ object App {
       .parse(args, Args())
       .getOrElse(throw new IllegalStateException("No config"))
 
-    new AppServer(parsedArgs).listen().awaitTermination()
+    val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
+    val locationRepo: LocationRepo = new InMemoryLocationRepo
+
+    new AppServer(
+      parsedArgs.listenPort.get,
+      Services(deviceRepo, locationRepo)*
+    ).start().awaitTermination()
   }
 }

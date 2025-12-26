@@ -9,13 +9,17 @@ lazy val versions = new {
   val scopt = "4.1.0"
   val logback = "1.5.23"
   val slf4j = "2.0.17"
-  val munit = "1.2.1"
+  val specs2 = "5.7.0"
   val mockito = "5.21.0"
 }
 
+lazy val IntegrationTest = config("it") extend Test
+
 lazy val root = (project in file("."))
+  .configs(IntegrationTest)
   .settings(
     name := "server",
+    inConfig(IntegrationTest)(Defaults.testSettings),
     libraryDependencies ++= Seq(
       "com.jackpf.locationhistory" %% "shared" % versions.sharedProtos,
       "com.thesamet.scalapb" %% "scalapb-runtime" % versions.scalapb,
@@ -27,7 +31,7 @@ lazy val root = (project in file("."))
     ),
     // Test Dependencies
     libraryDependencies ++= Seq(
-      "org.scalameta" %% "munit" % versions.munit % "test,it",
+      "org.specs2" %% "specs2-core" % versions.specs2 % "test,it",
       "org.mockito" % "mockito-core" % versions.mockito % "test,it"
     ),
     ThisBuild / scalacOptions ++= Seq(
@@ -41,7 +45,8 @@ lazy val root = (project in file("."))
       "-Xcheck-macros",
       "-Wconf:any:warning-verbose",
       "-source:future",
-      "-no-indent"
+      "-no-indent",
+      "-language:implicitConversions"
     ),
     ThisBuild / scalafmtOnCompile := true,
     ThisBuild / semanticdbEnabled := true,

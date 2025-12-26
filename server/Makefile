@@ -19,6 +19,10 @@ fmt:
 test:
 	$(SBT) test
 
+.PHONY: integration-test
+integration-test:
+	$(SBT) 'IntegrationTest / test'
+
 .PHONY: compile
 compile:
 	$(SBT) compile
