@@ -10,14 +10,14 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
-trait DefaultScope {
+trait Context  {
   val deviceRepo: DeviceRepo = mock(classOf[DeviceRepo])
   val locationRepo: LocationRepo = mock(classOf[LocationRepo])
   val beaconService: BeaconService =
     new BeaconServiceImpl(deviceRepo, locationRepo)
 }
 
-trait PingScope extends DefaultScope {
+trait PingContext extends Context {
   lazy val request: PingRequest
   lazy val result: PingResponse =
     Await.result(beaconService.ping(request), Duration.Inf)
@@ -25,7 +25,7 @@ trait PingScope extends DefaultScope {
 
 class BeaconServiceImplTest extends DefaultSuite {
   test("can call ping endpoint") {
-    new PingScope {
+    new PingContext {
       override lazy val request: PingRequest = PingRequest()
 
       result.message === "pong"

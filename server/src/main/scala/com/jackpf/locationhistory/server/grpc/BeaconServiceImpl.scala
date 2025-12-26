@@ -75,7 +75,7 @@ class BeaconServiceImpl(
             locationRepo.storeDeviceLocation(storedDevice, locationRequest)
 
             SetLocationResponse(ok = true)
-          case None => throw new RuntimeException("Device not found")
+          case None => throw new IllegalArgumentException("Device not found")
         }
       case _ =>
         // TODO Test & improve error handling/exception throwing
