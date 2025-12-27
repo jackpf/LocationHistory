@@ -6,6 +6,12 @@ import com.jackpf.locationhistory.client.util.Log;
 
 import java.io.IOException;
 
+import beacon.java.BeaconServiceGrpc;
+import beacon.java.BeaconServiceOuterClass.CheckDeviceRequest;
+import beacon.java.BeaconServiceOuterClass.CheckDeviceResponse;
+import beacon.java.BeaconServiceOuterClass.Device;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -17,21 +23,30 @@ import tools.jackson.databind.ObjectMapper;
 
 public class BeaconClient {
     private final ObjectMapper objectMapper;
+    private final BeaconServiceGrpc.BeaconServiceBlockingStub beaconService;
 
     public BeaconClient(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
 
-//        ManagedChannel channel = ManagedChannelBuilder
-//                .forAddress("localhost", TestServer.TestPort)
-//                .usePlaintext()
-//                .build();
-//
-//        BeaconServiceGrpc.BeaconServiceBlockingStub client =
-//                BeaconServiceGrpc.blockingStub(channel);
+        ManagedChannel channel = ManagedChannelBuilder
+                .forAddress("localhost", 8080)
+                .usePlaintext()
+                .build();
+
+        // TODO Make non-blocking
+        beaconService = BeaconServiceGrpc.newBlockingStub(channel);
     }
 
     public void send(BeaconRequest request) {
         Log.d("Sending location data to server: %s".formatted(request.toString()));
+
+        String deviceId = "123";
+        Device device = Device.newBuilder().setId(deviceId).build();
+        CheckDeviceResponse response = beaconService.checkDevice(
+                CheckDeviceRequest.newBuilder().setDevice(device).build()
+        );
+
+        Log.i("Check device response: %s".formatted(response.getStatus()));
 
         String json = objectMapper.writeValueAsString(request);
         RequestBody body = RequestBody.create(json, MediaType.get("application/json"));

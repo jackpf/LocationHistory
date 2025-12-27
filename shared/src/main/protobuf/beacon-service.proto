@@ -1,6 +1,8 @@
 syntax = "proto3";
-
+// TODO Change package
 package beacon;
+
+option java_package = "beacon.java";
 
 service BeaconService {
   rpc Ping(PingRequest) returns (PingResponse);
