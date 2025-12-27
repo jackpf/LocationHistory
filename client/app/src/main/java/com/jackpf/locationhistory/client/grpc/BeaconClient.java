@@ -12,7 +12,7 @@ import com.jackpf.locationhistory.RegisterDeviceRequest;
 import com.jackpf.locationhistory.RegisterDeviceResponse;
 import com.jackpf.locationhistory.SetLocationRequest;
 import com.jackpf.locationhistory.SetLocationResponse;
-import com.jackpf.locationhistory.client.util.Log;
+import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +22,8 @@ import io.grpc.ManagedChannel;
 public class BeaconClient {
     private final BeaconServiceGrpc.BeaconServiceBlockingStub beaconService;
     private final long timeoutMillis;
+
+    private final Logger log = new Logger(this);
 
     public BeaconClient(ManagedChannel channel, long timeoutMillis) {
         // TODO Make non-blocking
@@ -36,7 +38,7 @@ public class BeaconClient {
     }
 
     public void ping() throws IOException {
-        Log.d("Ping request");
+        log.d("Ping request");
 
         PingRequest pingRequest = Requests.pingRequest();
         PingResponse pingResponse = executeWrapped(() ->
@@ -44,15 +46,15 @@ public class BeaconClient {
                 "Ping request failed"
         );
 
-        Log.d("Ping response: %s".formatted(pingResponse));
+        log.d("Ping response: %s", pingResponse);
 
         if (!"pong".equals(pingResponse.getMessage())) {
-            throw new IOException("Invalid ping response: %s".formatted(pingResponse.getMessage()));
+            throw new IOException(String.format("Invalid ping response: %s", pingResponse.getMessage()));
         }
     }
 
     public DeviceStatus checkDevice(String deviceId) throws IOException {
-        Log.d("Check device request");
+        log.d("Check device request");
 
         CheckDeviceRequest checkDeviceRequest = Requests.checkDeviceRequest(deviceId);
         CheckDeviceResponse checkDeviceResponse = executeWrapped(() ->
@@ -60,13 +62,13 @@ public class BeaconClient {
                 "Check device failed"
         );
 
-        Log.d("Check device response: %s".formatted(checkDeviceResponse));
+        log.d("Check device response: %s", checkDeviceResponse);
 
         return checkDeviceResponse.getStatus();
     }
 
     public boolean registerDevice(String deviceId, String publicKey) throws IOException {
-        Log.d("Register device request");
+        log.d("Register device request");
 
         RegisterDeviceRequest registerDeviceRequest = Requests.registerDeviceRequest(deviceId, publicKey);
         RegisterDeviceResponse registerDeviceResponse = executeWrapped(() ->
@@ -74,17 +76,17 @@ public class BeaconClient {
                 "Register device failed"
         );
 
-        Log.d("Register device response: %s".formatted(registerDeviceResponse));
+        log.d("Register device response: %s", registerDeviceResponse);
 
         return registerDeviceResponse.getSuccess();
     }
 
     public boolean sendLocation(String deviceId, String publicKey, BeaconRequest request) throws IOException {
-        Log.d("Sending location request: %s".formatted(request.toString()));
+        log.d("Sending location request: %s", request.toString());
 
         DeviceStatus deviceStatus = checkDevice(deviceId);
         if (deviceStatus != DeviceStatus.DEVICE_REGISTERED) {
-            Log.w("Device %s not registered, not sending location".formatted(deviceId));
+            log.w("Device %s not registered, not sending location", deviceId);
             return false;
         }
 
@@ -100,7 +102,7 @@ public class BeaconClient {
                 "Send location failed"
         );
 
-        Log.d("Set location response: %s".formatted(setLocationResponse));
+        log.d("Set location response: %s", setLocationResponse);
 
         return setLocationResponse.getSuccess();
     }

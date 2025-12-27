@@ -1,12 +1,14 @@
 package com.jackpf.locationhistory.client.grpc.util;
 
-import com.jackpf.locationhistory.client.util.Log;
+import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
 
 import io.grpc.StatusRuntimeException;
 
 public class GrpcWrapper {
+    private static final Logger log = new Logger("GrpcWrapper");
+
     @FunctionalInterface
     public interface WrappedGrpc<T> {
         T run() throws StatusRuntimeException;
@@ -16,7 +18,7 @@ public class GrpcWrapper {
         try {
             return call.run();
         } catch (StatusRuntimeException e) {
-            Log.e(failureMessage, e);
+            log.e(failureMessage, e);
             throw new IOException(failureMessage, e);
         }
     }

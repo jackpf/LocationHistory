@@ -18,7 +18,7 @@ import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.BeaconRequest;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
-import com.jackpf.locationhistory.client.util.Log;
+import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -35,6 +35,8 @@ public class BeaconService extends Service {
     private final IBinder binder = new LocalBinder();
     private static final long CLIENT_TIMEOUT_MILLIS = 500;
 
+    private final Logger log = new Logger(this);
+
     public class LocalBinder extends Binder {
         BeaconService getService() {
             return BeaconService.this;
@@ -47,7 +49,7 @@ public class BeaconService extends Service {
     }
 
     private BeaconClient createBeaconClient() {
-        Log.d("Connecting to server %s:%d".formatted(configRepo.getServerHost(), configRepo.getServerPort()));
+        log.d("Connecting to server %s:%d", configRepo.getServerHost(), configRepo.getServerPort());
 
         try {
             ManagedChannel channel = ManagedChannelBuilder
@@ -57,7 +59,7 @@ public class BeaconService extends Service {
 
             return new BeaconClient(channel, CLIENT_TIMEOUT_MILLIS);
         } catch (IllegalArgumentException e) {
-            Log.e("Invalid server details", e);
+            log.e("Invalid server details", e);
             return null;
         }
     }
@@ -72,10 +74,10 @@ public class BeaconService extends Service {
 
         if ("".equals(currentDeviceId)) {
             String newDeviceId = UUID.randomUUID().toString();
-            Log.d("Device ID not present, setting as %s".formatted(newDeviceId));
+            log.d("Device ID not present, setting as %s", newDeviceId);
             configRepo.setDeviceId(newDeviceId);
         } else {
-            Log.d("Device ID is %s".formatted(currentDeviceId));
+            log.d("Device ID is %s", currentDeviceId);
         }
     }
 
@@ -99,7 +101,7 @@ public class BeaconService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d("Start command");
+        log.d("Start command");
         loop();
         return START_STICKY;
     }
@@ -121,19 +123,19 @@ public class BeaconService extends Service {
     }
 
     private void handleConfigUpdate(SharedPreferences sharedPreferences, String key) {
-        Log.d("Config update detected");
+        log.d("Config update detected");
         beaconClient = createBeaconClient();
     }
 
     private void handleLocationUpdate() {
-        Log.d("Update location");
+        log.d("Update location");
 
         if (PermissionsManager.hasLocationPermissions(this)) {
-            Log.d("Requesting location data");
+            log.d("Requesting location data");
 
             locationProvider.getLastLocation().addOnSuccessListener(location -> {
                 if (location != null) {
-                    Log.d("Received location data: %s".formatted(location.toString()));
+                    log.d("Received location data: %s", location.toString());
                     try {
                         getBeaconClient().sendLocation(
                                 _getDeviceId(),
@@ -141,14 +143,14 @@ public class BeaconService extends Service {
                                 BeaconRequest.fromLocation(location)
                         );
                     } catch (IOException e) {
-                        Log.e("Failed to send location", e);
+                        log.e("Failed to send location", e);
                     }
                 } else {
-                    Log.w("Received null location data");
+                    log.w("Received null location data");
                 }
             });
         } else {
-            Log.e("Missing location permissions");
+            log.e("Missing location permissions");
         }
     }
 
@@ -162,7 +164,7 @@ public class BeaconService extends Service {
     }
 
     private void persistNotification() {
-        Log.d("Starting persistent notification");
+        log.d("Starting persistent notification");
 
         NotificationChannel channel = new NotificationChannel(
                 "beacon", "Beacon", NotificationManager.IMPORTANCE_LOW);

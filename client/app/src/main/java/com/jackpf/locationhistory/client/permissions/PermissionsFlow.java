@@ -6,7 +6,7 @@ import android.content.pm.PackageManager;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
-import com.jackpf.locationhistory.client.util.Log;
+import com.jackpf.locationhistory.client.util.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,12 +20,14 @@ public class PermissionsFlow {
     private final List<String[]> permissionsSteps = new ArrayList<>();
     private Optional<Runnable> onCompleteAction;
 
+    private final Logger log = new Logger(this);
+
     public PermissionsFlow(Activity activity) {
         this.activity = activity;
     }
 
     public PermissionsFlow require(String[] permissions) {
-        Log.d("Requiring permissions %s".formatted(Arrays.toString(permissions)));
+        log.d("Requiring permissions %s", Arrays.toString(permissions));
         permissionsSteps.add(permissions);
         return this;
     }
@@ -35,19 +37,19 @@ public class PermissionsFlow {
     }
 
     public PermissionsFlow onComplete(Runnable action) {
-        Log.d("Setting onComplete action");
+        log.d("Setting onComplete action");
         onCompleteAction = Optional.of(action);
         return this;
     }
 
     private void requestPermissions(int step) {
         String[] permissions = permissionsSteps.get(step);
-        Log.d("Requesting permissions %s".formatted(Arrays.toString(permissions)));
+        log.d("Requesting permissions %s", Arrays.toString(permissions));
         ActivityCompat.requestPermissions(activity, permissions, step);
     }
 
     public void start() {
-        Log.d("Starting permissions flow");
+        log.d("Starting permissions flow");
         if (!permissionsSteps.isEmpty()) {
             requestPermissions(0);
         } else {
@@ -56,14 +58,14 @@ public class PermissionsFlow {
     }
 
     public void onRequestPermissionsResult(int code, @NonNull String[] permissions, @NonNull int[] grantResults, Function<String, Boolean> onDenied) {
-        Log.d("Handling permissions request %d".formatted(code));
+        log.d("Handling permissions request %d", code);
 
         boolean shouldContinue = true;
 
         for (int i = 0; i < grantResults.length; i++) {
             if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                 String permissionName = permissions[i];
-                Log.i("Permission %s was denied".formatted(permissionName));
+                log.i("Permission %s was denied", permissionName);
                 if (!onDenied.apply(permissionName)) {
                     shouldContinue = false;
                 }
@@ -75,7 +77,7 @@ public class PermissionsFlow {
                 requestPermissions(code + 1);
             } else onCompleteAction.ifPresent(Runnable::run);
         } else {
-            Log.w("Aborting permissions flow");
+            log.w("Aborting permissions flow");
         }
     }
 }

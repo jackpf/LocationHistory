@@ -16,7 +16,7 @@ import androidx.annotation.NonNull;
 
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.permissions.PermissionsFlow;
-import com.jackpf.locationhistory.client.util.Log;
+import com.jackpf.locationhistory.client.util.Logger;
 
 public class MainActivity extends Activity {
     private ConfigRepository configRepository;
@@ -39,12 +39,14 @@ public class MainActivity extends Activity {
     private Button testButton;
     private Button saveButton;
 
+    private final Logger log = new Logger(this);
+
     private final PermissionsFlow permissionsFlow = new PermissionsFlow(this)
             .require(new String[]{Manifest.permission.ACCESS_FINE_LOCATION})
             .thenRequire(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION})
             .thenRequire(new String[]{Manifest.permission.POST_NOTIFICATIONS})
             .onComplete(() -> {
-                Log.d("Starting foreground service");
+                log.d("Starting foreground service");
                 startForegroundService(new Intent(this, BeaconService.class));
             });
 
@@ -92,7 +94,7 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int code, @NonNull String[] permissions, @NonNull int[] grantResult) {
         super.onRequestPermissionsResult(code, permissions, grantResult);
         permissionsFlow.onRequestPermissionsResult(code, permissions, grantResult, deniedPermission -> {
-            throw new RuntimeException("Permissions %s was denied".formatted(deniedPermission));
+            throw new RuntimeException(String.format("Permissions %s was denied", deniedPermission));
         });
     }
 
