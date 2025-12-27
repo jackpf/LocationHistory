@@ -35,7 +35,7 @@ class BeaconServiceImpl(
         deviceRepo.register(Device.fromProto(device)).flatMap {
           case Failure(exception) =>
             Future.failed(exception.toGrpcError)
-          case Success(value) =>
+          case Success(_) =>
             Future.successful(RegisterDeviceResponse(success = true))
         }
       case None =>
@@ -78,12 +78,12 @@ class BeaconServiceImpl(
       deviceRepo.get(deviceId).flatMap {
         case Some(storedDevice) =>
           if (storedDevice.status == DeviceStatus.DEVICE_REGISTERED) {
-            locationRepo.storeDeviceLocation(
-              deviceId,
-              Location.fromProto(location)
-            )
-
-            Future.successful(SetLocationResponse(success = true))
+            locationRepo
+              .storeDeviceLocation(
+                deviceId,
+                Location.fromProto(location)
+              )
+              .map(_ => SetLocationResponse(success = true))
           } else {
             Future.failed(DeviceNotRegisteredException(deviceId).toGrpcError)
           }

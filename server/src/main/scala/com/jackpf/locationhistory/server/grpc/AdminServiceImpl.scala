@@ -37,8 +37,9 @@ class AdminServiceImpl(
         deviceRepo.get(DeviceId(device.id)).flatMap {
           case Some(storedDevice) =>
             if (storedDevice.status == DeviceStatus.Pending) {
-              deviceRepo.update(storedDevice.register())
-              Future.successful(ApproveDeviceResponse(success = true))
+              deviceRepo
+                .update(storedDevice.register())
+                .map(_ => ApproveDeviceResponse(success = true))
             } else {
               Future.failed(
                 InvalidDeviceStatus(
