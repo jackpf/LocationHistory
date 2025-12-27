@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.model
 
-import beacon.beacon_service.Location as ProtoLocation
+import com.jackpf.locationhistory.beacon_service.Location as ProtoLocation
 
 object Location {
   def fromProto(

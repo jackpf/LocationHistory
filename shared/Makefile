@@ -10,4 +10,4 @@ compile:
 
 .PHONY: publish
 publish:
-	$(SBT) publishLocal
+	$(SBT) publishLocal publishM2

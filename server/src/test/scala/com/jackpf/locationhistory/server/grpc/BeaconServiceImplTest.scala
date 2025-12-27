@@ -1,7 +1,7 @@
 package com.jackpf.locationhistory.server.grpc
 
-import beacon.beacon_service.BeaconServiceGrpc.BeaconService
-import beacon.beacon_service.{PingRequest, PingResponse}
+import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
+import com.jackpf.locationhistory.beacon_service.{PingRequest, PingResponse}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.testutil.{
   DefaultScope,

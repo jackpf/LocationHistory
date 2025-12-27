@@ -1,4 +1,4 @@
-package com.jackpf.locationhistory.client.http;
+package com.jackpf.locationhistory.client.grpc;
 
 import android.location.Location;
 

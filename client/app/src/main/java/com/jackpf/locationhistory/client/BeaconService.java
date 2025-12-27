@@ -5,78 +5,166 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.jackpf.locationhistory.client.http.BeaconClient;
-import com.jackpf.locationhistory.client.http.BeaconRequest;
+import com.jackpf.locationhistory.client.config.ConfigRepository;
+import com.jackpf.locationhistory.client.grpc.BeaconClient;
+import com.jackpf.locationhistory.client.grpc.BeaconRequest;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
-import com.jackpf.locationhistory.client.util.Log;
+import com.jackpf.locationhistory.client.util.Logger;
 
-import tools.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.UUID;
+
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 
 public class BeaconService extends Service {
-    // TODO Make configurable
-    private static final int BEACON_INTERVAL = 10_000;
-
+    private ConfigRepository configRepo;
+    private SharedPreferences.OnSharedPreferenceChangeListener configListener;
     private Handler handler;
     private FusedLocationProviderClient locationProvider;
     private BeaconClient beaconClient;
+    private final IBinder binder = new LocalBinder();
+    private static final long CLIENT_TIMEOUT_MILLIS = 500;
 
-    @Override
-    public void onCreate() {
-        handler = new Handler(Looper.getMainLooper());
-        locationProvider = LocationServices.getFusedLocationProviderClient(this);
-        beaconClient = new BeaconClient(new ObjectMapper());
-    }
+    private final Logger log = new Logger(this);
 
-    @Override
-    public int onStartCommand(Intent i, int f, int id) {
-        Log.d("Started");
-
-        persistNotification();
-        loop();
-        return START_STICKY;
-    }
-
-    private void loop() {
-        handler.postDelayed(() -> {
-            ping();
-            persistNotification();
-            loop();
-        }, BEACON_INTERVAL);
-    }
-
-    private void ping() {
-        Log.d("Ping");
-
-        if (PermissionsManager.hasLocationPermissions(this)) {
-            Log.d("Requesting location data");
-
-            locationProvider.getLastLocation().addOnSuccessListener(location -> {
-                if (location != null) {
-                    Log.d("Received location data: %s".formatted(location.toString()));
-                    beaconClient.send(BeaconRequest.fromLocation(location));
-                } else {
-                    Log.w("Received null location data");
-                }
-            });
-        } else {
-            Log.e("Missing location permissions");
+    public class LocalBinder extends Binder {
+        BeaconService getService() {
+            return BeaconService.this;
         }
     }
 
     @Override
     public IBinder onBind(Intent i) {
-        return null;
+        return binder;
+    }
+
+    private BeaconClient createBeaconClient() {
+        log.d("Connecting to server %s:%d", configRepo.getServerHost(), configRepo.getServerPort());
+
+        try {
+            ManagedChannel channel = ManagedChannelBuilder
+                    .forAddress(configRepo.getServerHost(), configRepo.getServerPort())
+                    .usePlaintext()
+                    .build();
+
+            return new BeaconClient(channel, CLIENT_TIMEOUT_MILLIS);
+        } catch (IllegalArgumentException e) {
+            log.e("Invalid server details", e);
+            return null;
+        }
+    }
+
+    private BeaconClient getBeaconClient() throws IOException {
+        if (beaconClient != null) return beaconClient;
+        else throw new IOException("Client not connected");
+    }
+
+    private void setDeviceIdIfNotPresent() {
+        String currentDeviceId = configRepo.getDeviceId();
+
+        if ("".equals(currentDeviceId)) {
+            String newDeviceId = UUID.randomUUID().toString();
+            log.d("Device ID not present, setting as %s", newDeviceId);
+            configRepo.setDeviceId(newDeviceId);
+        } else {
+            log.d("Device ID is %s", currentDeviceId);
+        }
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        configRepo = new ConfigRepository(this);
+        configListener = this::handleConfigUpdate;
+        configRepo.registerOnSharedPreferenceChangeListener(configListener);
+        handler = new Handler(Looper.getMainLooper());
+        locationProvider = LocationServices.getFusedLocationProviderClient(this);
+        beaconClient = createBeaconClient();
+        setDeviceIdIfNotPresent();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        configRepo.unregisterOnSharedPreferenceChangeListener(configListener);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        log.d("Start command");
+        loop();
+        return START_STICKY;
+    }
+
+    private String _getDeviceId() {
+        return configRepo.getDeviceId();
+    }
+
+    private String _getPublicKey() {
+        return configRepo.getPublicKey();
+    }
+
+    private void loop() {
+        handler.postDelayed(() -> {
+            persistNotification();
+            handleLocationUpdate();
+            loop();
+        }, configRepo.getUpdateIntervalMillis());
+    }
+
+    private void handleConfigUpdate(SharedPreferences sharedPreferences, String key) {
+        log.d("Config update detected");
+        beaconClient = createBeaconClient();
+    }
+
+    private void handleLocationUpdate() {
+        log.d("Update location");
+
+        if (PermissionsManager.hasLocationPermissions(this)) {
+            log.d("Requesting location data");
+
+            locationProvider.getLastLocation().addOnSuccessListener(location -> {
+                if (location != null) {
+                    log.d("Received location data: %s", location.toString());
+                    try {
+                        getBeaconClient().sendLocation(
+                                _getDeviceId(),
+                                _getPublicKey(),
+                                BeaconRequest.fromLocation(location)
+                        );
+                    } catch (IOException e) {
+                        log.e("Failed to send location", e);
+                    }
+                } else {
+                    log.w("Received null location data");
+                }
+            });
+        } else {
+            log.e("Missing location permissions");
+        }
+    }
+
+    public boolean testConnection() {
+        try {
+            getBeaconClient().ping();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private void persistNotification() {
-        Log.d("Starting persistent notification");
+        log.d("Starting persistent notification");
 
         NotificationChannel channel = new NotificationChannel(
                 "beacon", "Beacon", NotificationManager.IMPORTANCE_LOW);

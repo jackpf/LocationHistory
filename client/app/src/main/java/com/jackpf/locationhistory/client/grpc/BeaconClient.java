@@ -1,0 +1,109 @@
+package com.jackpf.locationhistory.client.grpc;
+
+import static com.jackpf.locationhistory.client.grpc.util.GrpcWrapper.executeWrapped;
+
+import com.jackpf.locationhistory.BeaconServiceGrpc;
+import com.jackpf.locationhistory.CheckDeviceRequest;
+import com.jackpf.locationhistory.CheckDeviceResponse;
+import com.jackpf.locationhistory.DeviceStatus;
+import com.jackpf.locationhistory.PingRequest;
+import com.jackpf.locationhistory.PingResponse;
+import com.jackpf.locationhistory.RegisterDeviceRequest;
+import com.jackpf.locationhistory.RegisterDeviceResponse;
+import com.jackpf.locationhistory.SetLocationRequest;
+import com.jackpf.locationhistory.SetLocationResponse;
+import com.jackpf.locationhistory.client.util.Logger;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import io.grpc.ManagedChannel;
+
+public class BeaconClient {
+    private final BeaconServiceGrpc.BeaconServiceBlockingStub beaconService;
+    private final long timeoutMillis;
+
+    private final Logger log = new Logger(this);
+
+    public BeaconClient(ManagedChannel channel, long timeoutMillis) {
+        // TODO Make non-blocking
+        beaconService = BeaconServiceGrpc
+                .newBlockingStub(channel);
+        this.timeoutMillis = timeoutMillis;
+    }
+
+    private BeaconServiceGrpc.BeaconServiceBlockingStub createStub() {
+        return beaconService
+                .withDeadlineAfter(timeoutMillis, TimeUnit.MILLISECONDS);
+    }
+
+    public void ping() throws IOException {
+        log.d("Ping request");
+
+        PingRequest pingRequest = Requests.pingRequest();
+        PingResponse pingResponse = executeWrapped(() ->
+                        createStub().ping(pingRequest),
+                "Ping request failed"
+        );
+
+        log.d("Ping response: %s", pingResponse);
+
+        if (!"pong".equals(pingResponse.getMessage())) {
+            throw new IOException(String.format("Invalid ping response: %s", pingResponse.getMessage()));
+        }
+    }
+
+    public DeviceStatus checkDevice(String deviceId) throws IOException {
+        log.d("Check device request");
+
+        CheckDeviceRequest checkDeviceRequest = Requests.checkDeviceRequest(deviceId);
+        CheckDeviceResponse checkDeviceResponse = executeWrapped(() ->
+                        createStub().checkDevice(checkDeviceRequest),
+                "Check device failed"
+        );
+
+        log.d("Check device response: %s", checkDeviceResponse);
+
+        return checkDeviceResponse.getStatus();
+    }
+
+    public boolean registerDevice(String deviceId, String publicKey) throws IOException {
+        log.d("Register device request");
+
+        RegisterDeviceRequest registerDeviceRequest = Requests.registerDeviceRequest(deviceId, publicKey);
+        RegisterDeviceResponse registerDeviceResponse = executeWrapped(() ->
+                        createStub().registerDevice(registerDeviceRequest),
+                "Register device failed"
+        );
+
+        log.d("Register device response: %s", registerDeviceResponse);
+
+        return registerDeviceResponse.getSuccess();
+    }
+
+    public boolean sendLocation(String deviceId, String publicKey, BeaconRequest request) throws IOException {
+        log.d("Sending location request: %s", request.toString());
+
+        DeviceStatus deviceStatus = checkDevice(deviceId);
+        if (deviceStatus != DeviceStatus.DEVICE_REGISTERED) {
+            log.w("Device %s not registered, not sending location", deviceId);
+            return false;
+        }
+
+        SetLocationRequest setLocationRequest = Requests.setLocationRequest(
+                deviceId,
+                publicKey,
+                request.getLat(),
+                request.getLon(),
+                (double) request.getAccuracy()
+        );
+        SetLocationResponse setLocationResponse = executeWrapped(() ->
+                        createStub().setLocation(setLocationRequest),
+                "Send location failed"
+        );
+
+        log.d("Set location response: %s", setLocationResponse);
+
+        return setLocationResponse.getSuccess();
+    }
+}
