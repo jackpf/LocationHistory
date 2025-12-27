@@ -1,11 +1,13 @@
 package com.jackpf.locationhistory.client;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.widget.Button;
@@ -41,15 +43,26 @@ public class MainActivity extends Activity {
 
     private final Logger log = new Logger(this);
 
-    private final PermissionsFlow permissionsFlow = new PermissionsFlow(this)
-            .require(new String[]{Manifest.permission.ACCESS_FINE_LOCATION})
-            .thenRequire(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION})
-            .thenRequire(new String[]{Manifest.permission.POST_NOTIFICATIONS})
-            .onComplete(() -> {
-                log.d("Starting foreground service");
-                startForegroundService(new Intent(this, BeaconService.class));
-            });
+    private final PermissionsFlow permissionsFlow = createPermissionsFlow();
 
+    private PermissionsFlow createPermissionsFlow() {
+        PermissionsFlow permissionsFlow = new PermissionsFlow(this);
+
+        permissionsFlow.require(new String[]{Manifest.permission.ACCESS_FINE_LOCATION});
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissionsFlow.thenRequire(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION});
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionsFlow.thenRequire(new String[]{Manifest.permission.POST_NOTIFICATIONS});
+        }
+
+        return permissionsFlow.onComplete(() -> {
+            log.d("Starting foreground service");
+            startForegroundService(new Intent(this, BeaconService.class));
+        });
+    }
+
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
