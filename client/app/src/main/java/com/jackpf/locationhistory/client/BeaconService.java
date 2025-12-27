@@ -33,6 +33,7 @@ public class BeaconService extends Service {
     private FusedLocationProviderClient locationProvider;
     private BeaconClient beaconClient;
     private final IBinder binder = new LocalBinder();
+    private static final long CLIENT_TIMEOUT_MILLIS = 500;
 
     public class LocalBinder extends Binder {
         BeaconService getService() {
@@ -54,7 +55,7 @@ public class BeaconService extends Service {
                     .usePlaintext()
                     .build();
 
-            return new BeaconClient(channel);
+            return new BeaconClient(channel, CLIENT_TIMEOUT_MILLIS);
         } catch (IllegalArgumentException e) {
             Log.e("Invalid server details", e);
             return null;
@@ -68,7 +69,7 @@ public class BeaconService extends Service {
 
     private void setDeviceIdIfNotPresent() {
         String currentDeviceId = configRepo.getDeviceId();
-        
+
         if ("".equals(currentDeviceId)) {
             String newDeviceId = UUID.randomUUID().toString();
             Log.d("Device ID not present, setting as %s".formatted(newDeviceId));

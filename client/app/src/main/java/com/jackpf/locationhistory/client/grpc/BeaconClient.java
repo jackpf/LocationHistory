@@ -15,15 +15,18 @@ import com.jackpf.locationhistory.SetLocationResponse;
 import com.jackpf.locationhistory.client.util.Log;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import io.grpc.ManagedChannel;
 
 public class BeaconClient {
     private final BeaconServiceGrpc.BeaconServiceBlockingStub beaconService;
 
-    public BeaconClient(ManagedChannel channel) {
+    public BeaconClient(ManagedChannel channel, long timeoutMillis) {
         // TODO Make non-blocking
-        beaconService = BeaconServiceGrpc.newBlockingStub(channel);
+        beaconService = BeaconServiceGrpc
+                .newBlockingStub(channel)
+                .withDeadlineAfter(timeoutMillis, TimeUnit.MILLISECONDS);
     }
 
     public void ping() throws IOException {
