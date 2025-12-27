@@ -114,6 +114,8 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
     }
 
     "delete all devices" >> in(new OneDeviceContext {}) { context =>
+      context.registerResult must beSuccessfulTry.await
+
       val result: Future[Unit] = context.deviceRepo.deleteAll()
 
       result must beEqualTo(()).await

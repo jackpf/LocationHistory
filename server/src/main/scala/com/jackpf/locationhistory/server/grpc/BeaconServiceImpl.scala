@@ -77,7 +77,6 @@ class BeaconServiceImpl(
       deviceRepo.get(deviceId).flatMap {
         case Some(storedDevice) =>
           if (storedDevice.status == DeviceStatus.DEVICE_REGISTERED) {
-
             locationRepo.storeDeviceLocation(
               deviceId,
               Location.fromProto(location)
