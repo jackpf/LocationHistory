@@ -26,6 +26,15 @@ class InMemoryDeviceRepo(using ec: ExecutionContext) extends DeviceRepo {
         Success(())
     }
 
+  override def update(storedDevice: StoredDevice): Future[Try[Unit]] =
+    get(storedDevice.device.id).map {
+      case Some(_) =>
+        storedDevices += (storedDevice.device.id -> storedDevice)
+        Success(())
+      case None =>
+        Failure(DeviceNotFoundException(storedDevice.device.id))
+    }
+
   override def get(id: DeviceId.Type): Future[Option[StoredDevice]] =
     Future.successful {
       storedDevices.get(id)

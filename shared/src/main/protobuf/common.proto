@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package com.jackpf.locationhistory;
+
+option java_multiple_files = true;
+
+message Device {
+  string id = 1;
+  string public_key = 2;
+}
+
+enum DeviceStatus {
+  DEVICE_UNKNOWN = 0;
+  DEVICE_PENDING = 1;
+  DEVICE_REGISTERED = 2;
+}
+
+message StoredDevice {
+  Device device = 1;
+  DeviceStatus status = 2;
+}
+
+message Location {
+  double lat = 1;
+  double lon = 2;
+  double accuracy = 3;
+}

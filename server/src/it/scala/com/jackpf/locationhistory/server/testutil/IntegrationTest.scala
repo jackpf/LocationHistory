@@ -7,14 +7,8 @@ import com.jackpf.locationhistory.server.repo.{
   InMemoryLocationRepo,
   LocationRepo
 }
-import com.jackpf.locationhistory.server.testutil.IntegrationTest.{
-  resetState,
-  startServer
-}
-import com.jackpf.locationhistory.server.testutil.{
-  DefaultScope,
-  DefaultSpecification
-}
+import com.jackpf.locationhistory.server.testutil.IntegrationTest.{resetState, startServer}
+import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification}
 import io.grpc.{ManagedChannel, ManagedChannelBuilder}
 import org.specs2.specification.After
 

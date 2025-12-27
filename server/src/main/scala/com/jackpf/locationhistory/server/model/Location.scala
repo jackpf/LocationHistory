@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.model
 
-import com.jackpf.locationhistory.beacon_service.Location as ProtoLocation
+import com.jackpf.locationhistory.common.Location as ProtoLocation
 
 object Location {
   def fromProto(
@@ -14,4 +14,10 @@ object Location {
   )
 }
 
-case class Location(lat: Double, lon: Double, accuracy: Double, timestamp: Long)
+case class Location(lat: Double, lon: Double, accuracy: Double, timestamp: Long) {
+  def toProto: ProtoLocation = ProtoLocation(
+    lat = lat,
+    lon = lon,
+    accuracy = accuracy
+  )
+}

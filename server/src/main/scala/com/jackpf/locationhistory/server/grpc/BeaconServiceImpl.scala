@@ -1,5 +1,6 @@
 package com.jackpf.locationhistory.server.grpc
 
+import com.jackpf.locationhistory.common.DeviceStatus
 import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
 import com.jackpf.locationhistory.beacon_service.*
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{

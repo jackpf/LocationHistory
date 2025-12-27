@@ -3,17 +3,13 @@ package com.jackpf.locationhistory.server.grpc
 import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
 import com.jackpf.locationhistory.beacon_service.{PingRequest, PingResponse}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
-import com.jackpf.locationhistory.server.testutil.{
-  DefaultScope,
-  DefaultSpecification
-}
+import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification}
 import org.mockito.Mockito.mock
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Future
 
-class BeaconServiceImplTest(implicit ee: ExecutionEnv)
-    extends DefaultSpecification {
+class BeaconServiceImplTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
   trait Context extends DefaultScope {
     val deviceRepo: DeviceRepo = mock(classOf[DeviceRepo])
     val locationRepo: LocationRepo = mock(classOf[LocationRepo])

@@ -1,17 +1,13 @@
 package com.jackpf.locationhistory.server.repo
 
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location}
-import com.jackpf.locationhistory.server.testutil.{
-  DefaultScope,
-  DefaultSpecification
-}
+import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification}
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Future
 import scala.util.Try
 
-class InMemoryLocationRepoTest(implicit ee: ExecutionEnv)
-    extends DefaultSpecification {
+class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
   trait Context extends DefaultScope {
     val locationRepo: LocationRepo = new InMemoryLocationRepo
   }
@@ -40,14 +36,13 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv)
       ).await
     }
 
-    "get empty locations by device" >> in(new StoredLocationContext {}) {
-      context =>
-        context.result must beSuccessfulTry.await
+    "get empty locations by device" >> in(new StoredLocationContext {}) { context =>
+      context.result must beSuccessfulTry.await
 
-        context.locationRepo
-          .getForDevice(DeviceId("non-existing")) must beEmpty[
-          Seq[Location]
-        ].await
+      context.locationRepo
+        .getForDevice(DeviceId("non-existing")) must beEmpty[
+        Seq[Location]
+      ].await
     }
 
     "delete all locations" >> in(new StoredLocationContext {}) { context =>

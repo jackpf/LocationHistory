@@ -1,6 +1,7 @@
 package com.jackpf.locationhistory.server
 
 import com.jackpf.locationhistory.beacon_service.*
+import com.jackpf.locationhistory.common.*
 import com.jackpf.locationhistory.server.testutil.IntegrationTest
 import io.grpc.Status.Code
 import io.grpc.StatusRuntimeException
@@ -16,40 +17,36 @@ class DeviceTest extends IntegrationTest {
       response.status === DeviceStatus.DEVICE_UNKNOWN
     }
 
-    "fail on checking an empty device" >> in(new IntegrationContext {}) {
-      context =>
-        val request =
-          CheckDeviceRequest(device = None)
+    "fail on checking an empty device" >> in(new IntegrationContext {}) { context =>
+      val request =
+        CheckDeviceRequest(device = None)
 
-        context.client.checkDevice(request) must throwA[StatusRuntimeException]
-          .like { case e =>
-            e.getStatus.getCode === Code.INVALID_ARGUMENT
-            e.getMessage must contain("No device provided")
-          }
+      context.client.checkDevice(request) must throwA[StatusRuntimeException]
+        .like { case e =>
+          e.getStatus.getCode === Code.INVALID_ARGUMENT
+          e.getMessage must contain("No device provided")
+        }
     }
 
     "register a device" >> in(new IntegrationContext {}) { context =>
       val request =
-        RegisterDeviceRequest(device =
-          Some(Device(id = "123", publicKey = "xxx"))
-        )
+        RegisterDeviceRequest(device = Some(Device(id = "123", publicKey = "xxx")))
 
       val result = context.client.registerDevice(request)
 
       result.success === true
     }
 
-    "fail registering an empty device" >> in(new IntegrationContext {}) {
-      context =>
-        val request =
-          RegisterDeviceRequest(device = None)
+    "fail registering an empty device" >> in(new IntegrationContext {}) { context =>
+      val request =
+        RegisterDeviceRequest(device = None)
 
-        context.client
-          .registerDevice(request) must throwA[StatusRuntimeException]
-          .like { case e =>
-            e.getStatus.getCode === Code.INVALID_ARGUMENT
-            e.getMessage must contain("No device provided")
-          }
+      context.client
+        .registerDevice(request) must throwA[StatusRuntimeException]
+        .like { case e =>
+          e.getStatus.getCode === Code.INVALID_ARGUMENT
+          e.getMessage must contain("No device provided")
+        }
     }
   }
 

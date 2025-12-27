@@ -10,9 +10,7 @@ object LoggingInterceptor {
   }
 }
 
-class LoggingInterceptor(level: LogLevel)
-    extends ServerInterceptor
-    with Logging {
+class LoggingInterceptor(level: LogLevel) extends ServerInterceptor with Logging {
   private def output(message: String): Unit = level match {
     case LogLevel.DEBUG => log.debug(message)
     case LogLevel.INFO  => log.info(message)

@@ -6,18 +6,14 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
 }
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
-import com.jackpf.locationhistory.server.testutil.{
-  DefaultScope,
-  DefaultSpecification
-}
+import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification}
 import org.specs2.collection.IsEmpty
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Future
 import scala.util.Try
 
-class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
-    extends DefaultSpecification {
+class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
   trait Context extends DefaultScope {
     val deviceRepo: DeviceRepo = new InMemoryDeviceRepo()
   }
@@ -44,14 +40,27 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
       result must beEmpty[Seq[StoredDevice]].await
     }
 
-    "fail on deleting a non-existing device" >> in(new NoDevicesContext {}) {
-      context =>
-        val result: Future[Try[Unit]] =
-          context.deviceRepo.delete(DeviceId("non-existing"))
+    "fail on updating a non-existing device" >> in(new NoDevicesContext {}) { context =>
+      val result: Future[Try[Unit]] =
+        context.deviceRepo.update(
+          StoredDevice(
+            device = Device(id = DeviceId("non-existing"), publicKey = "xxx"),
+            status = DeviceStatus.Registered
+          )
+        )
 
-        result must beFailedTry.like { case e: DeviceNotFoundException =>
-          e.getMessage === "Device non-existing does not exist"
-        }.await
+      result must beFailedTry.like { case e: DeviceNotFoundException =>
+        e.getMessage === "Device non-existing does not exist"
+      }.await
+    }
+
+    "fail on deleting a non-existing device" >> in(new NoDevicesContext {}) { context =>
+      val result: Future[Try[Unit]] =
+        context.deviceRepo.delete(DeviceId("non-existing"))
+
+      result must beFailedTry.like { case e: DeviceNotFoundException =>
+        e.getMessage === "Device non-existing does not exist"
+      }.await
     }
 
     "delete all on empty devices" >> in(new NoDevicesContext {}) { context =>
@@ -63,6 +72,20 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
 
     "register a single device" >> in(new OneDeviceContext {}) { context =>
       context.registerResult must beSuccessfulTry.await
+    }
+
+    "update a single device" >> in(new OneDeviceContext {}) { context =>
+      context.registerResult must beSuccessfulTry.await
+
+      for {
+        storedDevice <- context.deviceRepo.get(context.device.id)
+        updateDeviceResponse <- context.deviceRepo.update(storedDevice.map(_.register()).get)
+        updatedDevice <- context.deviceRepo.get(context.device.id)
+      } yield {
+        updateDeviceResponse must beSuccessfulTry
+        storedDevice.get.status === DeviceStatus.Pending
+        updatedDevice.get.status === DeviceStatus.Registered
+      }
     }
 
     "get a single device" >> in(new OneDeviceContext {}) { context =>
@@ -89,17 +112,15 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv)
       ).await
     }
 
-    "fail on registering an existing device" >> in(new OneDeviceContext {}) {
-      context =>
-        context.registerResult must beSuccessfulTry.await
+    "fail on registering an existing device" >> in(new OneDeviceContext {}) { context =>
+      context.registerResult must beSuccessfulTry.await
 
-        val registerResult2: Future[Try[Unit]] =
-          context.deviceRepo.register(context.device)
+      val registerResult2: Future[Try[Unit]] =
+        context.deviceRepo.register(context.device)
 
-        registerResult2 must beFailedTry.like {
-          case e: DeviceAlreadyRegisteredException =>
-            e.getMessage === "Device 123 is already registered"
-        }.await
+      registerResult2 must beFailedTry.like { case e: DeviceAlreadyRegisteredException =>
+        e.getMessage === "Device 123 is already registered"
+      }.await
     }
 
     "delete a device" >> in(new OneDeviceContext {}) { context =>

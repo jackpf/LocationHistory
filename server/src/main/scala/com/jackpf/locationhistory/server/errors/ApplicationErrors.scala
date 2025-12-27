@@ -1,6 +1,7 @@
 package com.jackpf.locationhistory.server.errors
 
 import com.jackpf.locationhistory.server.model.DeviceId
+import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import io.grpc.Status
 
 sealed abstract class ApplicationError(message: String, cause: Throwable)
@@ -23,6 +24,18 @@ object ApplicationErrors {
       deviceId: DeviceId.Type,
       cause: Throwable = None.orNull
   ) extends ApplicationError(s"Device ${deviceId} is not registered", cause) {
+    override val status: Status = Status.INVALID_ARGUMENT
+  }
+
+  case class InvalidDeviceStatus(
+      deviceId: DeviceId.Type,
+      actualState: DeviceStatus,
+      expectedState: DeviceStatus,
+      cause: Throwable = None.orNull
+  ) extends ApplicationError(
+        s"Device ${deviceId} has an invalid state; expected ${expectedState} but was ${actualState}",
+        cause
+      ) {
     override val status: Status = Status.INVALID_ARGUMENT
   }
 
