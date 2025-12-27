@@ -15,25 +15,25 @@ class InMemoryDeviceRepo(using ec: ExecutionContext) extends DeviceRepo {
   private val storedDevices: mutable.Map[DeviceId.Type, StoredDevice] =
     mutable.Map.empty
 
-  override def register(device: Device): Future[Try[Unit]] =
-    get(device.id).map {
-      case Some(_) =>
-        Failure(DeviceAlreadyRegisteredException(device.id))
-      case None =>
-        val storedDevice =
-          StoredDevice.fromDevice(device, status = DeviceStatus.Pending)
-        storedDevices += (storedDevice.device.id -> storedDevice)
-        Success(())
+  override def register(device: Device): Future[Try[Unit]] = Future.successful {
+    if (!storedDevices.contains(device.id)) {
+      val storedDevice =
+        StoredDevice.fromDevice(device, status = DeviceStatus.Pending)
+      storedDevices += (storedDevice.device.id -> storedDevice)
+      Success(())
+    } else {
+      Failure(DeviceAlreadyRegisteredException(device.id))
     }
+  }
 
-  override def update(storedDevice: StoredDevice): Future[Try[Unit]] =
-    get(storedDevice.device.id).map {
-      case Some(_) =>
-        storedDevices += (storedDevice.device.id -> storedDevice)
-        Success(())
-      case None =>
-        Failure(DeviceNotFoundException(storedDevice.device.id))
+  override def update(storedDevice: StoredDevice): Future[Try[Unit]] = Future.successful {
+    if (storedDevices.contains(storedDevice.device.id)) {
+      storedDevices += (storedDevice.device.id -> storedDevice)
+      Success(())
+    } else {
+      Failure(DeviceNotFoundException(storedDevice.device.id))
     }
+  }
 
   override def get(id: DeviceId.Type): Future[Option[StoredDevice]] =
     Future.successful {
