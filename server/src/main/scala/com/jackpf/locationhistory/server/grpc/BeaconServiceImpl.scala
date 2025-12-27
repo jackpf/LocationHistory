@@ -1,7 +1,7 @@
 package com.jackpf.locationhistory.server.grpc
 
-import beacon.beacon_service.*
-import beacon.beacon_service.BeaconServiceGrpc.BeaconService
+import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
+import com.jackpf.locationhistory.beacon_service.*
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
   DeviceNotRegisteredException,

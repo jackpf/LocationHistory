@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server
 
-import beacon.beacon_service.*
+import com.jackpf.locationhistory.beacon_service.*
 import com.jackpf.locationhistory.server.testutil.IntegrationTest
 import io.grpc.Status.Code
 import io.grpc.StatusRuntimeException

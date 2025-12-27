@@ -1,8 +1,8 @@
 syntax = "proto3";
-// TODO Change package
-package beacon;
 
-option java_package = "beacon.java";
+package com.jackpf.locationhistory;
+
+option java_multiple_files = true;
 
 service BeaconService {
   rpc Ping(PingRequest) returns (PingResponse);

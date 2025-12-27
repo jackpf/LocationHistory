@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server
 
-import beacon.beacon_service.PingRequest
+import com.jackpf.locationhistory.beacon_service.PingRequest
 import com.jackpf.locationhistory.server.testutil.IntegrationTest
 
 class PingTest extends IntegrationTest {

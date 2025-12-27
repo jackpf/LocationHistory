@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.model
 
-import beacon.beacon_service.DeviceStatus as ProtoDeviceStatus
+import com.jackpf.locationhistory.beacon_service.DeviceStatus as ProtoDeviceStatus
 
 object StoredDevice {
   enum DeviceStatus {

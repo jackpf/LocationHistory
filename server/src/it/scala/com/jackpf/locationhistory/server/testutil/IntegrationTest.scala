@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.testutil
 
-import beacon.beacon_service.BeaconServiceGrpc
+import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc
 import com.jackpf.locationhistory.server.repo.{
   DeviceRepo,
   InMemoryDeviceRepo,

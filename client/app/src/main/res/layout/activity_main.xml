@@ -5,21 +5,55 @@
     android:layout_height="match_parent">
 
     <TextView
-        android:text="Beacon server address"
-        android:textSize="18sp"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:text="Server host"
+        android:textSize="18sp" />
 
     <EditText
-        android:id="@+id/serverBox"
-        android:hint="https://100.x.y.z:8443"
-        android:inputType="textUri"
+        android:id="@+id/serverHostInput"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:hint="10.0.2.2"
+        android:inputType="textUri" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Server port"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/serverPortInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="8080"
+        android:inputType="textUri" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Update Interval"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/updateIntervalInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="60"
+        android:inputType="textUri" />
 
     <Button
-        android:id="@+id/saveBtn"
-        android:text="Save"
+        android:id="@+id/testButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:text="Test" />
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save" />
 </LinearLayout>

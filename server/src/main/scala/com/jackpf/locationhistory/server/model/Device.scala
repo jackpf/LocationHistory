@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.model
 
-import beacon.beacon_service.Device as ProtoDevice
+import com.jackpf.locationhistory.beacon_service.Device as ProtoDevice
 
 object DeviceId {
   opaque type Type = String

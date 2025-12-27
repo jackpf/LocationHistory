@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.grpc
 
-import beacon.beacon_service.BeaconServiceGrpc
+import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import io.grpc.ServerServiceDefinition
 
