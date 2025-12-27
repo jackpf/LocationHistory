@@ -51,6 +51,7 @@ dependencies {
     implementation libs.ok.http3
     implementation libs.lombok
     implementation libs.jackson.databind
+    implementation libs.shared
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core

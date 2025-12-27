@@ -20,6 +20,14 @@ public class BeaconClient {
 
     public BeaconClient(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
+
+//        ManagedChannel channel = ManagedChannelBuilder
+//                .forAddress("localhost", TestServer.TestPort)
+//                .usePlaintext()
+//                .build();
+//
+//        BeaconServiceGrpc.BeaconServiceBlockingStub client =
+//                BeaconServiceGrpc.blockingStub(channel);
     }
 
     public void send(BeaconRequest request) {

@@ -12,6 +12,7 @@ playServicesLocation = "21.3.0"
 okHttp3 = "5.3.2"
 lombok = "1.18.42"
 jackson = "3.0.3"
+sharedProtos = "0.1.0-SNAPSHOT"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +33,7 @@ play-services-location = { group = "com.google.android.gms", name = "play-servic
 ok-http3 = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okHttp3" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 jackson-databind = { group = "tools.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+shared = { group = "com.jackpf.locationhistory", name = "shared_3", version.ref = "sharedProtos" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
