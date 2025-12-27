@@ -9,11 +9,9 @@ lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
 composeBom = "2024.09.00"
 playServicesLocation = "21.3.0"
-okHttp3 = "5.3.2"
 lombok = "1.18.42"
-jackson = "3.0.3"
 sharedProtos = "0.1.0-SNAPSHOT"
-grpcNetty = "1.78.0"
+grpc = "1.78.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -31,11 +29,9 @@ androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
-ok-http3 = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okHttp3" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
-jackson-databind = { group = "tools.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 shared = { group = "com.jackpf.locationhistory", name = "shared_3", version.ref = "sharedProtos" }
-grpc-netty = { group = "io.grpc", name = "grpc-netty", version.ref = "grpcNetty" }
+grpc-netty = { group = "io.grpc", name = "grpc-netty", version.ref = "grpc" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

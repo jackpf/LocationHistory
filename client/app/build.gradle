@@ -57,9 +57,7 @@ dependencies {
     implementation libs.androidx.compose.ui.tooling.preview
     implementation libs.androidx.compose.material3
     implementation libs.play.services.location
-    implementation libs.ok.http3
     implementation libs.lombok
-    implementation libs.jackson.databind
     implementation libs.shared
     implementation libs.grpc.netty
     testImplementation libs.junit
