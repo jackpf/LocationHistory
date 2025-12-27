@@ -14,6 +14,7 @@ import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.util.Logging
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class AdminServiceImpl(
     deviceRepo: DeviceRepo,
@@ -39,7 +40,10 @@ class AdminServiceImpl(
             if (storedDevice.status == DeviceStatus.Pending) {
               deviceRepo
                 .update(storedDevice.register())
-                .map(_ => ApproveDeviceResponse(success = true))
+                .flatMap {
+                  case Failure(exception) => Future.failed(exception.toGrpcError)
+                  case Success(_) => Future.successful(ApproveDeviceResponse(success = true))
+                }
             } else {
               Future.failed(
                 InvalidDeviceStatus(
