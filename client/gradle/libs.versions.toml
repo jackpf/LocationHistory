@@ -31,7 +31,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 shared = { group = "com.jackpf.locationhistory", name = "shared_3", version.ref = "sharedProtos" }
-grpc-netty = { group = "io.grpc", name = "grpc-netty", version.ref = "grpc" }
+grpc = { group = "io.grpc", name = "grpc-okhttp", version.ref = "grpc" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
