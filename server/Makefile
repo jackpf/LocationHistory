@@ -1,6 +1,8 @@
 SBT ?= sbt
 RUN_ARGS ?=
 DOCKER ?= docker
+DOCKER_BUILD_PLATFORMS = linux/amd64,linux/arm64
+DOCKER_BUILDX = $(DOCKER) buildx create --use; $(DOCKER) buildx build --platform $(DOCKER_BUILD_PLATFORMS)
 DOCKER_PORT ?= 8080
 
 APP_NAME = jackpfarrelly/location-history-server
@@ -34,7 +36,7 @@ compile:
 
 .PHONY: package
 package: compile
-	$(DOCKER) build -t $(APP_NAME):latest .
+	$(DOCKER_BUILDX) -t $(APP_NAME):latest .
 
 .PHONY: run
 run:
@@ -46,4 +48,4 @@ docker-run: package
 
 .PHONY: docker-publish
 docker-publish: package
-	$(DOCKER) push $(APP_NAME):latest
+	$(DOCKER_BUILDX) -t $(APP_NAME):latest --push .
