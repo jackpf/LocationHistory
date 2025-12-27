@@ -22,6 +22,7 @@ import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -54,6 +55,8 @@ public class BeaconService extends Service {
         try {
             ManagedChannel channel = ManagedChannelBuilder
                     .forAddress(configRepo.getServerHost(), configRepo.getServerPort())
+                    .idleTimeout(5, TimeUnit.SECONDS)
+                    .keepAliveWithoutCalls(false)
                     .usePlaintext()
                     .build();
 
