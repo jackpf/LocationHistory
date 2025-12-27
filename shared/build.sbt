@@ -3,8 +3,7 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "3.3.7"
 
 lazy val versions = new {
-  // TODO Bump version
-  val grpcJava = "1.60.0"
+  val grpc = "1.78.0"
   val javaxAnnotation = "1.3.2"
 }
 
@@ -14,8 +13,12 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Seq(
       "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
       "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion,
+      // Force grpc version
+      "io.grpc" % "grpc-netty" % versions.grpc,
+      "io.grpc" % "grpc-protobuf" % versions.grpc,
+      "io.grpc" % "grpc-stub" % versions.grpc,
       // For Java
-      "io.grpc" % "protoc-gen-grpc-java" % versions.grpcJava asProtocPlugin,
+      "io.grpc" % "protoc-gen-grpc-java" % versions.grpc asProtocPlugin,
       "javax.annotation" % "javax.annotation-api" % versions.javaxAnnotation
     ),
     Compile / PB.targets := Seq(
