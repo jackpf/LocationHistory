@@ -25,6 +25,7 @@ lazy val root = (project in file("."))
       "com.thesamet.scalapb" %% "scalapb-runtime" % versions.scalapb,
       "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % versions.scalapb,
       "io.grpc" % "grpc-netty" % versions.grpc,
+      "io.grpc" % "grpc-services" % versions.grpc,
       "com.github.scopt" %% "scopt" % versions.scopt,
       "ch.qos.logback" % "logback-classic" % versions.logback,
       "org.slf4j" % "slf4j-api" % versions.slf4j
@@ -34,6 +35,13 @@ lazy val root = (project in file("."))
       "org.specs2" %% "specs2-core" % versions.specs2 % "test,it",
       "org.mockito" % "mockito-core" % versions.mockito % "test,it"
     ),
+    assembly / assemblyMergeStrategy := {
+      case x if x.endsWith("module-info.class") => MergeStrategy.discard
+      case x if x.endsWith("io.netty.versions.properties") => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (assembly / assemblyMergeStrategy).value
+        oldStrategy(x)
+    },
     ThisBuild / scalacOptions ++= Seq(
       "-deprecation",
       "-feature",

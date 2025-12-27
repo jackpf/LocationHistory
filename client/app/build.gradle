@@ -59,7 +59,7 @@ dependencies {
     implementation libs.play.services.location
     implementation libs.lombok
     implementation libs.shared
-    implementation libs.grpc.netty
+    implementation libs.grpc
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
