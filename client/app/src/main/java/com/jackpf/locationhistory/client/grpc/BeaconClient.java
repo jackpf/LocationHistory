@@ -21,11 +21,17 @@ import io.grpc.ManagedChannel;
 
 public class BeaconClient {
     private final BeaconServiceGrpc.BeaconServiceBlockingStub beaconService;
+    private final long timeoutMillis;
 
     public BeaconClient(ManagedChannel channel, long timeoutMillis) {
         // TODO Make non-blocking
         beaconService = BeaconServiceGrpc
-                .newBlockingStub(channel)
+                .newBlockingStub(channel);
+        this.timeoutMillis = timeoutMillis;
+    }
+
+    private BeaconServiceGrpc.BeaconServiceBlockingStub createStub() {
+        return beaconService
                 .withDeadlineAfter(timeoutMillis, TimeUnit.MILLISECONDS);
     }
 
@@ -34,7 +40,7 @@ public class BeaconClient {
 
         PingRequest pingRequest = Requests.pingRequest();
         PingResponse pingResponse = executeWrapped(() ->
-                        beaconService.ping(pingRequest),
+                        createStub().ping(pingRequest),
                 "Ping request failed"
         );
 
@@ -50,7 +56,7 @@ public class BeaconClient {
 
         CheckDeviceRequest checkDeviceRequest = Requests.checkDeviceRequest(deviceId);
         CheckDeviceResponse checkDeviceResponse = executeWrapped(() ->
-                        beaconService.checkDevice(checkDeviceRequest),
+                        createStub().checkDevice(checkDeviceRequest),
                 "Check device failed"
         );
 
@@ -64,7 +70,7 @@ public class BeaconClient {
 
         RegisterDeviceRequest registerDeviceRequest = Requests.registerDeviceRequest(deviceId, publicKey);
         RegisterDeviceResponse registerDeviceResponse = executeWrapped(() ->
-                        beaconService.registerDevice(registerDeviceRequest),
+                        createStub().registerDevice(registerDeviceRequest),
                 "Register device failed"
         );
 
@@ -90,7 +96,7 @@ public class BeaconClient {
                 (double) request.getAccuracy()
         );
         SetLocationResponse setLocationResponse = executeWrapped(() ->
-                        beaconService.setLocation(setLocationRequest),
+                        createStub().setLocation(setLocationRequest),
                 "Send location failed"
         );
 
