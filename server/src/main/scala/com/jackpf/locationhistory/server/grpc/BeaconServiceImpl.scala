@@ -10,7 +10,7 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   NoLocationProvidedException
 }
 import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
-import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location}
+import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location, StoredDevice}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.util.Logging
 
@@ -77,13 +77,16 @@ class BeaconServiceImpl(
 
       deviceRepo.get(deviceId).flatMap {
         case Some(storedDevice) =>
-          if (storedDevice.status == DeviceStatus.DEVICE_REGISTERED) {
+          if (storedDevice.status == StoredDevice.DeviceStatus.Registered) {
             locationRepo
               .storeDeviceLocation(
                 deviceId,
-                Location.fromProto(location)
+                Location.fromProto(location, timestamp = request.timestamp)
               )
-              .map(_ => SetLocationResponse(success = true))
+              .flatMap {
+                case Failure(exception) => Future.failed(exception.toGrpcError)
+                case Success(_)         => Future.successful(SetLocationResponse(success = true))
+              }
           } else {
             Future.failed(DeviceNotRegisteredException(deviceId).toGrpcError)
           }

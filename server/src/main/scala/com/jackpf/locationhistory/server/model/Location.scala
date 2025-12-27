@@ -5,7 +5,7 @@ import com.jackpf.locationhistory.common.Location as ProtoLocation
 object Location {
   def fromProto(
       proto: ProtoLocation,
-      timestamp: Long = System.currentTimeMillis()
+      timestamp: Long
   ): Location = Location(
     lat = proto.lat,
     lon = proto.lon,
