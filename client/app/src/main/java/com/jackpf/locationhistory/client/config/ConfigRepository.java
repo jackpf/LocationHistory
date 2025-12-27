@@ -6,6 +6,9 @@ import android.content.SharedPreferences;
 public class ConfigRepository {
     private final SharedPreferences prefs;
     private static final String PREFERENCES_KEY = "beacon";
+    private static final String DEVICE_ID_KEY = "device-id";
+    private static final String PRIVATE_KEY_KEY = "private-key";
+    private static final String PUBLIC_KEY_KEY = "private-key";
     private static final String SERVER_HOST_KEY = "server-host";
     private static final String SERVER_PORT_KEY = "server-port";
     private static final String UPDATE_INTERVAL_KEY = "update-interval";
@@ -20,6 +23,30 @@ public class ConfigRepository {
 
     public void unregisterOnSharedPreferenceChangeListener(SharedPreferences.OnSharedPreferenceChangeListener listener) {
         prefs.unregisterOnSharedPreferenceChangeListener(listener);
+    }
+
+    public String getDeviceId() {
+        return prefs.getString(DEVICE_ID_KEY, "");
+    }
+
+    public void setDeviceId(String deviceId) {
+        prefs.edit().putString(DEVICE_ID_KEY, deviceId).apply();
+    }
+
+    public String getPrivateKey() {
+        return prefs.getString(PRIVATE_KEY_KEY, "");
+    }
+
+    public void setPrivateKey(String privateKey) {
+        prefs.edit().putString(PRIVATE_KEY_KEY, privateKey).apply();
+    }
+
+    public String getPublicKey() {
+        return prefs.getString(PUBLIC_KEY_KEY, "");
+    }
+
+    public void setPublicKey(String publicKey) {
+        prefs.edit().putString(PUBLIC_KEY_KEY, publicKey).apply();
     }
 
     public String getServerHost() {

@@ -21,6 +21,7 @@ import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.util.Log;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -65,6 +66,18 @@ public class BeaconService extends Service {
         else throw new IOException("Client not connected");
     }
 
+    private void setDeviceIdIfNotPresent() {
+        String currentDeviceId = configRepo.getDeviceId();
+        
+        if ("".equals(currentDeviceId)) {
+            String newDeviceId = UUID.randomUUID().toString();
+            Log.d("Device ID not present, setting as %s".formatted(newDeviceId));
+            configRepo.setDeviceId(newDeviceId);
+        } else {
+            Log.d("Device ID is %s".formatted(currentDeviceId));
+        }
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -74,6 +87,7 @@ public class BeaconService extends Service {
         handler = new Handler(Looper.getMainLooper());
         locationProvider = LocationServices.getFusedLocationProviderClient(this);
         beaconClient = createBeaconClient();
+        setDeviceIdIfNotPresent();
     }
 
     @Override
@@ -90,13 +104,11 @@ public class BeaconService extends Service {
     }
 
     private String _getDeviceId() {
-        // TODO Get real
-        return "123";
+        return configRepo.getDeviceId();
     }
 
     private String _getPublicKey() {
-        // TODO Get real
-        return "xxx";
+        return configRepo.getPublicKey();
     }
 
     private void loop() {
