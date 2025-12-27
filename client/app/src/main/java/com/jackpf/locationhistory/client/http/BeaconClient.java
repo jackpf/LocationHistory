@@ -10,6 +10,8 @@ import beacon.java.BeaconServiceGrpc;
 import beacon.java.BeaconServiceOuterClass.CheckDeviceRequest;
 import beacon.java.BeaconServiceOuterClass.CheckDeviceResponse;
 import beacon.java.BeaconServiceOuterClass.Device;
+import beacon.java.BeaconServiceOuterClass.RegisterDeviceRequest;
+import beacon.java.BeaconServiceOuterClass.RegisterDeviceResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import okhttp3.Call;
@@ -29,7 +31,7 @@ public class BeaconClient {
         this.objectMapper = objectMapper;
 
         ManagedChannel channel = ManagedChannelBuilder
-                .forAddress("localhost", 8080)
+                .forAddress("10.0.2.2", 8080)
                 .usePlaintext()
                 .build();
 
@@ -42,11 +44,14 @@ public class BeaconClient {
 
         String deviceId = "123";
         Device device = Device.newBuilder().setId(deviceId).build();
-        CheckDeviceResponse response = beaconService.checkDevice(
+        CheckDeviceResponse checkDeviceResponse = beaconService.checkDevice(
                 CheckDeviceRequest.newBuilder().setDevice(device).build()
         );
-
-        Log.i("Check device response: %s".formatted(response.getStatus()));
+        Log.i("Check device response: %s".formatted(checkDeviceResponse.getStatus()));
+        RegisterDeviceResponse registerDeviceResponse = beaconService.registerDevice(
+                RegisterDeviceRequest.newBuilder().setDevice(device).build()
+        );
+        Log.i("Register device response: %s".formatted(registerDeviceResponse.getSuccess()));
 
         String json = objectMapper.writeValueAsString(request);
         RequestBody body = RequestBody.create(json, MediaType.get("application/json"));
