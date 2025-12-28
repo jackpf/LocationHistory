@@ -53,6 +53,7 @@ public class BeaconService extends Service {
     }
 
     private BeaconClient createBeaconClient() {
+        System.out.println("Hello");
         log.d("Connecting to server %s:%d", configRepo.getServerHost(), configRepo.getServerPort());
 
         try {
