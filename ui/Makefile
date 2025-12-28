@@ -10,6 +10,7 @@ init:
 	npm install -D @types/leaflet
 	npm install --save-dev ts-proto
 	npm install --save nice-grpc-web
+	npm install vite-plugin-checker typescript --save-dev
 
 .PHONY: build-protos
 .PHONY: build-protos
