@@ -82,14 +82,7 @@ public class BeaconClient {
     }
 
     public boolean sendLocation(String deviceId, String publicKey, BeaconRequest request) throws IOException {
-        log.d("Sending location request: %s", request.toString());
-
-        DeviceStatus deviceStatus = checkDevice(deviceId);
-        if (deviceStatus != DeviceStatus.DEVICE_REGISTERED) {
-            log.w("Device %s not registered, not sending location", deviceId);
-            return false;
-        }
-
+        log.d("Set location request: %s", request.toString());
         SetLocationRequest setLocationRequest = Requests.setLocationRequest(
                 deviceId,
                 publicKey,
@@ -101,7 +94,6 @@ public class BeaconClient {
                         createStub().setLocation(setLocationRequest),
                 "Send location failed"
         );
-
         log.d("Set location response: %s", setLocationResponse);
 
         return setLocationResponse.getSuccess();

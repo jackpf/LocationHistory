@@ -1,19 +1,16 @@
 package com.jackpf.locationhistory.server.repo
 
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location}
-import com.jackpf.locationhistory.server.testutil.{
-  DefaultScope,
-  DefaultSpecification
-}
+import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification}
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Future
 import scala.util.Try
 
-class InMemoryLocationRepoTest(implicit ee: ExecutionEnv)
-    extends DefaultSpecification {
+class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
   trait Context extends DefaultScope {
-    val locationRepo: LocationRepo = new InMemoryLocationRepo
+    lazy val maxItemsPerDevice: Long = InMemoryLocationRepo.DefaultMaxItemsPerDevice
+    val locationRepo: LocationRepo = new InMemoryLocationRepo(maxItemsPerDevice)
   }
 
   trait StoredLocationContext extends Context {
@@ -40,14 +37,13 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv)
       ).await
     }
 
-    "get empty locations by device" >> in(new StoredLocationContext {}) {
-      context =>
-        context.result must beSuccessfulTry.await
+    "get empty locations by device" >> in(new StoredLocationContext {}) { context =>
+      context.result must beSuccessfulTry.await
 
-        context.locationRepo
-          .getForDevice(DeviceId("non-existing")) must beEmpty[
-          Seq[Location]
-        ].await
+      context.locationRepo
+        .getForDevice(DeviceId("non-existing")) must beEmpty[
+        Seq[Location]
+      ].await
     }
 
     "delete all locations" >> in(new StoredLocationContext {}) { context =>
@@ -57,6 +53,40 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv)
 
       context.locationRepo
         .getForDevice(context.device.id) must beEmpty[Seq[Location]].await
+    }
+
+    "limit items per device" >> in(new Context {
+      override lazy val maxItemsPerDevice: Long = 4
+    }) { context =>
+      val deviceId = DeviceId("123")
+
+      def storeLocation(ts: Long): Future[Try[Unit]] =
+        context.locationRepo.storeDeviceLocation(
+          deviceId,
+          Location(timestamp = ts, lat = 0.1, lon = 0.2, accuracy = 0.3)
+        )
+
+      {
+        for {
+          _ <- storeLocation(1L)
+          _ <- storeLocation(2L)
+          _ <- storeLocation(3L)
+          _ <- storeLocation(4L)
+          _ <- storeLocation(5L)
+          _ <- storeLocation(6L)
+          locations <- context.locationRepo.getForDevice(deviceId)
+        } yield {
+          locations must haveSize(4)
+          locations.map(_.timestamp) must beEqualTo(
+            Seq(
+              3L,
+              4L,
+              5L,
+              6L
+            )
+          )
+        }
+      }.await
     }
   }
 }

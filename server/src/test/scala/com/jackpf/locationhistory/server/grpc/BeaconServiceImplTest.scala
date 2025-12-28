@@ -1,19 +1,23 @@
 package com.jackpf.locationhistory.server.grpc
 
 import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
-import com.jackpf.locationhistory.beacon_service.{PingRequest, PingResponse}
+import com.jackpf.locationhistory.beacon_service.*
+import com.jackpf.locationhistory.common.{Device, DeviceStatus, Location}
+import com.jackpf.locationhistory.server.errors.ApplicationErrors.DeviceNotFoundException
+import com.jackpf.locationhistory.server.model
+import com.jackpf.locationhistory.server.model.{DeviceId, StoredDevice}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
-import com.jackpf.locationhistory.server.testutil.{
-  DefaultScope,
-  DefaultSpecification
-}
-import org.mockito.Mockito.mock
+import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification, GrpcMatchers}
+import io.grpc.Status.Code
+import org.mockito.Mockito.{mock, when}
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 class BeaconServiceImplTest(implicit ee: ExecutionEnv)
-    extends DefaultSpecification {
+    extends DefaultSpecification
+    with GrpcMatchers {
   trait Context extends DefaultScope {
     val deviceRepo: DeviceRepo = mock(classOf[DeviceRepo])
     val locationRepo: LocationRepo = mock(classOf[LocationRepo])
@@ -21,18 +25,200 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
       new BeaconServiceImpl(deviceRepo, locationRepo)
   }
 
-  trait PingContext extends Context {
-    lazy val request: PingRequest
-    lazy val result: Future[PingResponse] = beaconService.ping(request)
-  }
-
   "Beacon service" should {
-    "call ping endpoint" >> {
-      val context: PingContext = new PingContext {
-        override lazy val request: PingRequest = PingRequest()
+    "ping endpoint" >> {
+      trait PingContext extends Context {
+        lazy val request: PingRequest
+        lazy val result: Future[PingResponse] = beaconService.ping(request)
       }
 
-      context.result.map(_.message) must be("pong").await
+      "call ping endpoint" >> in(new PingContext {
+        override lazy val request: PingRequest = PingRequest()
+      }) { context =>
+        context.result must beEqualTo(PingResponse(message = "pong")).await
+      }
+    }
+
+    "register device endpoint" >> {
+      trait RegisterDeviceContext extends Context {
+        lazy val device: Option[Device] = Some(Device(id = "123", publicKey = "xxx"))
+        lazy val expectedDevice: model.Device =
+          model.Device(id = DeviceId("123"), publicKey = "xxx")
+
+        lazy val registerResponse: Future[Try[Unit]]
+        when(deviceRepo.register(expectedDevice)).thenReturn(registerResponse)
+
+        lazy val request: RegisterDeviceRequest = RegisterDeviceRequest(device = device)
+        lazy val result: Future[RegisterDeviceResponse] = beaconService.registerDevice(request)
+      }
+
+      "register a device" >> in(new RegisterDeviceContext {
+        override lazy val registerResponse: Future[Try[Unit]] = Future.successful(Success(()))
+      }) { context =>
+        context.result must beEqualTo(RegisterDeviceResponse(success = true)).await
+      }
+
+      "fail on empty device" >> in(new RegisterDeviceContext {
+        override lazy val device: Option[Device] = None
+        override lazy val registerResponse: Future[Try[Unit]] = null
+      }) { context =>
+        context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No device provided").await
+      }
+
+      "propagate errors" >> in(new RegisterDeviceContext {
+        override lazy val registerResponse: Future[Try[Unit]] = Future.successful(
+          Failure(
+            DeviceNotFoundException(DeviceId("123"))
+          )
+        )
+      }) { context =>
+        context.result must throwAGrpcException(Code.NOT_FOUND, "Device 123 does not exist").await
+      }
+    }
+
+    "check device endpoint" >> {
+      trait CheckDeviceContext extends Context {
+        lazy val device: Option[Device] = Some(Device(id = "123", publicKey = "xxx"))
+
+        lazy val getResponse: Future[Option[StoredDevice]]
+        if (device.isDefined) {
+          when(deviceRepo.get(DeviceId(device.get.id))).thenReturn(getResponse): Unit
+        }
+
+        lazy val request: CheckDeviceRequest = CheckDeviceRequest(device = device)
+        lazy val result: Future[CheckDeviceResponse] = beaconService.checkDevice(request)
+      }
+
+      "get a device" >> in(new CheckDeviceContext {
+        override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
+          Some(
+            StoredDevice(
+              device = model.Device.fromProto(device.get),
+              status = StoredDevice.DeviceStatus.Registered
+            )
+          )
+        )
+      }) { context =>
+        context.result must beEqualTo(
+          CheckDeviceResponse(status = DeviceStatus.DEVICE_REGISTERED)
+        ).await
+      }
+
+      "return unknown status for not-found device" >> in(new CheckDeviceContext {
+        override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(None)
+      }) { context =>
+        context.result must beEqualTo(
+          CheckDeviceResponse(status = DeviceStatus.DEVICE_UNKNOWN)
+        ).await
+      }
+
+      "fail on empty device" >> in(new CheckDeviceContext {
+        override lazy val device: Option[Device] = None
+        override lazy val getResponse: Future[Option[StoredDevice]] = null
+      }) { context =>
+        context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No device provided").await
+      }
+    }
+
+    "set location endpoint" >> {
+      trait SetLocationContext extends Context {
+        lazy val timestamp: Long = 123L
+        lazy val device: Option[Device] = Some(Device(id = "123", publicKey = "xxx"))
+        lazy val location: Option[Location] = Some(Location(lat = 0.1, lon = 0.2, accuracy = 0.3))
+
+        lazy val getResponse: Future[Option[StoredDevice]]
+        if (device.isDefined) {
+          when(deviceRepo.get(DeviceId(device.get.id))).thenReturn(getResponse): Unit
+        }
+
+        lazy val storeDeviceLocationResponse: Future[Try[Unit]]
+        if (device.isDefined && location.isDefined) {
+          when(
+            locationRepo
+              .storeDeviceLocation(
+                DeviceId(device.get.id),
+                model.Location.fromProto(location.get, timestamp)
+              )
+          ).thenReturn(storeDeviceLocationResponse): Unit
+        }
+
+        lazy val request: SetLocationRequest =
+          SetLocationRequest(timestamp = timestamp, device = device, location = location)
+        lazy val result: Future[SetLocationResponse] = beaconService.setLocation(request)
+      }
+
+      "set a device location" >> in(new SetLocationContext {
+        override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
+          Some(
+            StoredDevice(
+              device = model.Device.fromProto(device.get),
+              status = StoredDevice.DeviceStatus.Registered
+            )
+          )
+        )
+        override lazy val storeDeviceLocationResponse: Future[Try[Unit]] =
+          Future.successful(Success(()))
+      }) { context =>
+        context.result must beEqualTo(SetLocationResponse(success = true)).await
+      }
+
+      "fail on empty device" >> in(new SetLocationContext {
+        override lazy val device: Option[Device] = None
+        override lazy val getResponse: Future[Option[StoredDevice]] = null
+        override lazy val storeDeviceLocationResponse: Future[Try[Unit]] = null
+      }) { context =>
+        context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No device provided").await
+      }
+
+      "fail on empty location" >> in(new SetLocationContext {
+        override lazy val location: Option[Location] = None
+        override lazy val getResponse: Future[Option[StoredDevice]] = null
+        override lazy val storeDeviceLocationResponse: Future[Try[Unit]] = null
+      }) { context =>
+        context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No location provided").await
+      }
+
+      "fail on unregistered device" >> in(new SetLocationContext {
+        override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
+          Some(
+            StoredDevice(
+              device = model.Device.fromProto(device.get),
+              status = StoredDevice.DeviceStatus.Pending
+            )
+          )
+        )
+        override lazy val storeDeviceLocationResponse: Future[Try[Unit]] = null
+      }) { context =>
+        context.result must throwAGrpcException(
+          Code.INVALID_ARGUMENT,
+          "Device 123 is not registered"
+        ).await
+      }
+
+      "fail on missing device" >> in(new SetLocationContext {
+        override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(None)
+        override lazy val storeDeviceLocationResponse: Future[Try[Unit]] = null
+      }) { context =>
+        context.result must throwAGrpcException(
+          Code.NOT_FOUND,
+          "Device 123 does not exist"
+        ).await
+      }
+
+      "propagate errors" >> in(new SetLocationContext {
+        override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
+          Some(
+            StoredDevice(
+              device = model.Device.fromProto(device.get),
+              status = StoredDevice.DeviceStatus.Registered
+            )
+          )
+        )
+        override lazy val storeDeviceLocationResponse: Future[Try[Unit]] =
+          Future.successful(Failure(DeviceNotFoundException(DeviceId("123"))))
+      }) { context =>
+        context.result must throwAGrpcException(Code.NOT_FOUND, "Device 123 does not exist").await
+      }
     }
   }
 }

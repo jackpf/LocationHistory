@@ -14,6 +14,7 @@ import android.os.Looper;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.jackpf.locationhistory.DeviceStatus;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.BeaconRequest;
@@ -34,6 +35,8 @@ public class BeaconService extends Service {
     private BeaconClient beaconClient;
     private final IBinder binder = new LocalBinder();
     private static final long CLIENT_TIMEOUT_MILLIS = 500;
+    // True if device state has been detected as ready - we no longer check once we detect this
+    private boolean deviceStateReady = false;
 
     private final Logger log = new Logger(this);
 
@@ -114,10 +117,45 @@ public class BeaconService extends Service {
         return configRepo.getPublicKey();
     }
 
+    public boolean checkDeviceState(String deviceId, String publicKey) {
+        // Device has been detected as registered & ready - no need to check again
+        if (deviceStateReady) {
+            return true;
+        }
+
+        try {
+            DeviceStatus deviceStatus = getBeaconClient().checkDevice(deviceId);
+            switch (deviceStatus) {
+                case DEVICE_REGISTERED:
+                    log.d("Device %s is registered, device state ready", deviceId);
+                    deviceStateReady = true;
+                    break;
+                case DEVICE_PENDING:
+                    log.d("Device %s is pending registration", deviceId);
+                    deviceStateReady = false;
+                    break;
+                case DEVICE_UNKNOWN:
+                default:
+                    log.d("Device %s not found, registering as new", deviceId);
+                    if (!getBeaconClient().registerDevice(deviceId, publicKey)) {
+                        log.e("Device registration unsuccessful");
+                    }
+                    deviceStateReady = false;
+                    break;
+            }
+        } catch (IOException e) {
+            log.e("Check device error", e);
+            deviceStateReady = false;
+        }
+        return deviceStateReady;
+    }
+
     private void loop() {
         handler.postDelayed(() -> {
             persistNotification();
-            handleLocationUpdate();
+            if (checkDeviceState(configRepo.getDeviceId(), configRepo.getPublicKey()) && PermissionsManager.hasLocationPermissions(this)) {
+                handleLocationUpdate();
+            }
             loop();
         }, configRepo.getUpdateIntervalMillis());
     }
@@ -128,43 +166,32 @@ public class BeaconService extends Service {
     }
 
     private void handleLocationUpdate() {
-        log.d("Update location");
+        log.d("Updating location");
 
-        if (PermissionsManager.hasLocationPermissions(this)) {
-            log.d("Requesting location data");
-
-            locationProvider.getLastLocation().addOnSuccessListener(location -> {
-                if (location != null) {
-                    log.d("Received location data: %s", location.toString());
-                    try {
-                        getBeaconClient().sendLocation(
-                                _getDeviceId(),
-                                _getPublicKey(),
-                                BeaconRequest.fromLocation(location)
-                        );
-                    } catch (IOException e) {
-                        log.e("Failed to send location", e);
-                    }
-                } else {
-                    log.w("Received null location data");
+        locationProvider.getLastLocation().addOnSuccessListener(location -> {
+            if (location != null) {
+                log.d("Received location data: %s", location.toString());
+                try {
+                    getBeaconClient().sendLocation(
+                            _getDeviceId(),
+                            _getPublicKey(),
+                            BeaconRequest.fromLocation(location)
+                    );
+                } catch (IOException e) {
+                    log.e("Failed to send location", e);
                 }
-            });
-        } else {
-            log.e("Missing location permissions");
-        }
+            } else {
+                log.w("Received null location data");
+            }
+        });
     }
 
-    public boolean testConnection() {
-        try {
-            getBeaconClient().ping();
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
+    public void testConnection() throws IOException {
+        getBeaconClient().ping();
     }
 
     private void persistNotification() {
-        log.d("Starting persistent notification");
+        log.d("Updating persistent notification");
 
         NotificationChannel channel = new NotificationChannel(
                 "beacon", "Beacon", NotificationManager.IMPORTANCE_LOW);
