@@ -20,6 +20,8 @@ import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.permissions.PermissionsFlow;
 import com.jackpf.locationhistory.client.util.Logger;
 
+import java.io.IOException;
+
 public class MainActivity extends Activity {
     private ConfigRepository configRepository;
     private BeaconService beaconService;
@@ -91,9 +93,12 @@ public class MainActivity extends Activity {
             return;
         }
 
-        boolean success = beaconService.testConnection();
-        String message = success ? "Connection successful" : "Connection failed";
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        try {
+            beaconService.testConnection();
+            Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Toast.makeText(this, String.format("Connection failed: %s", e.getMessage()), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void handleSaveClick() {
