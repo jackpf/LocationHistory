@@ -2,17 +2,6 @@ PROTO_DIR = ../shared/src/main/protobuf
 OUT_DIR = ./client/src/gen
 PLUGIN_PATH = $(PWD)/node_modules/.bin/protoc-gen-ts_proto
 
-.PHONY: init
-init:
-	npm create vite@latest . -- --template react-ts
-	npm install
-	npm install leaflet react-leaflet
-	npm install -D @types/leaflet
-	npm install --save-dev ts-proto
-	npm install --save nice-grpc-web
-	npm install vite-plugin-checker typescript --save-dev
-
-.PHONY: build-protos
 .PHONY: build-protos
 build-protos:
 	mkdir -p ./client/src/gen
