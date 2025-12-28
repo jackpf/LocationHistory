@@ -24,12 +24,12 @@ build-protos:
 .PHONY: proxy
 proxy:
 	docker build -t grpc-proxy ./proxy
-	docker run \
+	docker run --rm \
 		-p 9123:8080 \
 		--name grpc-proxy \
 		--add-host host.docker.internal:host-gateway \
 		grpc-proxy \
-		--backend_addr=host.docker.internal:8080 \
+		--backend_addr=100.103.216.83:9123 \
 		--run_tls_server=false \
 		--allow_all_origins
 

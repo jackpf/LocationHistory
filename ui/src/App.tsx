@@ -1,18 +1,10 @@
-import React, { useState, useEffect } from 'react'
-import { MapContainer, TileLayer, Polyline, Circle, CircleMarker, Popup } from 'react-leaflet'
+import React, {useEffect, useState} from 'react'
+import {Circle, CircleMarker, MapContainer, Polyline, Popup, TileLayer} from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import './App.css'
-import { adminClient } from './admin-client'
-import { Metadata } from 'nice-grpc-web'
-
-// 1. Define your types (Scala: case class LocationResponse(...))
-interface LocationPoint {
-    id: number;
-    lat: number;
-    lng: number;
-    accuracy: number;
-    timestamp: string;
-}
+import {Metadata} from 'nice-grpc-web'
+import type {LocationPoint} from './model/location-point'
+import {adminClient} from './grpc/admin-client'
 
 function App() {
     // 2. State is now typed: useState<LocationPoint[]>
@@ -28,11 +20,9 @@ function App() {
             // console.log(devicesResponse);
             const locationsResponse = await adminClient.listLocations({
                 device: {
-                    id: "617246ba-04ef-4486-a188-07a77154091c",
+                    id: "85c51331-4212-48cb-bb88-7949533b9217",
                     publicKey: "xxx" // Notice: public_key becomes publicKey
                 }
-            }, {
-                metadata: Metadata({ 'authorization': 'Bearer admin' })
             });
             console.log(locationsResponse);
 
@@ -50,14 +40,6 @@ function App() {
             setHistory(data);
         };
         fetchData();
-
-        // Mock fetching data
-        // const data: LocationPoint[] = [
-        //     { id: 1, lat: 51.505, lon: -0.09, accuracy: 25, timestamp: "10:00 AM" },
-        //     { id: 2, lat: 51.51,  lon: -0.1, accuracy: 50,  timestamp: "10:05 AM" },
-        //     { id: 3, lat: 51.51,  lon: -0.12, accuracy: 200, timestamp: "10:10 AM" },
-        // ];
-        // setHistory(data);
     }, []);
 
     // 3. Transform data for the Polyline
