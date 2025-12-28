@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, Polyline, Circle, CircleMarker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import './App.css'
+import { adminClient } from './admin-client'
 
 // 1. Define your types (Scala: case class LocationResponse(...))
 interface LocationPoint {
@@ -17,6 +18,14 @@ function App() {
     const [history, setHistory] = useState<LocationPoint[]>([]);
 
     useEffect(() => {
+        const fetchData = async () => {
+            console.log("Fetching data");
+            // Looks like a normal async function!
+            const response = await adminClient.getDevices({ deviceId: "123" });
+            console.log(response.locations);
+        };
+        fetchData();
+
         // Mock fetching data
         const data: LocationPoint[] = [
             { id: 1, lat: 51.505, lon: -0.09, accuracy: 25, timestamp: "10:00 AM" },
