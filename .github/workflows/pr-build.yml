@@ -49,9 +49,17 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: sbt
+
+      - uses: sbt/setup-sbt@v1
+        with:
+          sbt-runner-version: 1.11.7
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Shared
+        run: make -C shared compile publish
 
       - name: Build
         run: make -C client build-debug
