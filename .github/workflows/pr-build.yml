@@ -60,7 +60,7 @@ jobs:
 
   build-client:
     needs: changes
-    if: ${{ needs.changes.outputs.server == 'true' }}
+    if: ${{ needs.changes.outputs.client == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
