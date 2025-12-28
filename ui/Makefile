@@ -2,6 +2,10 @@ PROTO_DIR = ../shared/src/main/protobuf
 OUT_DIR = ./client/src/gen
 PLUGIN_PATH = $(PWD)/node_modules/.bin/protoc-gen-ts_proto
 
+.PHONY: init
+init:
+	npm create vite@latest . -- --template react-ts
+
 .PHONY: build-protos
 build-protos:
 	mkdir -p ./client/src/gen
