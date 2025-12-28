@@ -12,8 +12,11 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 
+import com.google.android.gms.location.CurrentLocationRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.tasks.CancellationTokenSource;
 import com.jackpf.locationhistory.DeviceStatus;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
@@ -38,6 +41,7 @@ public class BeaconService extends Service {
     private static final long CLIENT_TIMEOUT_MILLIS = 10_000;
     // True if device state has been detected as ready - we no longer check once we detect this
     private boolean deviceStateReady = false;
+    CancellationTokenSource locationRequestCancellationToken = new CancellationTokenSource();
 
     private final Logger log = new Logger(this);
 
@@ -103,6 +107,7 @@ public class BeaconService extends Service {
     public void onDestroy() {
         super.onDestroy();
         configRepo.unregisterOnSharedPreferenceChangeListener(configListener);
+        locationRequestCancellationToken.cancel();
     }
 
     @Override
@@ -171,7 +176,15 @@ public class BeaconService extends Service {
     private void handleLocationUpdate() {
         log.d("Updating location");
 
-        locationProvider.getLastLocation().addOnSuccessListener(location -> {
+        // TODO Refactor into a location service
+        CurrentLocationRequest request = new CurrentLocationRequest.Builder()
+                // TODO Parameterise
+                .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY)
+                // TODO Parameterise
+                .setDurationMillis(10000)
+                .build();
+
+        locationProvider.getCurrentLocation(request, locationRequestCancellationToken.getToken()).addOnSuccessListener(location -> {
             if (location != null) {
                 log.d("Received location data: %s", location.toString());
                 try {
