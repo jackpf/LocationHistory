@@ -1,5 +1,6 @@
 package com.jackpf.locationhistory.server.grpc
 
+import com.jackpf.locationhistory.common.DeviceStatus
 import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
 import com.jackpf.locationhistory.beacon_service.*
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
@@ -9,7 +10,7 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   NoLocationProvidedException
 }
 import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
-import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location}
+import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location, StoredDevice}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.util.Logging
 
@@ -34,7 +35,7 @@ class BeaconServiceImpl(
         deviceRepo.register(Device.fromProto(device)).flatMap {
           case Failure(exception) =>
             Future.failed(exception.toGrpcError)
-          case Success(value) =>
+          case Success(_) =>
             Future.successful(RegisterDeviceResponse(success = true))
         }
       case None =>
@@ -76,13 +77,16 @@ class BeaconServiceImpl(
 
       deviceRepo.get(deviceId).flatMap {
         case Some(storedDevice) =>
-          if (storedDevice.status == DeviceStatus.DEVICE_REGISTERED) {
-            locationRepo.storeDeviceLocation(
-              deviceId,
-              Location.fromProto(location)
-            )
-
-            Future.successful(SetLocationResponse(success = true))
+          if (storedDevice.status == StoredDevice.DeviceStatus.Registered) {
+            locationRepo
+              .storeDeviceLocation(
+                deviceId,
+                Location.fromProto(location, timestamp = request.timestamp)
+              )
+              .flatMap {
+                case Failure(exception) => Future.failed(exception.toGrpcError)
+                case Success(_)         => Future.successful(SetLocationResponse(success = true))
+              }
           } else {
             Future.failed(DeviceNotRegisteredException(deviceId).toGrpcError)
           }

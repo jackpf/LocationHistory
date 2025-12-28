@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package com.jackpf.locationhistory;
+
+option java_multiple_files = true;
+
+import "common.proto";
+
+service AdminService {
+  rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
+  rpc ApproveDevice(ApproveDeviceRequest) returns (ApproveDeviceResponse);
+  rpc ListLocations(ListLocationsRequest) returns (ListLocationsResponse);
+}
+
+message ListDevicesRequest {
+}
+
+message ListDevicesResponse {
+  repeated StoredDevice devices = 1;
+}
+
+message ApproveDeviceRequest {
+  Device device = 1;
+}
+
+message ApproveDeviceResponse {
+  bool success = 1;
+}
+
+message ListLocationsRequest {
+  Device device = 1;
+}
+
+message ListLocationsResponse {
+  repeated Location locations = 1;
+}

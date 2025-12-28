@@ -4,28 +4,13 @@ package com.jackpf.locationhistory;
 
 option java_multiple_files = true;
 
+import "common.proto";
+
 service BeaconService {
   rpc Ping(PingRequest) returns (PingResponse);
   rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse);
   rpc CheckDevice(CheckDeviceRequest) returns (CheckDeviceResponse);
   rpc SetLocation(SetLocationRequest) returns (SetLocationResponse);
-}
-
-message Device {
-  string id = 1;
-  string public_key = 2;
-}
-
-enum DeviceStatus {
-  DEVICE_UNKNOWN = 0;
-  DEVICE_PENDING = 1;
-  DEVICE_REGISTERED = 2;
-}
-
-message Location {
-  double lat = 1;
-  double lon = 2;
-  double accuracy = 3;
 }
 
 message PingRequest {

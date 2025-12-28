@@ -1,6 +1,7 @@
 package com.jackpf.locationhistory.server.model
 
-import com.jackpf.locationhistory.beacon_service.DeviceStatus as ProtoDeviceStatus
+import com.jackpf.locationhistory.common.DeviceStatus as ProtoDeviceStatus
+import com.jackpf.locationhistory.common.StoredDevice as ProtoStoredDevice
 
 object StoredDevice {
   enum DeviceStatus {
@@ -22,4 +23,11 @@ object StoredDevice {
   )
 }
 
-case class StoredDevice(device: Device, status: StoredDevice.DeviceStatus)
+case class StoredDevice(device: Device, status: StoredDevice.DeviceStatus) {
+  def register(): StoredDevice = copy(status = StoredDevice.DeviceStatus.Registered)
+
+  def toProto: ProtoStoredDevice = ProtoStoredDevice(
+    device = Some(device.toProto),
+    status = status.toProto
+  )
+}

@@ -10,6 +10,7 @@ import scala.compiletime.uninitialized
 
 object TestServer {
   val TestPort = 8080
+  val TestAdminPassword = "test"
 
   var server: Server = uninitialized
 
@@ -18,7 +19,7 @@ object TestServer {
       if (server == null) {
         server = new AppServer(
           TestPort,
-          Services(deviceRepo, locationRepo)*
+          Services(TestAdminPassword, deviceRepo, locationRepo)*
         ).start()
       }
     }

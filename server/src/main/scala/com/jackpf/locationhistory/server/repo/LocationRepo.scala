@@ -11,7 +11,7 @@ trait LocationRepo {
       location: Location
   ): Future[Try[Unit]]
 
-  def getForDevice(id: DeviceId.Type): Future[Seq[Location]]
+  def getForDevice(id: DeviceId.Type): Future[Vector[Location]]
 
   def deleteAll(): Future[Unit]
 }

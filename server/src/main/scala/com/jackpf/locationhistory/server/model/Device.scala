@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.model
 
-import com.jackpf.locationhistory.beacon_service.Device as ProtoDevice
+import com.jackpf.locationhistory.common.Device as ProtoDevice
 
 object DeviceId {
   opaque type Type = String
@@ -15,4 +15,9 @@ object Device {
   )
 }
 
-case class Device(id: DeviceId.Type, publicKey: String)
+case class Device(id: DeviceId.Type, publicKey: String) {
+  def toProto: ProtoDevice = ProtoDevice(
+    id = id.toString,
+    publicKey = publicKey
+  )
+}
