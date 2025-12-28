@@ -34,7 +34,7 @@ public class BeaconService extends Service {
     private FusedLocationProviderClient locationProvider;
     private BeaconClient beaconClient;
     private final IBinder binder = new LocalBinder();
-    private static final long CLIENT_TIMEOUT_MILLIS = 500;
+    private static final long CLIENT_TIMEOUT_MILLIS = 10_000;
 
     private final Logger log = new Logger(this);
 
