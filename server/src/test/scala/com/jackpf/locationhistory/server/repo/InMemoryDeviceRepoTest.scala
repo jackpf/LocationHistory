@@ -42,12 +42,7 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecifica
 
     "fail on updating a non-existing device" >> in(new NoDevicesContext {}) { context =>
       val result: Future[Try[Unit]] =
-        context.deviceRepo.update(
-          StoredDevice(
-            device = Device(id = DeviceId("non-existing"), publicKey = "xxx"),
-            status = DeviceStatus.Registered
-          )
-        )
+        context.deviceRepo.update(DeviceId("non-existing"), device => device.register())
 
       result must beFailedTry.like { case e: DeviceNotFoundException =>
         e.getMessage === "Device non-existing does not exist"
@@ -79,7 +74,10 @@ class InMemoryDeviceRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecifica
 
       for {
         storedDevice <- context.deviceRepo.get(context.device.id)
-        updateDeviceResponse <- context.deviceRepo.update(storedDevice.map(_.register()).get)
+        updateDeviceResponse <- context.deviceRepo.update(
+          storedDevice.get.device.id,
+          device => device.register()
+        )
         updatedDevice <- context.deviceRepo.get(context.device.id)
       } yield {
         updateDeviceResponse must beSuccessfulTry

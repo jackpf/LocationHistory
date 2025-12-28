@@ -9,8 +9,6 @@ import com.jackpf.locationhistory.server.repo.{
 }
 import scopt.OptionParser
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 object App {
   private val ApplicationName: String = "location-history"
 

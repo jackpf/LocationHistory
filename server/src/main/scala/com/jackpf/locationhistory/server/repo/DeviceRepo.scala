@@ -8,7 +8,10 @@ import scala.util.Try
 trait DeviceRepo {
   def register(device: Device): Future[Try[Unit]]
 
-  def update(storedDevice: StoredDevice): Future[Try[Unit]]
+  def update(
+      id: DeviceId.Type,
+      updateAction: StoredDevice => StoredDevice
+  ): Future[Try[Unit]]
 
   def get(id: DeviceId.Type): Future[Option[StoredDevice]]
 
