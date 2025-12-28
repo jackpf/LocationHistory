@@ -23,19 +23,27 @@ object App {
         .text(
           "Port to listen on"
         )
+
+      opt[String]('x', "admin-password")
+        .valueName("<admin-password>")
+        .action((x, c) => c.copy(adminPassword = Some(x)))
+        .required()
+        .text(
+          "Administrator password for admin endpoints"
+        )
     }
 
   def main(args: Array[String]): Unit = {
     val parsedArgs = parser
       .parse(args, Args())
-      .getOrElse(throw new IllegalStateException("No config"))
+      .getOrElse(sys.exit(1))
 
     val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
     val locationRepo: LocationRepo = new InMemoryLocationRepo
 
     new AppServer(
       parsedArgs.listenPort.get,
-      Services(deviceRepo, locationRepo)*
+      Services(parsedArgs.adminPassword.get, deviceRepo, locationRepo)*
     ).start().awaitTermination()
   }
 }
