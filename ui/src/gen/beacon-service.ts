@@ -6,7 +6,6 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import type { CallContext, CallOptions } from "nice-grpc-common";
 import { Device, DeviceStatus, deviceStatusFromJSON, deviceStatusToJSON, Location } from "./common";
 
 export const protobufPackage = "com.jackpf.locationhistory";
@@ -535,37 +534,45 @@ export const SetLocationResponse: MessageFns<SetLocationResponse> = {
   },
 };
 
-export interface BeaconServiceImplementation<CallContextExt = {}> {
-  ping(request: PingRequest, context: CallContext & CallContextExt): Promise<DeepPartial<PingResponse>>;
-  registerDevice(
-    request: RegisterDeviceRequest,
-    context: CallContext & CallContextExt,
-  ): Promise<DeepPartial<RegisterDeviceResponse>>;
-  checkDevice(
-    request: CheckDeviceRequest,
-    context: CallContext & CallContextExt,
-  ): Promise<DeepPartial<CheckDeviceResponse>>;
-  setLocation(
-    request: SetLocationRequest,
-    context: CallContext & CallContextExt,
-  ): Promise<DeepPartial<SetLocationResponse>>;
-}
-
-export interface BeaconServiceClient<CallOptionsExt = {}> {
-  ping(request: DeepPartial<PingRequest>, options?: CallOptions & CallOptionsExt): Promise<PingResponse>;
-  registerDevice(
-    request: DeepPartial<RegisterDeviceRequest>,
-    options?: CallOptions & CallOptionsExt,
-  ): Promise<RegisterDeviceResponse>;
-  checkDevice(
-    request: DeepPartial<CheckDeviceRequest>,
-    options?: CallOptions & CallOptionsExt,
-  ): Promise<CheckDeviceResponse>;
-  setLocation(
-    request: DeepPartial<SetLocationRequest>,
-    options?: CallOptions & CallOptionsExt,
-  ): Promise<SetLocationResponse>;
-}
+export type BeaconServiceDefinition = typeof BeaconServiceDefinition;
+export const BeaconServiceDefinition = {
+  name: "BeaconService",
+  fullName: "com.jackpf.locationhistory.BeaconService",
+  methods: {
+    ping: {
+      name: "Ping",
+      requestType: PingRequest,
+      requestStream: false,
+      responseType: PingResponse,
+      responseStream: false,
+      options: {},
+    },
+    registerDevice: {
+      name: "RegisterDevice",
+      requestType: RegisterDeviceRequest,
+      requestStream: false,
+      responseType: RegisterDeviceResponse,
+      responseStream: false,
+      options: {},
+    },
+    checkDevice: {
+      name: "CheckDevice",
+      requestType: CheckDeviceRequest,
+      requestStream: false,
+      responseType: CheckDeviceResponse,
+      responseStream: false,
+      options: {},
+    },
+    setLocation: {
+      name: "SetLocation",
+      requestType: SetLocationRequest,
+      requestStream: false,
+      responseType: SetLocationResponse,
+      responseStream: false,
+      options: {},
+    },
+  },
+} as const;
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 

@@ -6,7 +6,6 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import type { CallContext, CallOptions } from "nice-grpc-common";
 import { Device, Location, StoredDevice } from "./common";
 
 export const protobufPackage = "com.jackpf.locationhistory";
@@ -379,35 +378,37 @@ export const ListLocationsResponse: MessageFns<ListLocationsResponse> = {
   },
 };
 
-export interface AdminServiceImplementation<CallContextExt = {}> {
-  listDevices(
-    request: ListDevicesRequest,
-    context: CallContext & CallContextExt,
-  ): Promise<DeepPartial<ListDevicesResponse>>;
-  approveDevice(
-    request: ApproveDeviceRequest,
-    context: CallContext & CallContextExt,
-  ): Promise<DeepPartial<ApproveDeviceResponse>>;
-  listLocations(
-    request: ListLocationsRequest,
-    context: CallContext & CallContextExt,
-  ): Promise<DeepPartial<ListLocationsResponse>>;
-}
-
-export interface AdminServiceClient<CallOptionsExt = {}> {
-  listDevices(
-    request: DeepPartial<ListDevicesRequest>,
-    options?: CallOptions & CallOptionsExt,
-  ): Promise<ListDevicesResponse>;
-  approveDevice(
-    request: DeepPartial<ApproveDeviceRequest>,
-    options?: CallOptions & CallOptionsExt,
-  ): Promise<ApproveDeviceResponse>;
-  listLocations(
-    request: DeepPartial<ListLocationsRequest>,
-    options?: CallOptions & CallOptionsExt,
-  ): Promise<ListLocationsResponse>;
-}
+export type AdminServiceDefinition = typeof AdminServiceDefinition;
+export const AdminServiceDefinition = {
+  name: "AdminService",
+  fullName: "com.jackpf.locationhistory.AdminService",
+  methods: {
+    listDevices: {
+      name: "ListDevices",
+      requestType: ListDevicesRequest,
+      requestStream: false,
+      responseType: ListDevicesResponse,
+      responseStream: false,
+      options: {},
+    },
+    approveDevice: {
+      name: "ApproveDevice",
+      requestType: ApproveDeviceRequest,
+      requestStream: false,
+      responseType: ApproveDeviceResponse,
+      responseStream: false,
+      options: {},
+    },
+    listLocations: {
+      name: "ListLocations",
+      requestType: ListLocationsRequest,
+      requestStream: false,
+      responseType: ListLocationsResponse,
+      responseStream: false,
+      options: {},
+    },
+  },
+} as const;
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 

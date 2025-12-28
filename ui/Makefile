@@ -12,12 +12,12 @@ init:
 	npm install --save nice-grpc-web
 
 .PHONY: build-protos
+.PHONY: build-protos
 build-protos:
-	mkdir -p ./src/gen
+	mkdir -p ./client/src/gen
 	protoc \
 		--plugin=protoc-gen-ts_proto=$(PLUGIN_PATH) \
-		--ts_proto_out=./src/gen \
-		--ts_proto_opt=esModuleInterop=true,outputServices=nice-grpc,outputClientImpl=false \
+		--ts_proto_out=esModuleInterop=true,outputServices=generic-definitions,outputClientImpl=false:./src/gen \
 		--proto_path=../shared/src/main/protobuf \
 		../shared/src/main/protobuf/*.proto
 
