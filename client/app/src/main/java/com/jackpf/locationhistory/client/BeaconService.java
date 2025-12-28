@@ -58,7 +58,7 @@ public class BeaconService extends Service {
         try {
             ManagedChannel channel = ManagedChannelBuilder
                     .forAddress(configRepo.getServerHost(), configRepo.getServerPort())
-                    .idleTimeout(5, TimeUnit.SECONDS)
+                    .idleTimeout(15, TimeUnit.SECONDS)
                     .keepAliveWithoutCalls(false)
                     .usePlaintext()
                     .build();
