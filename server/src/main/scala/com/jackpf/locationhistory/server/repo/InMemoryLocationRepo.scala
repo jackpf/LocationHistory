@@ -1,6 +1,5 @@
 package com.jackpf.locationhistory.server.repo
 
-import com.jackpf.locationhistory.server.model.DeviceId.Type
 import com.jackpf.locationhistory.server.model.{DeviceId, Location}
 
 import scala.collection.concurrent
@@ -22,7 +21,7 @@ class InMemoryLocationRepo extends LocationRepo {
     Success(())
   }
 
-  override def getForDevice(id: Type): Future[Vector[Location]] =
+  override def getForDevice(id: DeviceId.Type): Future[Vector[Location]] =
     Future.successful {
       storedLocations.getOrElse(id, Vector.empty)
     }
