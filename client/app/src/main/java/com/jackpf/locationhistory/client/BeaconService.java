@@ -12,15 +12,11 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 
-import com.google.android.gms.location.CurrentLocationRequest;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.Priority;
-import com.google.android.gms.tasks.CancellationTokenSource;
 import com.jackpf.locationhistory.DeviceStatus;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.BeaconRequest;
+import com.jackpf.locationhistory.client.location.LocationProvider;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.util.Logger;
 
@@ -35,13 +31,13 @@ public class BeaconService extends Service {
     private ConfigRepository configRepo;
     private SharedPreferences.OnSharedPreferenceChangeListener configListener;
     private Handler handler;
-    private FusedLocationProviderClient locationProvider;
+    private LocationProvider locationProvider;
     private BeaconClient beaconClient;
+    private PermissionsManager permissionsManager;
     private final IBinder binder = new LocalBinder();
     private static final long CLIENT_TIMEOUT_MILLIS = 10_000;
     // True if device state has been detected as ready - we no longer check once we detect this
     private boolean deviceStateReady = false;
-    CancellationTokenSource locationRequestCancellationToken = new CancellationTokenSource();
 
     private final Logger log = new Logger(this);
 
@@ -98,7 +94,8 @@ public class BeaconService extends Service {
         configListener = this::handleConfigUpdate;
         configRepo.registerOnSharedPreferenceChangeListener(configListener);
         handler = new Handler(Looper.getMainLooper());
-        locationProvider = LocationServices.getFusedLocationProviderClient(this);
+        permissionsManager = new PermissionsManager(this);
+        locationProvider = new LocationProvider(this, permissionsManager);
         beaconClient = createBeaconClient();
         setDeviceIdIfNotPresent();
     }
@@ -107,13 +104,12 @@ public class BeaconService extends Service {
     public void onDestroy() {
         super.onDestroy();
         configRepo.unregisterOnSharedPreferenceChangeListener(configListener);
-        locationRequestCancellationToken.cancel();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         log.d("Start command");
-        loop();
+        loop(0);
         return START_STICKY;
     }
 
@@ -158,14 +154,14 @@ public class BeaconService extends Service {
         return deviceStateReady;
     }
 
-    private void loop() {
+    private void loop(long intervalMillis) {
         handler.postDelayed(() -> {
             persistNotification();
-            if (checkDeviceState(configRepo.getDeviceId(), configRepo.getPublicKey()) && PermissionsManager.hasLocationPermissions(this)) {
+            if (checkDeviceState(configRepo.getDeviceId(), configRepo.getPublicKey()) && permissionsManager.hasLocationPermissions()) {
                 handleLocationUpdate();
             }
-            loop();
-        }, configRepo.getUpdateIntervalMillis());
+            loop(configRepo.getUpdateIntervalMillis());
+        }, intervalMillis);
     }
 
     private void handleConfigUpdate(SharedPreferences sharedPreferences, String key) {
@@ -176,30 +172,26 @@ public class BeaconService extends Service {
     private void handleLocationUpdate() {
         log.d("Updating location");
 
-        // TODO Refactor into a location service
-        CurrentLocationRequest request = new CurrentLocationRequest.Builder()
-                // TODO Parameterise
-                .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY)
-                // TODO Parameterise
-                .setDurationMillis(10000)
-                .build();
-
-        locationProvider.getCurrentLocation(request, locationRequestCancellationToken.getToken()).addOnSuccessListener(location -> {
-            if (location != null) {
-                log.d("Received location data: %s", location.toString());
-                try {
-                    getBeaconClient().sendLocation(
-                            _getDeviceId(),
-                            _getPublicKey(),
-                            BeaconRequest.fromLocation(location)
-                    );
-                } catch (IOException e) {
-                    log.e("Failed to send location", e);
+        try {
+            locationProvider.getLocation(location -> {
+                if (location != null) {
+                    log.d("Received location data: %s", location.toString());
+                    try {
+                        getBeaconClient().sendLocation(
+                                _getDeviceId(),
+                                _getPublicKey(),
+                                BeaconRequest.fromLocation(location)
+                        );
+                    } catch (IOException e) {
+                        log.e("Failed to send location", e);
+                    }
+                } else {
+                    log.w("Received null location data");
                 }
-            } else {
-                log.w("Received null location data");
-            }
-        });
+            });
+        } catch (IOException e) {
+            log.e("Failed get location data", e);
+        }
     }
 
     public void testConnection() throws IOException {

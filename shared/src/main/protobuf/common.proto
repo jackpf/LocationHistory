@@ -24,4 +24,5 @@ message Location {
   double lat = 1;
   double lon = 2;
   double accuracy = 3;
+  int64 timestamp = 4;
 }
