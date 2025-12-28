@@ -23,6 +23,7 @@ import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -34,7 +35,7 @@ public class BeaconService extends Service {
     private FusedLocationProviderClient locationProvider;
     private BeaconClient beaconClient;
     private final IBinder binder = new LocalBinder();
-    private static final long CLIENT_TIMEOUT_MILLIS = 500;
+    private static final long CLIENT_TIMEOUT_MILLIS = 10_000;
     // True if device state has been detected as ready - we no longer check once we detect this
     private boolean deviceStateReady = false;
 
@@ -57,6 +58,8 @@ public class BeaconService extends Service {
         try {
             ManagedChannel channel = ManagedChannelBuilder
                     .forAddress(configRepo.getServerHost(), configRepo.getServerPort())
+                    .idleTimeout(15, TimeUnit.SECONDS)
+                    .keepAliveWithoutCalls(false)
                     .usePlaintext()
                     .build();
 
