@@ -1,9 +1,8 @@
-import React, {useEffect, useState} from 'react'
-import {Circle, CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap} from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
-import './App.css'
-import type {LocationPoint} from './model/location-point'
-import {useDeviceManager} from './hooks/use-device-manager'
+import React, {useEffect, useState} from 'react';
+import {Circle, CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap} from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import './App.css'; // Your new CSS file
+import {useDeviceManager} from './hooks/use-device-manager';
 import type {StoredDevice} from "./gen/common.ts";
 
 const DEFAULT_CENTER: [number, number] = [20, 0];
@@ -16,7 +15,6 @@ function MapUpdater({center, selectedId}: { center: [number, number], selectedId
 
     useEffect(() => {
         const isWorldCenter = center[0] === DEFAULT_CENTER[0] && center[1] === DEFAULT_CENTER[1];
-        console.log('Flying to center', center, 'with zoom', DEFAULT_ZOOM_IN);
         if (selectedId && !isWorldCenter && selectedId !== flownToId) {
             map.flyTo(center, DEFAULT_ZOOM_IN, {duration: 1.5});
             setFlownToId(selectedId);
@@ -40,135 +38,82 @@ function App() {
         error
     } = useDeviceManager();
 
-    const locationPoints: LocationPoint[] = history.map((item, index) => ({
-        id: index,
-        lat: item.lat,
-        lng: item.lon,
-        accuracy: item.accuracy,
-        timestamp: new Date().toLocaleTimeString() // Generate a placeholder time
-    }));
-    const polylinePositions = locationPoints.map(loc => [loc.lat, loc.lng] as [number, number]);
-    const lastLocation: Location = locationPoints.length > 0 ? locationPoints[locationPoints.length - 1] : null
-    const mapCenter = lastLocation != null ? [lastLocation.lat, lastLocation.lng] : DEFAULT_CENTER
+    const polylinePositions = history.map(loc => [loc.lat, loc.lon] as [number, number]);
+    const lastLocation = history.length > 0 ? history[history.length - 1] : null;
+    const mapCenter: [number, number] = lastLocation != null ? [lastLocation.lat, lastLocation.lon] : DEFAULT_CENTER;
 
     return (
-        <div style={{display: 'flex', height: '100vh', width: '100vw'}}>
+        <div className="app-container">
 
             {/* Sidebar */}
-            <div style={{width: '300px', borderRight: '1px solid #ccc', overflowY: 'auto', background: '#1a1212'}}>
-                <div style={{padding: '1rem', borderBottom: '1px solid #ddd'}}>
+            <aside className="sidebar">
+                <div className="sidebar-header">
                     <h2>Devices</h2>
-                    {error && <small style={{color: 'red'}}>{error}</small>}
+                    {error && <div className="error-text">{error}</div>}
                 </div>
 
                 {devices.map((storedDevice: StoredDevice) => (
                     <div
                         key={storedDevice.device.id}
                         onClick={() => setSelectedDeviceId(storedDevice.device.id)}
-                        style={{
-                            padding: '1rem',
-                            cursor: 'pointer',
-                            background: selectedDeviceId === storedDevice.device.id ? '#e3f2fd' : 'transparent',
-                            borderBottom: '1px solid #eee'
-                        }}
+                        className={`device-item ${selectedDeviceId === storedDevice.device.id ? 'selected' : ''}`}
                     >
                         <strong>{storedDevice.device.id || "No ID"}</strong>
-                        <div
-                            style={{fontSize: '0.8rem', color: '#666'}}>ID: {storedDevice.device.id.substring(0, 6)}...
+                        <div className="device-id-subtext">
+                            ID: {storedDevice.device.id.substring(0, 6)}...
                         </div>
                     </div>
                 ))}
-            </div>
+            </aside>
 
             {/* Map Area */}
-            <div style={{flex: 1, position: 'relative'}}>
-                <div style={{
-                    position: 'absolute',
-                    top: 10,
-                    right: 10,
-                    zIndex: 1000,
-                    background: 'black',
-                    padding: '10px'
-                }}>
+            <main className="map-area">
+                <div className="map-overlay">
                     <strong>Points:</strong> {history.length} <br/>
                     <small>Updated: {lastUpdated.toLocaleTimeString()}</small>
                 </div>
 
-                <MapContainer
-                    center={DEFAULT_CENTER}
-                    zoom={DEFAULT_ZOOM}
-                    style={{height: "100%", width: "100%"}}
-                >
-                    <TileLayer attribution='&copy; OpenStreetMap contributors'
-                               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
+                <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM}>
+                    <TileLayer
+                        attribution='&copy; OpenStreetMap contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
 
                     <MapUpdater center={mapCenter} selectedId={selectedDeviceId}/>
 
-                    <Polyline positions={polylinePositions} pathOptions={{
-                        color: 'blue',
-                        weight: 3,
-                        opacity: 0.3
-                    }}/>
+                    <Polyline
+                        positions={polylinePositions}
+                        pathOptions={{color: 'blue', weight: 3, opacity: 0.3}}
+                    />
 
-                    {lastLocation != null && (
-                        <React.Fragment key={lastLocation.id}>
-                            <CircleMarker
-                                center={[lastLocation.lat, lastLocation.lng]}
-                                radius={4} // Fixed 4px dot
-                                pathOptions={{
-                                    color: 'white',
-                                    fillColor: 'blue',
-                                    fillOpacity: 1,
-                                    weight: 2
-                                }}
-                            >
-                                <Popup>
-                                    <strong>Time:</strong> {lastLocation.timestamp}<br/>
-                                    <strong>Latitude:</strong> {lastLocation.lat} meters<br/>
-                                    <strong>Longitude:</strong> {lastLocation.lng} meters<br/>
-                                    <strong>Accuracy:</strong> {lastLocation.accuracy} meters
-                                </Popup>
-                            </CircleMarker>
-
-                            <Circle
-                                center={[lastLocation.lat, lastLocation.lng]}
-                                radius={lastLocation.accuracy}
-                                pathOptions={{
-                                    color: 'blue',
-                                    fillColor: 'blue',
-                                    fillOpacity: 0.5,
-                                    stroke: false
-                                }}
-                            />
-                        </React.Fragment>
-                    )}
-
-                    {locationPoints.map(loc => (
-                        <React.Fragment key={loc.id}>
-                            <CircleMarker
-                                center={[loc.lat, loc.lng]}
-                                radius={4} // Fixed 4px dot
-                                pathOptions={{
-                                    color: 'white',
-                                    fillColor: 'blue',
-                                    fillOpacity: 1,
-                                    weight: 2
-                                }}
-                            >
-                                <Popup>
-                                    <strong>Time:</strong> {loc.timestamp}<br/>
-                                    <strong>Latitude:</strong> {loc.lat} meters<br/>
-                                    <strong>Longitude:</strong> {loc.lng} meters<br/>
-                                    <strong>Accuracy:</strong> {loc.accuracy} meters
-                                </Popup>
-                            </CircleMarker>
-                        </React.Fragment>
+                    {/* Historical Points */}
+                    {history.map((loc, index) => (
+                        <CircleMarker
+                            key={index}
+                            center={[loc.lat, loc.lon]}
+                            radius={4}
+                            pathOptions={{color: 'white', fillColor: 'blue', fillOpacity: 1, weight: 2}}
+                        >
+                            <Popup>
+                                <strong>Latitude:</strong> {loc.lat}<br/>
+                                <strong>Longitude:</strong> {loc.lon}<br/>
+                                <strong>Accuracy:</strong> {loc.accuracy}m
+                            </Popup>
+                        </CircleMarker>
                     ))}
 
+                    {/* Current Accuracy Circle */}
+                    {lastLocation != null && (
+                        <Circle
+                            center={[lastLocation.lat, lastLocation.lon]}
+                            radius={lastLocation.accuracy}
+                            pathOptions={{fillColor: 'blue', fillOpacity: 0.2, stroke: false}}
+                        />
+                    )}
                 </MapContainer>
-            </div>
+            </main>
         </div>
-    )
+    );
 }
 
-export default App
+export default App;
