@@ -5,9 +5,11 @@ import com.jackpf.locationhistory.admin_service.{
   ApproveDeviceRequest,
   ApproveDeviceResponse,
   ListDevicesRequest,
-  ListDevicesResponse
+  ListDevicesResponse,
+  ListLocationsRequest,
+  ListLocationsResponse
 }
-import com.jackpf.locationhistory.common.{Device, DeviceStatus, StoredDevice}
+import com.jackpf.locationhistory.common.{Device, DeviceStatus, Location, StoredDevice}
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.DeviceNotFoundException
 import com.jackpf.locationhistory.server.model
 import com.jackpf.locationhistory.server.model.DeviceId
@@ -173,6 +175,53 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
           Future.successful(Failure(DeviceNotFoundException(DeviceId("123"))))
       }) { context =>
         context.result must throwAGrpcException(Code.NOT_FOUND, "Device 123 does not exist").await
+      }
+    }
+
+    "list locations endpoint" >> {
+      trait ListLocationsContext extends Context {
+        lazy val device: Option[Device] = Some(Device(id = "123", publicKey = "xxx"))
+
+        lazy val getResponse: Future[Vector[model.Location]]
+        if (device.isDefined) {
+          when(locationRepo.getForDevice(DeviceId(device.get.id))).thenReturn(getResponse): Unit
+        }
+
+        val request: ListLocationsRequest = ListLocationsRequest(device = device)
+        val result: Future[ListLocationsResponse] = adminService.listLocations(request)
+      }
+
+      "list locations for the given device" >> in(new ListLocationsContext {
+        override lazy val getResponse: Future[Vector[model.Location]] = Future.successful(
+          Vector(
+            model.Location(lat = 0.1, lon = 0.2, accuracy = 0.3, timestamp = 1L),
+            model.Location(lat = 0.4, lon = 0.5, accuracy = 0.6, timestamp = 2L)
+          )
+        )
+      }) { context =>
+        context.result must beEqualTo(
+          ListLocationsResponse(locations =
+            Seq(
+              Location(lat = 0.1, lon = 0.2, accuracy = 0.3),
+              Location(lat = 0.4, lon = 0.5, accuracy = 0.6)
+            )
+          )
+        ).await
+      }
+
+      "not fail for an empty list" >> in(new ListLocationsContext {
+        override lazy val getResponse: Future[Vector[model.Location]] = Future.successful(
+          Vector.empty
+        )
+      }) { context =>
+        context.result must beEqualTo(ListLocationsResponse(locations = Seq.empty)).await
+      }
+
+      "fail on missing device" >> in(new ListLocationsContext {
+        override lazy val device: Option[Device] = None
+        override lazy val getResponse: Future[Vector[model.Location]] = null
+      }) { context =>
+        context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No device provided").await
       }
     }
   }
