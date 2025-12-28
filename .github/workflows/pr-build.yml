@@ -36,5 +36,22 @@ jobs:
       - name: Build
         run: make -C server compile
 
-#      - name: Package
-#        run: make package
+      - name: Package
+        run: make package
+
+  build-client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: make -C client build-debug
