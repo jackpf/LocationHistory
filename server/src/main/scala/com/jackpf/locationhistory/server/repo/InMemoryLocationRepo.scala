@@ -8,7 +8,7 @@ import scala.concurrent.Future
 import scala.util.{Success, Try}
 
 class InMemoryLocationRepo extends LocationRepo {
-  private val storedLocations: concurrent.Map[DeviceId.Type, Seq[Location]] =
+  private val storedLocations: concurrent.Map[DeviceId.Type, Vector[Location]] =
     concurrent.TrieMap.empty
 
   override def storeDeviceLocation(
@@ -17,14 +17,14 @@ class InMemoryLocationRepo extends LocationRepo {
   ): Future[Try[Unit]] = Future.successful {
     storedLocations.updateWith(id) {
       case Some(existingLocations) => Some(existingLocations :+ location)
-      case None                    => Some(Seq(location))
+      case None                    => Some(Vector(location))
     }
     Success(())
   }
 
-  override def getForDevice(id: Type): Future[Seq[Location]] =
+  override def getForDevice(id: Type): Future[Vector[Location]] =
     Future.successful {
-      storedLocations.getOrElse(id, Seq.empty)
+      storedLocations.getOrElse(id, Vector.empty)
     }
 
   override def deleteAll(): Future[Unit] = Future.successful {
