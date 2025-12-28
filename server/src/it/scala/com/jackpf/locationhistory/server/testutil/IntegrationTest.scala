@@ -1,5 +1,6 @@
 package com.jackpf.locationhistory.server.testutil
 
+import com.jackpf.locationhistory.admin_service.AdminServiceGrpc
 import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc
 import com.jackpf.locationhistory.server.repo.{
   DeviceRepo,
@@ -9,7 +10,8 @@ import com.jackpf.locationhistory.server.repo.{
 }
 import com.jackpf.locationhistory.server.testutil.IntegrationTest.{resetState, startServer}
 import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification}
-import io.grpc.{ManagedChannel, ManagedChannelBuilder}
+import io.grpc.stub.MetadataUtils
+import io.grpc.{ManagedChannel, ManagedChannelBuilder, Metadata}
 import org.specs2.specification.After
 
 import java.util.concurrent.TimeUnit
@@ -50,6 +52,16 @@ abstract class IntegrationTest extends DefaultSpecification {
 
     val client: BeaconServiceGrpc.BeaconServiceBlockingStub =
       BeaconServiceGrpc.blockingStub(channel)
+
+    val header: Metadata = new Metadata()
+    val key: Metadata.Key[String] =
+      Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
+    lazy val adminPassword: String = TestServer.TestAdminPassword
+    header.put(key, s"Bearer ${adminPassword}")
+    val adminClient: AdminServiceGrpc.AdminServiceBlockingStub =
+      AdminServiceGrpc
+        .blockingStub(channel)
+        .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(header))
 
     override def after: Any = {
       channel.shutdown().awaitTermination(10, TimeUnit.SECONDS)
