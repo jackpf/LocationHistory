@@ -4,21 +4,18 @@ import com.jackpf.locationhistory.common.Location as ProtoLocation
 
 object Location {
   def fromProto(
-      proto: ProtoLocation,
-      timestamp: Long
+      proto: ProtoLocation
   ): Location = Location(
     lat = proto.lat,
     lon = proto.lon,
-    accuracy = proto.accuracy,
-    timestamp = timestamp
+    accuracy = proto.accuracy
   )
 }
 
-case class Location(lat: Double, lon: Double, accuracy: Double, timestamp: Long) {
+case class Location(lat: Double, lon: Double, accuracy: Double) {
   def toProto: ProtoLocation = ProtoLocation(
     lat = lat,
     lon = lon,
-    accuracy = accuracy,
-    timestamp = timestamp
+    accuracy = accuracy
   )
 }

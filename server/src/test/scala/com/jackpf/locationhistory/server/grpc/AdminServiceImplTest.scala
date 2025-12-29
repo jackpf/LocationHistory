@@ -9,7 +9,13 @@ import com.jackpf.locationhistory.admin_service.{
   ListLocationsRequest,
   ListLocationsResponse
 }
-import com.jackpf.locationhistory.common.{Device, DeviceStatus, Location, StoredDevice}
+import com.jackpf.locationhistory.common.{
+  Device,
+  DeviceStatus,
+  Location,
+  StoredDevice,
+  StoredLocation
+}
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.DeviceNotFoundException
 import com.jackpf.locationhistory.server.model
 import com.jackpf.locationhistory.server.model.DeviceId
@@ -182,7 +188,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       trait ListLocationsContext extends Context {
         lazy val device: Option[Device] = Some(Device(id = "123", publicKey = "xxx"))
 
-        lazy val getResponse: Future[Vector[model.Location]]
+        lazy val getResponse: Future[Vector[model.StoredLocation]]
         if (device.isDefined) {
           when(locationRepo.getForDevice(DeviceId(device.get.id))).thenReturn(getResponse): Unit
         }
@@ -192,25 +198,27 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       }
 
       "list locations for the given device" >> in(new ListLocationsContext {
-        override lazy val getResponse: Future[Vector[model.Location]] = Future.successful(
+        override lazy val getResponse: Future[Vector[model.StoredLocation]] = Future.successful(
           Vector(
-            model.Location(lat = 0.1, lon = 0.2, accuracy = 0.3, timestamp = 1L),
-            model.Location(lat = 0.4, lon = 0.5, accuracy = 0.6, timestamp = 2L)
+            model
+              .StoredLocation(model.Location(lat = 0.1, lon = 0.2, accuracy = 0.3), timestamp = 1L),
+            model
+              .StoredLocation(model.Location(lat = 0.4, lon = 0.5, accuracy = 0.6), timestamp = 2L)
           )
         )
       }) { context =>
         context.result must beEqualTo(
           ListLocationsResponse(locations =
             Seq(
-              Location(lat = 0.1, lon = 0.2, accuracy = 0.3, timestamp = 1L),
-              Location(lat = 0.4, lon = 0.5, accuracy = 0.6, timestamp = 2L)
+              StoredLocation(Some(Location(lat = 0.1, lon = 0.2, accuracy = 0.3)), timestamp = 1L),
+              StoredLocation(Some(Location(lat = 0.4, lon = 0.5, accuracy = 0.6)), timestamp = 2L)
             )
           )
         ).await
       }
 
       "not fail for an empty list" >> in(new ListLocationsContext {
-        override lazy val getResponse: Future[Vector[model.Location]] = Future.successful(
+        override lazy val getResponse: Future[Vector[model.StoredLocation]] = Future.successful(
           Vector.empty
         )
       }) { context =>
@@ -219,7 +227,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
 
       "fail on missing device" >> in(new ListLocationsContext {
         override lazy val device: Option[Device] = None
-        override lazy val getResponse: Future[Vector[model.Location]] = null
+        override lazy val getResponse: Future[Vector[model.StoredLocation]] = null
       }) { context =>
         context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No device provided").await
       }

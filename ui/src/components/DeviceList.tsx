@@ -1,5 +1,5 @@
 import React from 'react';
-import type {StoredDevice} from "../gen/common.ts";
+import type {Device, StoredDevice} from "../gen/common.ts";
 
 interface DeviceListProps {
     devices: StoredDevice[];
@@ -15,7 +15,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({devices, selectedDeviceId
             </div>
 
             {devices.map((storedDevice: StoredDevice) => {
-                const device = storedDevice.device;
+                const device: Device | undefined = storedDevice.device;
                 if (!device) return;
 
                 return (

@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.repo
 
-import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location}
+import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location, StoredLocation}
 import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification}
 import org.specs2.concurrent.ExecutionEnv
 
@@ -17,10 +17,12 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecifi
     lazy val device =
       Device(id = DeviceId("123"), publicKey = "xxx")
     lazy val location =
-      Location(timestamp = 123L, lat = 0.1, lon = 0.2, accuracy = 0.3)
+      Location(lat = 0.1, lon = 0.2, accuracy = 0.3)
+    lazy val timestamp: Long = 123L
+    lazy val expectedStoredLocation = StoredLocation(location, timestamp)
 
     lazy val result: Future[Try[Unit]] =
-      locationRepo.storeDeviceLocation(device.id, location)
+      locationRepo.storeDeviceLocation(device.id, location, timestamp)
   }
 
   "In memory location repo" should {
@@ -33,7 +35,7 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecifi
 
       context.locationRepo
         .getForDevice(context.device.id) must beEqualTo(
-        Seq(context.location)
+        Seq(context.expectedStoredLocation)
       ).await
     }
 
@@ -42,7 +44,7 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecifi
 
       context.locationRepo
         .getForDevice(DeviceId("non-existing")) must beEmpty[
-        Seq[Location]
+        Seq[StoredLocation]
       ].await
     }
 
@@ -52,7 +54,7 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecifi
       context.locationRepo.deleteAll() must beEqualTo(()).await
 
       context.locationRepo
-        .getForDevice(context.device.id) must beEmpty[Seq[Location]].await
+        .getForDevice(context.device.id) must beEmpty[Seq[StoredLocation]].await
     }
 
     "limit items per device" >> in(new Context {
@@ -63,7 +65,8 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecifi
       def storeLocation(ts: Long): Future[Try[Unit]] =
         context.locationRepo.storeDeviceLocation(
           deviceId,
-          Location(lat = 0.1, lon = 0.2, accuracy = 0.3, timestamp = ts)
+          Location(lat = 0.1, lon = 0.2, accuracy = 0.3),
+          ts
         )
 
       {

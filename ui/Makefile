@@ -14,6 +14,10 @@ init:
 clean:
 	rm -rf node_modules package-lock.json dist src/gen
 
+.PHONY: install
+install:
+	npm install
+
 .PHONY: build-protos
 build-protos:
 	mkdir -p ./src/gen
@@ -28,8 +32,7 @@ run:
 	npm run dev
 
 .PHONY: build
-build: build-protos
-	npm install
+build: install build-protos
 	npm run build
 
 .PHONY: package
@@ -67,6 +70,6 @@ run-proxy: package-proxy-local
 		--name grpc-proxy \
 		--add-host host.docker.internal:host-gateway \
 		$(APP_NAME)-proxy \
-		--backend_addr=localhost:8080 \
+		--backend_addr=100.103.216.83:7070 \
 		--run_tls_server=false \
 		--allow_all_origins

@@ -52,12 +52,14 @@ public class Requests {
             String publicKey,
             Double lat,
             Double lon,
-            Double accuracy
+            Double accuracy,
+            Long timestamp
     ) {
         return SetLocationRequest
                 .newBuilder()
                 .setDevice(device(deviceId, publicKey))
                 .setLocation(location(lat, lon, accuracy))
+                .setTimestamp(timestamp)
                 .build();
     }
 }

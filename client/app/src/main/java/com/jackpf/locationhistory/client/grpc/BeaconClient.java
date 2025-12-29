@@ -88,7 +88,8 @@ public class BeaconClient {
                 publicKey,
                 request.getLat(),
                 request.getLon(),
-                (double) request.getAccuracy()
+                (double) request.getAccuracy(),
+                request.getTimestamp()
         );
         SetLocationResponse setLocationResponse = executeWrapped(() ->
                         createStub().setLocation(setLocationRequest),

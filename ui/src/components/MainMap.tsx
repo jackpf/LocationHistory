@@ -1,7 +1,8 @@
 import React, {useEffect} from 'react';
 import {Circle, CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import type {Location} from '../gen/common';
+import type {StoredLocation} from '../gen/common';
+import {format, formatDistanceToNow} from "date-fns";
 
 const DEFAULT_CENTER: [number, number] = [20, 0];
 const DEFAULT_ZOOM = 3;
@@ -31,26 +32,30 @@ function MapUpdater({center, selectedId}: { center: [number, number], selectedId
 }
 
 interface MainMapProps {
-    history: Location[];
-    lastUpdated: Date;
+    history: StoredLocation[];
+    lastUpdated: Date | null;
     selectedDeviceId: string | null;
 }
 
 export const MainMap: React.FC<MainMapProps> = ({history, lastUpdated, selectedDeviceId}) => {
-    const polylinePositions = history.map(loc => [loc.lat, loc.lon] as [number, number]);
-    const lastLocation = history.length > 0 ? history[history.length - 1] : null;
-    const mapCenter: [number, number] = lastLocation != null ? [lastLocation.lat, lastLocation.lon] : DEFAULT_CENTER;
+    const polylinePositions: [number, number][] = history.flatMap(loc => {
+        if (!loc.location) return [];
+        return [[loc.location.lat, loc.location.lon] as [number, number]]; // Keep
+    });
+    const lastLocation: StoredLocation | null = history.length > 0 ? history[history.length - 1] : null;
+    const mapCenter: [number, number] = lastLocation != null && lastLocation.location != null ?
+        [lastLocation.location.lat, lastLocation.location.lon] : DEFAULT_CENTER;
 
     return (
         <main className="map-area">
-            <div className="map-overlay">
+            {selectedDeviceId && (<div className="map-overlay">
                 <strong>Points:</strong> {history.length} <br/>
-                <small>Updated: {lastUpdated.toLocaleTimeString()}</small>
-            </div>
+                <small>Updated: {lastUpdated != null ? formatDistanceToNow(lastUpdated, {addSuffix: true}) : "never"}</small>
+            </div>)}
 
             <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM} preferCanvas={true}>
                 <TileLayer
-                    attribution='&copy; OpenStreetMap contributors'
+                    attribution="&copy; OpenStreetMap contributors"
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
@@ -62,26 +67,32 @@ export const MainMap: React.FC<MainMapProps> = ({history, lastUpdated, selectedD
                 />
 
                 {/* Historical Points */}
-                {history.map((loc, index) => (
-                    <CircleMarker
-                        key={index}
-                        center={[loc.lat, loc.lon]}
-                        radius={4}
-                        pathOptions={{color: 'white', fillColor: 'blue', fillOpacity: 1, weight: 2}}
-                    >
-                        <Popup>
-                            <strong>Latitude:</strong> {loc.lat}<br/>
-                            <strong>Longitude:</strong> {loc.lon}<br/>
-                            <strong>Accuracy:</strong> {loc.accuracy}m
-                        </Popup>
-                    </CircleMarker>
-                ))}
+                {history.map((storedLocation, index) => {
+                    const location = storedLocation.location;
+                    if (!location) return;
+
+                    return (
+                        <CircleMarker
+                            key={index}
+                            center={[location.lat, location.lon]}
+                            radius={4}
+                            pathOptions={{color: 'white', fillColor: 'blue', fillOpacity: 1, weight: 2}}
+                        >
+                            <Popup>
+                                <strong>Latitude:</strong> {location.lat}<br/>
+                                <strong>Longitude:</strong> {location.lon}<br/>
+                                <strong>Accuracy:</strong> {location.accuracy}m
+                                <strong>Time:</strong> {format(new Date(storedLocation.timestamp), 'yyyy-MM-dd HH:mm:ss')}
+                            </Popup>
+                        </CircleMarker>
+                    )
+                })}
 
                 {/* Current Accuracy Circle */}
-                {lastLocation != null && (
+                {lastLocation != null && lastLocation.location != null && (
                     <Circle
-                        center={[lastLocation.lat, lastLocation.lon]}
-                        radius={lastLocation.accuracy}
+                        center={[lastLocation.location.lat, lastLocation.location.lon]}
+                        radius={lastLocation.location.accuracy}
                         pathOptions={{fillColor: 'blue', fillOpacity: 0.2, stroke: false}}
                     />
                 )}

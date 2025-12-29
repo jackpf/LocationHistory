@@ -1,14 +1,20 @@
 import {useEffect, useState} from 'react';
 import {adminClient} from '../grpc/admin-client';
-import {Location, StoredDevice} from '../gen/common';
+import {StoredDevice, type StoredLocation} from '../gen/common';
 import type {ListDevicesResponse, ListLocationsResponse} from "../gen/admin-service.ts";
 
 export function useAdminClient() {
     const [devices, setDevices] = useState<StoredDevice[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
-    const [history, setHistory] = useState<Location[]>([]);
-    const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+    const [history, setHistory] = useState<StoredLocation[]>([]);
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    const lastUpdatedLocation = (locations: StoredLocation[]): Date | null => {
+        if (!locations || !locations.length) return null;
+
+        return new Date(locations[locations.length - 1].timestamp);
+    }
 
     // Poll device list
     useEffect(() => {
@@ -43,7 +49,7 @@ export function useAdminClient() {
                 } as any);
                 console.log("ListLocationsResponse", response);
                 setHistory(response.locations);
-                setLastUpdated(new Date());
+                setLastUpdated(lastUpdatedLocation(response.locations));
             } catch (e) {
                 console.error(e);
                 setError("Failed to fetch locations");
