@@ -1,14 +1,20 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {adminClient} from '../grpc/admin-client';
 import {StoredDevice, type StoredLocation} from '../gen/common';
 import type {ListDevicesResponse, ListLocationsResponse} from "../gen/admin-service.ts";
+import {ClientError} from "nice-grpc-web";
 
-export function useAdminClient() {
+export function useAdminClient(refreshInterval: number) {
     const [devices, setDevices] = useState<StoredDevice[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const [history, setHistory] = useState<StoredLocation[]>([]);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    const grpcErrorMessage = (message, error: any) => {
+        if (error instanceof ClientError) return message + ": " + error.details;
+        else return message + ": " + error.message;
+    }
 
     const lastUpdatedLocation = (locations: StoredLocation[]): Date | null => {
         if (!locations || !locations.length) return null;
@@ -16,24 +22,51 @@ export function useAdminClient() {
         return new Date(locations[locations.length - 1].timestamp);
     }
 
+    const fetchDevices = useCallback(async () => {
+        try {
+            const response: ListDevicesResponse = await adminClient.listDevices({});
+            console.log("ListDevicesResponse", response);
+            setDevices(response.devices);
+            setError(null);
+        } catch (e) {
+            console.error(e);
+            setError(grpcErrorMessage("Failed to fetch devices", e));
+        }
+    }, []);
+
+    const fetchLocations = useCallback(async () => {
+        try {
+            const response: ListLocationsResponse = await adminClient.listLocations({
+                device: { id: selectedDeviceId }
+            } as any);
+            console.log("ListLocationsResponse", response);
+            setHistory(response.locations);
+            setLastUpdated(lastUpdatedLocation(response.locations));
+        } catch (e) {
+            console.error(e);
+            setError(grpcErrorMessage("Failed to fetch locations", e));
+        }
+    }, [selectedDeviceId]);
+
+    const approveDevice = async (deviceId: string) => {
+        try {
+            await adminClient.approveDevice(
+                {device: {id: deviceId}},
+            );
+            // Refresh list immediately to show the checkmark/status change
+            await fetchDevices();
+        } catch (e) {
+            console.error(e);
+            setError(grpcErrorMessage("Failed to approve device", e));
+        }
+    };
+
     // Poll device list
     useEffect(() => {
-        const fetchDevices = async () => {
-            try {
-                const response: ListDevicesResponse = await adminClient.listDevices({});
-                console.log("ListDevicesResponse", response);
-                setDevices(response.devices);
-                setError(null);
-            } catch (e) {
-                console.error(e);
-                setError("Failed to fetch devices");
-            }
-        };
-
         fetchDevices();
-        const interval = setInterval(fetchDevices, 10000);
+        const interval = setInterval(fetchDevices, refreshInterval);
         return () => clearInterval(interval);
-    }, []);
+    }, [fetchDevices]);
 
     // Poll locations for selected device
     useEffect(() => {
@@ -42,30 +75,17 @@ export function useAdminClient() {
             return;
         }
 
-        const fetchLocations = async () => {
-            try {
-                const response: ListLocationsResponse = await adminClient.listLocations({
-                    device: { id: selectedDeviceId }
-                } as any);
-                console.log("ListLocationsResponse", response);
-                setHistory(response.locations);
-                setLastUpdated(lastUpdatedLocation(response.locations));
-            } catch (e) {
-                console.error(e);
-                setError("Failed to fetch locations");
-            }
-        };
-
         fetchLocations();
-        const interval = setInterval(fetchLocations, 10000);
+        const interval = setInterval(fetchLocations, refreshInterval);
         return () => clearInterval(interval);
-    }, [selectedDeviceId]);
+    }, [fetchLocations, selectedDeviceId]);
 
     // Return everything the UI needs
     return {
+        setSelectedDeviceId,
+        approveDevice,
         devices,
         selectedDeviceId,
-        setSelectedDeviceId,
         history,
         lastUpdated,
         error

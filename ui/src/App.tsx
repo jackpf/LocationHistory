@@ -6,14 +6,17 @@ import {MainMap} from "./components/MainMap.tsx";
 import {DeviceList} from "./components/DeviceList.tsx";
 
 const Dashboard = () => {
+    const REFRESH_INTERVAL = 10000;
+
     const {
+        setSelectedDeviceId,
+        approveDevice,
         devices,
         selectedDeviceId,
-        setSelectedDeviceId,
         history,
         lastUpdated,
         error
-    } = useAdminClient();
+    } = useAdminClient(REFRESH_INTERVAL);
 
     return (
         <div className="app-container">
@@ -21,7 +24,8 @@ const Dashboard = () => {
 
             {/* Sidebar */}
             <DeviceList devices={devices} selectedDeviceId={selectedDeviceId}
-                        setSelectedDeviceId={setSelectedDeviceId}/>
+                        setSelectedDeviceId={setSelectedDeviceId}
+                        approveDevice={approveDevice}/>
 
             {/* Map Area */}
             <MainMap

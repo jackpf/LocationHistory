@@ -62,8 +62,32 @@ html, body, #root {
   border-left: 4px solid #3498db;
 }
 
-.device-id-subtext {
+.device-status-subtext {
   font-size: 0.8rem;
+  color: #aaa;
+}
+
+/* Container for all the details */
+.device-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* Space between rows */
+  margin-top: 8px;
+  width: 100%;
+}
+
+/* Each individual line (Key ..... Value) */
+.detail-row {
+  display: flex;
+  justify-content: space-between; /* Pushes items to edges */
+  align-items: center;
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+/* Optional: Make the label bold or lighter */
+.detail-label {
+  font-weight: 600;
   color: #aaa;
 }
 
