@@ -116,6 +116,6 @@ jobs:
         working-directory: ./ui
         run: make build-protos
 
-      - name: Build
+      - name: Package
         working-directory: ./ui
-        run: make build
+        run: make package
