@@ -11,12 +11,12 @@ const DEFAULT_ZOOM_IN = 16;
 function MapUpdater({center, selectedId, history}: {
     center: [number, number],
     selectedId: string | null,
-    history: Location[]
+    history: StoredLocation[]
 }) {
     const map = useMap();
 
     const lastFlownId = React.useRef<string | null>(null);
-    const lastHistory = React.useRef<Location[]>(history);
+    const lastHistory = React.useRef<StoredLocation[]>(history);
 
     useEffect(() => {
         if (!selectedId) {
