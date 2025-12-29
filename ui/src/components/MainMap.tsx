@@ -26,8 +26,9 @@ function MapUpdater({center, selectedId, history}: {
 
         const isNewDevice = selectedId !== lastFlownId.current;
         const isHistoryFresh = history !== lastHistory.current;
+        const isWorldCenter = center[0] === DEFAULT_CENTER[0] && center[1] === DEFAULT_CENTER[1];
 
-        if (isNewDevice && isHistoryFresh) {
+        if (isNewDevice && isHistoryFresh && !isWorldCenter) {
             map.getContainer().classList.add('hide-while-flying');
 
             map.flyTo(center, DEFAULT_ZOOM_IN, {
