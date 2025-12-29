@@ -5,9 +5,7 @@ import {PROXY_URL} from "../config/config.ts";
 console.log("Connecting to proxy: ", PROXY_URL);
 
 export const getAdminPassword = () => {
-    const adminPassword = localStorage.getItem('auth_token') || "";
-    console.log("Using password: ", !!adminPassword);
-    return adminPassword;
+    return localStorage.getItem('auth_token') || "";
 };
 
 const channel = createChannel(PROXY_URL)
