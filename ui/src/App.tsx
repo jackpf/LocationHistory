@@ -34,17 +34,12 @@ const Dashboard = () => {
 };
 
 function App() {
-    /**
-     * Currently using session storage to store the admin password
-     * This is less secure than in memory, but has the user convenience
-     * of not being destroyed on every page refresh
-     */
     const [token, setToken] = useState<string | null>(() => {
-        return sessionStorage.getItem('auth_token');
+        return localStorage.getItem('auth_token');
     });
 
     const handleLogin = (password: string) => {
-        sessionStorage.setItem('auth_token', password);
+        localStorage.setItem('auth_token', password);
         setToken(password);
     };
 
