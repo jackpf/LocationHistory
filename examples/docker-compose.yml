@@ -9,8 +9,6 @@ services:
     restart: unless-stopped
     ports:
       - ${SERVER_PORT}:8080
-    expose:
-      - ${SERVER_PORT}
     environment:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
   location-history-ui-proxy:
@@ -19,8 +17,6 @@ services:
     restart: unless-stopped
     ports:
       - ${PROXY_PORT}:8080
-    expose:
-      - ${PROXY_PORT}
     command:
       - "--backend_addr=location-history-server:${SERVER_PORT}"
       - "--run_tls_server=false"
@@ -31,7 +27,5 @@ services:
     restart: unless-stopped
     ports:
       - ${UI_PORT}:80
-    expose:
-      - ${UI_PORT}
     environment:
       - PROXY_URL=http://${SERVER_NAME}:${PROXY_PORT}
