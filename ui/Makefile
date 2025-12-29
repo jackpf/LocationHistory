@@ -8,7 +8,7 @@ init:
 
 .PHONY: build-protos
 build-protos:
-	mkdir -p ./client/src/gen
+	mkdir -p ./src/gen
 	protoc \
 		--plugin=protoc-gen-ts_proto=$(PLUGIN_PATH) \
 		--ts_proto_out=esModuleInterop=true,outputServices=generic-definitions,outputClientImpl=false:./src/gen \
