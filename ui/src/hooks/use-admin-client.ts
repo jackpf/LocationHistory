@@ -40,7 +40,7 @@ export function useAdminClient() {
             try {
                 const response: ListLocationsResponse = await adminClient.listLocations({
                     device: { id: selectedDeviceId }
-                });
+                } as any);
                 console.log("ListLocationsResponse", response);
                 setHistory(response.locations);
                 setLastUpdated(new Date());

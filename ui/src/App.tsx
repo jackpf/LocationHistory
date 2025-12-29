@@ -61,7 +61,7 @@ function App() {
                 {devices.map((storedDevice: StoredDevice) => storedDevice.device != null && (
                     <div
                         key={storedDevice.device.id}
-                        onClick={() => setSelectedDeviceId(storedDevice.device.id)}
+                        onClick={() => storedDevice.device != null ? setSelectedDeviceId(storedDevice.device.id) : null}
                         className={`device-item ${selectedDeviceId === storedDevice.device.id ? 'selected' : ''}`}
                     >
                         <strong>{storedDevice.device.id || "No ID"}</strong>
