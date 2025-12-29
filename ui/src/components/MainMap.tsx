@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {Circle, CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type {Location} from '../gen/common';
+import {format, formatDistanceToNow} from "date-fns";
 
 const DEFAULT_CENTER: [number, number] = [20, 0];
 const DEFAULT_ZOOM = 3;
@@ -32,7 +33,7 @@ function MapUpdater({center, selectedId}: { center: [number, number], selectedId
 
 interface MainMapProps {
     history: Location[];
-    lastUpdated: Date;
+    lastUpdated: Date | null;
     selectedDeviceId: string | null;
 }
 
@@ -43,14 +44,14 @@ export const MainMap: React.FC<MainMapProps> = ({history, lastUpdated, selectedD
 
     return (
         <main className="map-area">
-            <div className="map-overlay">
+            {selectedDeviceId && (<div className="map-overlay">
                 <strong>Points:</strong> {history.length} <br/>
-                <small>Updated: {lastUpdated.toLocaleTimeString()}</small>
-            </div>
+                <small>Updated: {lastUpdated != null ? formatDistanceToNow(lastUpdated) + " ago" : "never"}</small>
+            </div>)}
 
             <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM} preferCanvas={true}>
                 <TileLayer
-                    attribution='&copy; OpenStreetMap contributors'
+                    attribution="&copy; OpenStreetMap contributors"
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
@@ -73,6 +74,7 @@ export const MainMap: React.FC<MainMapProps> = ({history, lastUpdated, selectedD
                             <strong>Latitude:</strong> {loc.lat}<br/>
                             <strong>Longitude:</strong> {loc.lon}<br/>
                             <strong>Accuracy:</strong> {loc.accuracy}m
+                            <strong>Time:</strong> {format(new Date(loc.timestamp), 'yyyy-MM-dd HH:mm:ss')}
                         </Popup>
                     </CircleMarker>
                 ))}

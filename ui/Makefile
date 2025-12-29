@@ -67,6 +67,6 @@ run-proxy: package-proxy-local
 		--name grpc-proxy \
 		--add-host host.docker.internal:host-gateway \
 		$(APP_NAME)-proxy \
-		--backend_addr=localhost:8080 \
+		--backend_addr=100.103.216.83:7070 \
 		--run_tls_server=false \
 		--allow_all_origins
