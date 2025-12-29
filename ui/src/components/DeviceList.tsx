@@ -15,7 +15,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                                                           approveDevice
                                                       }) => {
     const handleApprove = async (deviceId: string) => {
-        approveDevice(deviceId);
+        await approveDevice(deviceId);
     };
 
     const showDeviceStatus = (deviceStatus: DeviceStatus) => {
