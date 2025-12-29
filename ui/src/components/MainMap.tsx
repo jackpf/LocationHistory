@@ -46,7 +46,7 @@ export const MainMap: React.FC<MainMapProps> = ({history, lastUpdated, selectedD
         <main className="map-area">
             {selectedDeviceId && (<div className="map-overlay">
                 <strong>Points:</strong> {history.length} <br/>
-                <small>Updated: {lastUpdated != null ? formatDistanceToNow(lastUpdated) + " ago" : "never"}</small>
+                <small>Updated: {lastUpdated != null ? formatDistanceToNow(lastUpdated, { addSuffix: true }) : "never"}</small>
             </div>)}
 
             <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM} preferCanvas={true}>
