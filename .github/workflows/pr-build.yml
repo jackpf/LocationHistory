@@ -107,6 +107,10 @@ jobs:
         working-directory: ./ui
         run: npm ci
 
+      - name: Build Shared
+        working-directory: ./ui
+        run: make build-protos
+
       - name: Build
         working-directory: ./ui
         run: npm run build
