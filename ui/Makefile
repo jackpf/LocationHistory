@@ -50,15 +50,15 @@ docker-publish: package
 
 .PHONY: package-proxy
 package-proxy:
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest ./proxy
+	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest -f proxy.Dockerfile .
 
 .PHONY: package-proxy-local
 package-proxy-local:
-	$(DOCKER_BUILDX_LOCAL) -t $(APP_NAME)-proxy:latest ./proxy
+	$(DOCKER_BUILDX_LOCAL) -t $(APP_NAME)-proxy:latest -f proxy.Dockerfile .
 
 .PHONY: docker-publish-proxy
 docker-publish-proxy:
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest --push ./proxy
+	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest --push -f proxy.Dockerfile .
 
 .PHONY: run-proxy
 run-proxy: package-proxy-local

@@ -10,4 +10,7 @@ RUN wget -qO /tmp/proxy.zip \
     chmod +x /usr/local/bin/grpcwebproxy && \
     rm /tmp/proxy.zip
 
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD /bin/bash -c '</dev/tcp/localhost/8080' || exit 1
+
 ENTRYPOINT ["grpcwebproxy"]
