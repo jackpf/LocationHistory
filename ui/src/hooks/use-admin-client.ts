@@ -10,10 +10,10 @@ export function useAdminClient() {
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const lastUpdatedLocation: (locations: Location[]) => (Date | null) = (locations) => {
+    const lastUpdatedLocation = (locations: Location[]): Date | null => {
         if (!locations || !locations.length) return null;
 
-        return new Date(locations[locations.length - 1].timestamp)
+        return new Date(locations[locations.length - 1].timestamp);
     }
 
     // Poll device list
