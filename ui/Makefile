@@ -22,7 +22,7 @@ install:
 build-protos:
 	mkdir -p ./src/gen
 	protoc \
-		--plugin=protoc-gen-ts_proto=$(PWD)/node_modules/.bin/protoc-gen-ts_proto \
+		--plugin=protoc-gen-ts_proto=$(CURDIR)/node_modules/.bin/protoc-gen-ts_proto \
 		--ts_proto_out=esModuleInterop=true,outputServices=generic-definitions,outputClientImpl=false:./src/gen \
 		--proto_path=../shared/src/main/protobuf \
 		../shared/src/main/protobuf/*.proto
@@ -55,8 +55,8 @@ docker-publish: package
 package-proxy:
 	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest -f proxy.Dockerfile .
 
-.PHONY: package-proxy-local
-package-proxy-local:
+.PHONY: package-local-proxy
+package-local-proxy:
 	$(DOCKER_BUILDX_LOCAL) -t $(APP_NAME)-proxy:latest -f proxy.Dockerfile .
 
 .PHONY: docker-publish-proxy
@@ -64,7 +64,7 @@ docker-publish-proxy:
 	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest --push -f proxy.Dockerfile .
 
 .PHONY: run-proxy
-run-proxy: package-proxy-local
+run-proxy: package-local-proxy
 	docker run --rm \
 		-p 9123:8080 \
 		--name grpc-proxy \
