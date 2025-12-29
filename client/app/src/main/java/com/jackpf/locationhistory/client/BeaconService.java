@@ -167,6 +167,7 @@ public class BeaconService extends Service {
     private void handleConfigUpdate(SharedPreferences sharedPreferences, String key) {
         log.d("Config update detected");
         beaconClient = createBeaconClient();
+        deviceStateReady = false; // Force re-checking device state with new config
     }
 
     private void handleLocationUpdate() {
