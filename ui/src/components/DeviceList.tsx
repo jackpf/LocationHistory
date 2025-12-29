@@ -1,13 +1,50 @@
 import React from 'react';
-import type {Device, StoredDevice} from "../gen/common.ts";
+import {type Device, DeviceStatus, type StoredDevice} from "../gen/common.ts";
 
 interface DeviceListProps {
     devices: StoredDevice[];
     selectedDeviceId: string | null;
     setSelectedDeviceId: (deviceId: string) => void;
+    approveDevice: (deviceId: string) => void;
 }
 
-export const DeviceList: React.FC<DeviceListProps> = ({devices, selectedDeviceId, setSelectedDeviceId}) => {
+export const DeviceList: React.FC<DeviceListProps> = ({
+                                                          devices,
+                                                          selectedDeviceId,
+                                                          setSelectedDeviceId,
+                                                          approveDevice
+                                                      }) => {
+    const handleApprove = async (deviceId: string) => {
+        await approveDevice(deviceId);
+    };
+
+    const showDeviceStatus = (deviceStatus: DeviceStatus) => {
+        switch (deviceStatus) {
+            case DeviceStatus.DEVICE_REGISTERED:
+                return <span><span style={{color: 'green'}}>●</span> Registered</span>;
+            case DeviceStatus.DEVICE_PENDING:
+                return <span><span style={{color: 'yellow'}}>●</span> Pending Approval</span>;
+            case DeviceStatus.DEVICE_UNKNOWN:
+            default:
+                return <span><span style={{color: 'gray'}}>●</span> Unknown</span>;
+        }
+    }
+
+    const showApproveDeviceIfPending = (deviceId: string, deviceStatus: DeviceStatus) => {
+        if (deviceStatus === DeviceStatus.DEVICE_PENDING) {
+            return <button
+                className="approve-btn"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    handleApprove(deviceId);
+                }}
+                title="Approve Device"
+            >
+                Approve Device
+            </button>
+        }
+    }
+
     return (
         <aside className="sidebar">
             <div className="sidebar-header">
@@ -25,8 +62,15 @@ export const DeviceList: React.FC<DeviceListProps> = ({devices, selectedDeviceId
                         className={`device-item ${selectedDeviceId === device.id ? 'selected' : ''}`}
                     >
                         <strong>{device.id || "No ID"}</strong>
-                        <div className="device-id-subtext">
-                            ID: {device.id.substring(0, 6)}...
+                        <div className="device-details">
+                            <div className="detail-row">
+                                <span className="detail-label">Status:</span>
+                                <span>{showDeviceStatus(storedDevice.status)}</span>
+                            </div>
+                            <div className="detail-row">
+                                <span className="detail-label"></span>
+                                <span>{showApproveDeviceIfPending(device.id, storedDevice.status)}</span>
+                            </div>
                         </div>
                     </div>
                 )

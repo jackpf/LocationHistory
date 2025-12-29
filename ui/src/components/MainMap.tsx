@@ -8,25 +8,42 @@ const DEFAULT_CENTER: [number, number] = [20, 0];
 const DEFAULT_ZOOM = 3;
 const DEFAULT_ZOOM_IN = 16;
 
-function MapUpdater({center, selectedId}: { center: [number, number], selectedId: string | null }) {
+function MapUpdater({center, selectedId, history}: {
+    center: [number, number],
+    selectedId: string | null,
+    history: StoredLocation[]
+}) {
     const map = useMap();
-    const lastFlownToId = React.useRef<string | null>(null);
+
+    const lastFlownId = React.useRef<string | null>(null);
+    const lastHistory = React.useRef<StoredLocation[]>(history);
 
     useEffect(() => {
+        if (!selectedId) {
+            lastFlownId.current = null;
+            return;
+        }
+
+        const isNewDevice = selectedId !== lastFlownId.current;
+        const isHistoryFresh = history !== lastHistory.current;
         const isWorldCenter = center[0] === DEFAULT_CENTER[0] && center[1] === DEFAULT_CENTER[1];
-        if (selectedId && !isWorldCenter && selectedId !== lastFlownToId.current) {
+
+        if (isNewDevice && isHistoryFresh && !isWorldCenter) {
             map.getContainer().classList.add('hide-while-flying');
-            map.flyTo(center, DEFAULT_ZOOM_IN, {duration: 1.5});
+
+            map.flyTo(center, DEFAULT_ZOOM_IN, {
+                duration: 1.5
+            });
+
             map.once('moveend', () => {
                 map.getContainer().classList.remove('hide-while-flying');
             });
-            lastFlownToId.current = selectedId;
+
+            lastFlownId.current = selectedId;
         }
 
-        if (!selectedId) {
-            lastFlownToId.current = null;
-        }
-    }, [selectedId, center, map]);
+        lastHistory.current = history;
+    }, [selectedId, center, map, history]);
 
     return null;
 }
@@ -40,7 +57,7 @@ interface MainMapProps {
 export const MainMap: React.FC<MainMapProps> = ({history, lastUpdated, selectedDeviceId}) => {
     const polylinePositions: [number, number][] = history.flatMap(loc => {
         if (!loc.location) return [];
-        return [[loc.location.lat, loc.location.lon] as [number, number]]; // Keep
+        return [[loc.location.lat, loc.location.lon] as [number, number]];
     });
     const lastLocation: StoredLocation | null = history.length > 0 ? history[history.length - 1] : null;
     const mapCenter: [number, number] = lastLocation != null && lastLocation.location != null ?
@@ -59,7 +76,7 @@ export const MainMap: React.FC<MainMapProps> = ({history, lastUpdated, selectedD
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
-                <MapUpdater center={mapCenter} selectedId={selectedDeviceId}/>
+                <MapUpdater center={mapCenter} selectedId={selectedDeviceId} history={history}/>
 
                 <Polyline
                     positions={polylinePositions}
@@ -81,7 +98,7 @@ export const MainMap: React.FC<MainMapProps> = ({history, lastUpdated, selectedD
                             <Popup>
                                 <strong>Latitude:</strong> {location.lat}<br/>
                                 <strong>Longitude:</strong> {location.lon}<br/>
-                                <strong>Accuracy:</strong> {location.accuracy}m
+                                <strong>Accuracy:</strong> {location.accuracy}m<br/>
                                 <strong>Time:</strong> {format(new Date(storedLocation.timestamp), 'yyyy-MM-dd HH:mm:ss')}
                             </Popup>
                         </CircleMarker>

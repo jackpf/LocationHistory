@@ -24,7 +24,7 @@ object ApplicationErrors {
       deviceId: DeviceId.Type,
       cause: Throwable = None.orNull
   ) extends ApplicationError(s"Device ${deviceId} is not registered", cause) {
-    override val status: Status = Status.INVALID_ARGUMENT
+    override val status: Status = Status.PERMISSION_DENIED
   }
 
   case class InvalidDeviceStatus(
@@ -36,7 +36,7 @@ object ApplicationErrors {
         s"Device ${deviceId} has an invalid state; expected ${expectedState} but was ${actualState}",
         cause
       ) {
-    override val status: Status = Status.INVALID_ARGUMENT
+    override val status: Status = Status.PERMISSION_DENIED
   }
 
   case class DeviceNotFoundException(
