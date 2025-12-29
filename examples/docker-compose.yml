@@ -1,0 +1,29 @@
+services:
+  location-history-server:
+    image: jackpfarrelly/location-history-server:latest
+    container_name: location-history-server
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    expose:
+      - 8080
+    environment:
+      - ADMIN_PASSWORD=mysecretpassword
+  location-history-ui-proxy:
+    image: jackpfarrelly/location-history-ui-proxy:latest
+    container_name: location-history-ui-proxy
+    restart: unless-stopped
+    command:
+      - "--backend_addr=location-history-server:8080"
+      - "--run_tls_server=false"
+      - "--allow_all_origins"
+  location-history-ui:
+    image: jackpfarrelly/location-history-ui:latest
+    container_name: location-history-ui
+    restart: unless-stopped
+    ports:
+      - 8081:80
+    expose:
+      - 8081
+    environment:
+      - PROXY_URL=http://location-history-ui-proxy
