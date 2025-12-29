@@ -81,7 +81,8 @@ class BeaconServiceImpl(
             locationRepo
               .storeDeviceLocation(
                 deviceId,
-                Location.fromProto(location, timestamp = request.timestamp)
+                Location.fromProto(location),
+                timestamp = request.timestamp
               )
               .flatMap {
                 case Failure(exception) => Future.failed(exception.toGrpcError)

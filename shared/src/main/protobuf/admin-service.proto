@@ -32,5 +32,5 @@ message ListLocationsRequest {
 }
 
 message ListLocationsResponse {
-  repeated Location locations = 1;
+  repeated StoredLocation locations = 1;
 }

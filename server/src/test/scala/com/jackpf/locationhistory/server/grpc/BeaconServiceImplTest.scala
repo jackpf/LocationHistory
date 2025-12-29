@@ -137,7 +137,8 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
             locationRepo
               .storeDeviceLocation(
                 DeviceId(device.get.id),
-                model.Location.fromProto(location.get, timestamp)
+                model.Location.fromProto(location.get),
+                timestamp
               )
           ).thenReturn(storeDeviceLocationResponse): Unit
         }
