@@ -110,7 +110,21 @@ jobs:
         with:
           node-version: '24.7.0'
           cache: 'npm'
+          cache-dependency-path: './ui/package-lock.json'
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install
+        working-directory: ./ui
+        run: npm ci
+
+      - name: Build Shared
+        working-directory: ./ui
+        run: make build-protos
 
       - name: Build
         working-directory: ./ui
-        run: npm run build
+        run: make build
