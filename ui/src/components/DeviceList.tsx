@@ -14,18 +14,23 @@ export const DeviceList: React.FC<DeviceListProps> = ({devices, selectedDeviceId
                 <h2>Devices</h2>
             </div>
 
-            {devices.map((storedDevice: StoredDevice) => storedDevice.device != null && (
-                <div
-                    key={storedDevice.device.id}
-                    onClick={() => storedDevice.device != null ? setSelectedDeviceId(storedDevice.device.id) : null}
-                    className={`device-item ${selectedDeviceId === storedDevice.device.id ? 'selected' : ''}`}
-                >
-                    <strong>{storedDevice.device.id || "No ID"}</strong>
-                    <div className="device-id-subtext">
-                        ID: {storedDevice.device.id.substring(0, 6)}...
+            {devices.map((storedDevice: StoredDevice) => {
+                const device = storedDevice.device;
+                if (!device) return;
+
+                return (
+                    <div
+                        key={device.id}
+                        onClick={() => setSelectedDeviceId(device.id)}
+                        className={`device-item ${selectedDeviceId === device.id ? 'selected' : ''}`}
+                    >
+                        <strong>{device.id || "No ID"}</strong>
+                        <div className="device-id-subtext">
+                            ID: {device.id.substring(0, 6)}...
+                        </div>
                     </div>
-                </div>
-            ))}
+                )
+            })}
         </aside>
     );
 };
