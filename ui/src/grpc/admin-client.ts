@@ -1,13 +1,18 @@
 import {createChannel, createClientFactory, Metadata} from 'nice-grpc-web'
 import {AdminServiceDefinition} from '../gen/admin-service'
+import {PROXY_URL} from "../config/config.ts";
 
-const proxyUrl = import.meta.env.VITE_PROXY_URL
-const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD
-const channel = createChannel(proxyUrl)
+console.log("Connecting to proxy: ", PROXY_URL);
+
+export const getAdminPassword = () => {
+    return localStorage.getItem('auth_token') || "";
+};
+
+const channel = createChannel(PROXY_URL)
 
 const clientFactory = createClientFactory()
     .use((call, options) => {
-        const authMetadata = Metadata({ 'authorization': 'Bearer ' + adminPassword });
+        const authMetadata = Metadata({ 'authorization': 'Bearer ' + getAdminPassword() });
 
         return call.next(call.request, {
             ...options,

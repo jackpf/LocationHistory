@@ -1,0 +1,31 @@
+# Note that this docker-compose file is parameterised with
+# environment variables
+# See the relating .env file for parameters that should be configured.
+
+services:
+  location-history-server:
+    image: jackpfarrelly/location-history-server:latest
+    container_name: location-history-server
+    restart: unless-stopped
+    ports:
+      - ${SERVER_PORT}:8080
+    environment:
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+  location-history-ui-proxy:
+    image: jackpfarrelly/location-history-ui-proxy:latest
+    container_name: location-history-ui-proxy
+    restart: unless-stopped
+    ports:
+      - ${PROXY_PORT}:8080
+    command:
+      - "--backend_addr=location-history-server:${SERVER_PORT}"
+      - "--run_tls_server=false"
+      - "--allow_all_origins"
+  location-history-ui:
+    image: jackpfarrelly/location-history-ui:latest
+    container_name: location-history-ui
+    restart: unless-stopped
+    ports:
+      - ${UI_PORT}:80
+    environment:
+      - PROXY_URL=http://${SERVER_NAME}:${PROXY_PORT}
