@@ -11,7 +11,7 @@ export function useAdminClient(refreshInterval: number) {
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const grpcErrorMessage = (message, error: any) => {
+    const grpcErrorMessage = (message: string, error: any) => {
         if (error instanceof ClientError) return message + ": " + error.details;
         else return message + ": " + error.message;
     }
@@ -51,7 +51,7 @@ export function useAdminClient(refreshInterval: number) {
     const approveDevice = async (deviceId: string) => {
         try {
             await adminClient.approveDevice(
-                {device: {id: deviceId}},
+                {device: {id: deviceId}} as any,
             );
             // Refresh list immediately to show the checkmark/status change
             await fetchDevices();
