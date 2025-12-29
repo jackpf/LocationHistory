@@ -64,7 +64,7 @@ docker-publish-proxy:
 	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest --push -f proxy.Dockerfile .
 
 .PHONY: run-proxy
-run-proxy: package-proxy-local
+run-proxy: package-local-proxy
 	docker run --rm \
 		-p 9123:8080 \
 		--name grpc-proxy \
