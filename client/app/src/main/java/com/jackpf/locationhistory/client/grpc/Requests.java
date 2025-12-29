@@ -18,14 +18,12 @@ public class Requests {
     private static Location location(
             Double lat,
             Double lon,
-            Double accuracy,
-            Long timestamp
+            Double accuracy
     ) {
         return Location.newBuilder()
                 .setLat(lat)
                 .setLon(lon)
                 .setAccuracy(accuracy)
-                .setTimestamp(timestamp)
                 .build();
     }
 
@@ -60,7 +58,8 @@ public class Requests {
         return SetLocationRequest
                 .newBuilder()
                 .setDevice(device(deviceId, publicKey))
-                .setLocation(location(lat, lon, accuracy, timestamp))
+                .setLocation(location(lat, lon, accuracy))
+                .setTimestamp(timestamp)
                 .build();
     }
 }

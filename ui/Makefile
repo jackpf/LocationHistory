@@ -14,6 +14,10 @@ init:
 clean:
 	rm -rf node_modules package-lock.json dist src/gen
 
+.PHONY: install
+install:
+	npm install
+
 .PHONY: build-protos
 build-protos:
 	mkdir -p ./src/gen
@@ -28,8 +32,7 @@ run:
 	npm run dev
 
 .PHONY: build
-build: build-protos
-	npm install
+build: install build-protos
 	npm run build
 
 .PHONY: package
