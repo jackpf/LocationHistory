@@ -66,7 +66,7 @@ export function useAdminClient(refreshInterval: number) {
         fetchDevices();
         const interval = setInterval(fetchDevices, refreshInterval);
         return () => clearInterval(interval);
-    }, [fetchDevices]);
+    }, [fetchDevices, refreshInterval]);
 
     // Poll locations for selected device
     useEffect(() => {
