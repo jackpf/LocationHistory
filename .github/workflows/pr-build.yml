@@ -10,6 +10,7 @@ jobs:
     outputs:
       server: ${{ steps.filter.outputs.server }}
       client: ${{ steps.filter.outputs.client }}
+      ui: ${{ steps.filter.outputs.ui }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v2
@@ -22,6 +23,9 @@ jobs:
             client:
               - 'shared/**'
               - 'client/**'
+            ui:
+              - 'shared/**'
+              - 'ui/**'
 
   build-server:
     needs: changes
@@ -85,3 +89,19 @@ jobs:
 
       - name: Build
         run: make -C client build-debug
+
+  build-ui:
+    needs: changes
+    if: ${{ needs.changes.outputs.ui == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.7.0'
+          cache: 'npm'
+
+      - name: Build
+        working-directory: ./ui
+        run: npm run build
