@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { adminClient } from '../grpc/admin-client';
-import { StoredDevice, Location } from '../gen/common';
+import {useEffect, useState} from 'react';
+import {adminClient} from '../grpc/admin-client';
+import {Location, StoredDevice} from '../gen/common';
 import type {ListDevicesResponse, ListLocationsResponse} from "../gen/admin-service.ts";
 
 export function useDeviceManager() {
@@ -20,7 +20,7 @@ export function useDeviceManager() {
                 setError(null);
             } catch (e) {
                 console.error(e);
-                setError("Failed to fetch devices. Is the proxy running?");
+                setError("Failed to fetch devices");
             }
         };
 
@@ -46,6 +46,7 @@ export function useDeviceManager() {
                 setLastUpdated(new Date());
             } catch (e) {
                 console.error(e);
+                setError("Failed to fetch locations");
             }
         };
 

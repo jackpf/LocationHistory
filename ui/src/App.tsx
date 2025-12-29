@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {Circle, CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './App.css'; // Your new CSS file
@@ -11,19 +11,25 @@ const DEFAULT_ZOOM_IN = 16;
 
 function MapUpdater({center, selectedId}: { center: [number, number], selectedId: string | null }) {
     const map = useMap();
-    const [flownToId, setFlownToId] = useState<string | null>(null);
+    const lastFlownToId = React.useRef<string | null>(null);
 
     useEffect(() => {
         const isWorldCenter = center[0] === DEFAULT_CENTER[0] && center[1] === DEFAULT_CENTER[1];
-        if (selectedId && !isWorldCenter && selectedId !== flownToId) {
+        if (selectedId && !isWorldCenter && selectedId !== lastFlownToId.current) {
+            // Hide markers while flying to prevent zoom artifacts
+            map.getContainer().classList.add('hide-while-flying');
             map.flyTo(center, DEFAULT_ZOOM_IN, {duration: 1.5});
-            setFlownToId(selectedId);
+            // Un-hide markers after flying complete
+            map.once('moveend', () => {
+                map.getContainer().classList.remove('hide-while-flying');
+            });
+            lastFlownToId.current = selectedId;
         }
-    }, [selectedId, center, flownToId, map]);
 
-    useEffect(() => {
-        if (!selectedId) setFlownToId(null);
-    }, [selectedId]);
+        if (!selectedId) {
+            lastFlownToId.current = null;
+        }
+    }, [selectedId, center, map]);
 
     return null;
 }
@@ -52,7 +58,7 @@ function App() {
                     {error && <div className="error-text">{error}</div>}
                 </div>
 
-                {devices.map((storedDevice: StoredDevice) => (
+                {devices.map((storedDevice: StoredDevice) => storedDevice.device != null && (
                     <div
                         key={storedDevice.device.id}
                         onClick={() => setSelectedDeviceId(storedDevice.device.id)}
@@ -73,7 +79,7 @@ function App() {
                     <small>Updated: {lastUpdated.toLocaleTimeString()}</small>
                 </div>
 
-                <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM}>
+                <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM} preferCanvas={true}>
                     <TileLayer
                         attribution='&copy; OpenStreetMap contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
