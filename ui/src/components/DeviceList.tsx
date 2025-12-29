@@ -31,7 +31,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
     }
 
     const showApproveDeviceIfPending = (deviceId: string, deviceStatus: DeviceStatus) => {
-        if (deviceStatus == DeviceStatus.DEVICE_REGISTERED) {
+        if (deviceStatus === DeviceStatus.DEVICE_PENDING) {
             return <button
                 className="approve-btn"
                 onClick={(e) => {
