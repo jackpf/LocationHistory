@@ -63,7 +63,7 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecifi
       def storeLocation(ts: Long): Future[Try[Unit]] =
         context.locationRepo.storeDeviceLocation(
           deviceId,
-          Location(timestamp = ts, lat = 0.1, lon = 0.2, accuracy = 0.3)
+          Location(lat = 0.1, lon = 0.2, accuracy = 0.3, timestamp = ts)
         )
 
       {

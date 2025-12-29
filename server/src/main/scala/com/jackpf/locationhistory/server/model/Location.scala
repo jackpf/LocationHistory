@@ -18,6 +18,7 @@ case class Location(lat: Double, lon: Double, accuracy: Double, timestamp: Long)
   def toProto: ProtoLocation = ProtoLocation(
     lat = lat,
     lon = lon,
-    accuracy = accuracy
+    accuracy = accuracy,
+    timestamp = timestamp
   )
 }

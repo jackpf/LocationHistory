@@ -202,8 +202,8 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         context.result must beEqualTo(
           ListLocationsResponse(locations =
             Seq(
-              Location(lat = 0.1, lon = 0.2, accuracy = 0.3),
-              Location(lat = 0.4, lon = 0.5, accuracy = 0.6)
+              Location(lat = 0.1, lon = 0.2, accuracy = 0.3, timestamp = 1L),
+              Location(lat = 0.4, lon = 0.5, accuracy = 0.6, timestamp = 2L)
             )
           )
         ).await

@@ -8,12 +8,18 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 public class PermissionsManager {
-    private static boolean isGranted(@NonNull Context context, @NonNull String permission) {
+    private final Context context;
+
+    public PermissionsManager(Context context) {
+        this.context = context;
+    }
+
+    private boolean isGranted(@NonNull String permission) {
         return ActivityCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
     }
 
-    public static boolean hasLocationPermissions(Context context) {
-        return isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)
-                && isGranted(context, Manifest.permission.ACCESS_COARSE_LOCATION);
+    public boolean hasLocationPermissions() {
+        return isGranted(Manifest.permission.ACCESS_FINE_LOCATION)
+                && isGranted(Manifest.permission.ACCESS_COARSE_LOCATION);
     }
 }
