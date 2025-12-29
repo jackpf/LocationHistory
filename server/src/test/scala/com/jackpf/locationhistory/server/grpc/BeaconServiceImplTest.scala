@@ -191,7 +191,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val storeDeviceLocationResponse: Future[Try[Unit]] = null
       }) { context =>
         context.result must throwAGrpcException(
-          Code.INVALID_ARGUMENT,
+          Code.PERMISSION_DENIED,
           "Device 123 is not registered"
         ).await
       }

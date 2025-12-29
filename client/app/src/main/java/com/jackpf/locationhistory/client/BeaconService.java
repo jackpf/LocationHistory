@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 
 public class BeaconService extends Service {
     private ConfigRepository configRepo;
@@ -52,6 +53,17 @@ public class BeaconService extends Service {
         return binder;
     }
 
+    private void failureCallback(StatusRuntimeException exception) {
+        switch (exception.getStatus().getCode()) {
+            case UNAUTHENTICATED:
+            case PERMISSION_DENIED:
+            case NOT_FOUND:
+                log.w("gRPC authentication error, resetting device status", exception);
+                deviceStateReady = false;
+                break;
+        }
+    }
+
     private BeaconClient createBeaconClient() {
         log.d("Connecting to server %s:%d", configRepo.getServerHost(), configRepo.getServerPort());
 
@@ -63,7 +75,7 @@ public class BeaconService extends Service {
                     .usePlaintext()
                     .build();
 
-            return new BeaconClient(channel, CLIENT_TIMEOUT_MILLIS);
+            return new BeaconClient(channel, CLIENT_TIMEOUT_MILLIS, this::failureCallback);
         } catch (IllegalArgumentException e) {
             log.e("Invalid server details", e);
             return null;

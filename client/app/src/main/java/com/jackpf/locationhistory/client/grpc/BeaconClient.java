@@ -16,20 +16,27 @@ import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import io.grpc.ManagedChannel;
+import io.grpc.StatusRuntimeException;
 
 public class BeaconClient {
     private final BeaconServiceGrpc.BeaconServiceBlockingStub beaconService;
     private final long timeoutMillis;
+    private final Consumer<StatusRuntimeException> failureCallback;
 
     private final Logger log = new Logger(this);
 
-    public BeaconClient(ManagedChannel channel, long timeoutMillis) {
+    public BeaconClient(
+            ManagedChannel channel,
+            long timeoutMillis,
+            Consumer<StatusRuntimeException> failureCallback) {
         // TODO Make non-blocking
         beaconService = BeaconServiceGrpc
                 .newBlockingStub(channel);
         this.timeoutMillis = timeoutMillis;
+        this.failureCallback = failureCallback;
     }
 
     private BeaconServiceGrpc.BeaconServiceBlockingStub createStub() {
@@ -43,7 +50,8 @@ public class BeaconClient {
         PingRequest pingRequest = Requests.pingRequest();
         PingResponse pingResponse = executeWrapped(() ->
                         createStub().ping(pingRequest),
-                "Ping request failed"
+                "Ping request failed",
+                this.failureCallback
         );
 
         log.d("Ping response: %s", pingResponse);
@@ -59,7 +67,8 @@ public class BeaconClient {
         CheckDeviceRequest checkDeviceRequest = Requests.checkDeviceRequest(deviceId);
         CheckDeviceResponse checkDeviceResponse = executeWrapped(() ->
                         createStub().checkDevice(checkDeviceRequest),
-                "Check device failed"
+                "Check device failed",
+                this.failureCallback
         );
 
         log.d("Check device response: %s", checkDeviceResponse);
@@ -73,7 +82,8 @@ public class BeaconClient {
         RegisterDeviceRequest registerDeviceRequest = Requests.registerDeviceRequest(deviceId, publicKey);
         RegisterDeviceResponse registerDeviceResponse = executeWrapped(() ->
                         createStub().registerDevice(registerDeviceRequest),
-                "Register device failed"
+                "Register device failed",
+                this.failureCallback
         );
 
         log.d("Register device response: %s", registerDeviceResponse);
@@ -93,7 +103,8 @@ public class BeaconClient {
         );
         SetLocationResponse setLocationResponse = executeWrapped(() ->
                         createStub().setLocation(setLocationRequest),
-                "Send location failed"
+                "Send location failed",
+                this.failureCallback
         );
         log.d("Set location response: %s", setLocationResponse);
 

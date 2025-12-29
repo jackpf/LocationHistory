@@ -146,7 +146,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val updateResponse: Future[Try[Unit]] = null
       }) { context =>
         context.result must throwAGrpcException(
-          Code.INVALID_ARGUMENT,
+          Code.PERMISSION_DENIED,
           "Device 123 has an invalid state; expected Pending but was Unknown"
         ).await
       }
@@ -163,7 +163,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val updateResponse: Future[Try[Unit]] = null
       }) { context =>
         context.result must throwAGrpcException(
-          Code.INVALID_ARGUMENT,
+          Code.PERMISSION_DENIED,
           "Device 123 has an invalid state; expected Pending but was Registered"
         ).await
       }
