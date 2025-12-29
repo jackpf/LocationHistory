@@ -78,7 +78,7 @@ export function useAdminClient(refreshInterval: number) {
         fetchLocations();
         const interval = setInterval(fetchLocations, refreshInterval);
         return () => clearInterval(interval);
-    }, [fetchLocations, selectedDeviceId]);
+    }, [fetchLocations, selectedDeviceId, refreshInterval]);
 
     // Return everything the UI needs
     return {
