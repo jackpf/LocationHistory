@@ -56,7 +56,7 @@ package-proxy:
 package-proxy-local:
 	$(DOCKER_BUILDX_LOCAL) -t $(APP_NAME)-proxy:latest ./proxy
 
-.PHONY: package-proxy
+.PHONY: docker-publish-proxy
 docker-publish-proxy:
 	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest --push ./proxy
 
