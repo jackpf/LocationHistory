@@ -98,7 +98,7 @@ export const MainMap: React.FC<MainMapProps> = ({history, lastUpdated, selectedD
                             <Popup>
                                 <strong>Latitude:</strong> {location.lat}<br/>
                                 <strong>Longitude:</strong> {location.lon}<br/>
-                                <strong>Accuracy:</strong> {location.accuracy}m
+                                <strong>Accuracy:</strong> {location.accuracy}m<br/>
                                 <strong>Time:</strong> {format(new Date(storedLocation.timestamp), 'yyyy-MM-dd HH:mm:ss')}
                             </Popup>
                         </CircleMarker>
