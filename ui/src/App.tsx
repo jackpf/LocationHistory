@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {Circle, CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './App.css'; // Your new CSS file
-import {useDeviceManager} from './hooks/use-device-manager';
+import {useAdminClient} from './hooks/use-admin-client.ts';
 import type {StoredDevice} from "./gen/common.ts";
 
 const DEFAULT_CENTER: [number, number] = [20, 0];
@@ -42,7 +42,7 @@ function App() {
         history,
         lastUpdated,
         error
-    } = useDeviceManager();
+    } = useAdminClient();
 
     const polylinePositions = history.map(loc => [loc.lat, loc.lon] as [number, number]);
     const lastLocation = history.length > 0 ? history[history.length - 1] : null;

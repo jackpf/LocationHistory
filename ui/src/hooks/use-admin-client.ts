@@ -3,7 +3,7 @@ import {adminClient} from '../grpc/admin-client';
 import {Location, StoredDevice} from '../gen/common';
 import type {ListDevicesResponse, ListLocationsResponse} from "../gen/admin-service.ts";
 
-export function useDeviceManager() {
+export function useAdminClient() {
     const [devices, setDevices] = useState<StoredDevice[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const [history, setHistory] = useState<Location[]>([]);
