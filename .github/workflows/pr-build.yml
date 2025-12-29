@@ -103,6 +103,11 @@ jobs:
           cache: 'npm'
           cache-dependency-path: './ui/package-lock.json'
 
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install
         working-directory: ./ui
         run: npm ci
