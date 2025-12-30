@@ -17,6 +17,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.jackpf.locationhistory.client.config.ConfigRepository;
+import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.permissions.PermissionsFlow;
 import com.jackpf.locationhistory.client.util.Logger;
 
@@ -94,8 +95,17 @@ public class MainActivity extends Activity {
         }
 
         try {
-            beaconService.testConnection();
-            Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
+            beaconService.testConnection(new GrpcFutureWrapper<>(
+                    response -> runOnUiThread(() -> {
+                        String responseMessage = response.getMessage();
+                        if ("pong".equals(responseMessage)) {
+                            Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, String.format("Invalid response message: %s", responseMessage), Toast.LENGTH_SHORT).show();
+                        }
+                    }),
+                    e -> runOnUiThread(() -> Toast.makeText(this, String.format("Connection failed: %s", e.getMessage()), Toast.LENGTH_SHORT).show())
+            ));
         } catch (IOException e) {
             Toast.makeText(this, String.format("Connection failed: %s", e.getMessage()), Toast.LENGTH_SHORT).show();
         }
