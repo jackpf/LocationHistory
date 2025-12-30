@@ -13,19 +13,18 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 
-import com.jackpf.locationhistory.DeviceStatus;
 import com.jackpf.locationhistory.PingResponse;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.BeaconRequest;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.location.LocationProvider;
+import com.jackpf.locationhistory.client.model.DeviceState;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import io.grpc.ManagedChannel;
@@ -41,8 +40,7 @@ public class BeaconService extends Service {
     private PermissionsManager permissionsManager;
     private final IBinder binder = new LocalBinder();
     private static final long CLIENT_TIMEOUT_MILLIS = 10_000;
-    // True if device state has been detected as ready - we no longer check once we detect this
-    private boolean deviceStateReady = false;
+    private final DeviceState deviceState = new DeviceState();
 
     private final Logger log = new Logger(this);
 
@@ -63,7 +61,7 @@ public class BeaconService extends Service {
             case PERMISSION_DENIED:
             case NOT_FOUND:
                 log.w("gRPC authentication error, resetting device status", exception);
-                deviceStateReady = false;
+                deviceState.setNotReady();
                 break;
         }
     }
@@ -138,47 +136,66 @@ public class BeaconService extends Service {
         return configRepo.getPublicKey();
     }
 
-    public boolean checkDeviceState(String deviceId, String publicKey) {
+    public void onDeviceStateReady(String deviceId, String publicKey, Runnable callback) {
         // Device has been detected as registered & ready - no need to check again
-        if (deviceStateReady) {
-            return true;
+        if (deviceState.isReady()) {
+            callback.run();
+            return;
         }
 
         try {
-            DeviceStatus deviceStatus = getBeaconClient().checkDevice(deviceId, new GrpcFutureWrapper<>(v -> {
-            }, this::failureCallback)).get().getStatus();
-            switch (deviceStatus) {
-                case DEVICE_REGISTERED:
-                    log.d("Device %s is registered, device state ready", deviceId);
-                    deviceStateReady = true;
-                    break;
-                case DEVICE_PENDING:
-                    log.d("Device %s is pending registration", deviceId);
-                    deviceStateReady = false;
-                    break;
-                case DEVICE_UNKNOWN:
-                default:
-                    log.d("Device %s not found, registering as new", deviceId);
-                    if (!getBeaconClient().registerDevice(deviceId, publicKey, new GrpcFutureWrapper<>(v -> {
-                    }, this::failureCallback)).get().getSuccess()) {
-                        log.e("Device registration unsuccessful");
-                    }
-                    deviceStateReady = false;
-                    break;
-            }
-        } catch (IOException | ExecutionException | InterruptedException e) {
+            getBeaconClient().checkDevice(deviceId, new GrpcFutureWrapper<>(v -> {
+                switch (v.getStatus()) {
+                    case DEVICE_REGISTERED:
+                        log.d("Device %s is registered, device state ready", deviceId);
+                        deviceState.setReady();
+                        callback.run();
+                        break;
+                    case DEVICE_PENDING:
+                        log.d("Device %s is pending registration", deviceId);
+                        deviceState.setNotReady();
+                        break;
+                    case DEVICE_UNKNOWN:
+                    default:
+                        log.d("Device %s not found, registering as new", deviceId);
+
+                        try {
+                            getBeaconClient().registerDevice(deviceId, publicKey, new GrpcFutureWrapper<>(v2 -> {
+                                if (v2.getSuccess()) {
+                                    log.d("Device %s successfully registered", deviceId);
+                                    deviceState.setReady();
+                                    callback.run();
+                                } else {
+                                    log.w("Device %s failed to be registered", deviceId);
+                                    deviceState.setNotReady();
+                                }
+                            }, this::failureCallback));
+                        } catch (IOException e) {
+                            log.e("Register device error", e);
+                            deviceState.setNotReady();
+                        }
+                        break;
+                }
+            }, error -> {
+                this.failureCallback(error);
+                deviceState.setNotReady();
+            }));
+        } catch (IOException e) {
             log.e("Check device error", e);
-            deviceStateReady = false;
+            deviceState.setNotReady();
         }
-        return deviceStateReady;
     }
 
     private void loop(long intervalMillis) {
         handler.postDelayed(() -> {
             persistNotification();
-            if (checkDeviceState(configRepo.getDeviceId(), configRepo.getPublicKey()) && permissionsManager.hasLocationPermissions()) {
-                handleLocationUpdate();
-            }
+            onDeviceStateReady(configRepo.getDeviceId(), configRepo.getPublicKey(), () -> {
+                if (permissionsManager.hasLocationPermissions()) {
+                    handleLocationUpdate();
+                } else {
+                    log.w("Location permissions not granted");
+                }
+            });
             loop(configRepo.getUpdateIntervalMillis());
         }, intervalMillis);
     }
@@ -186,7 +203,8 @@ public class BeaconService extends Service {
     private void handleConfigUpdate(SharedPreferences sharedPreferences, String key) {
         log.d("Config update detected");
         beaconClient = createBeaconClient();
-        deviceStateReady = false; // Force re-checking device state with new config
+        deviceState.setNotReady();
+        ; // Force re-checking device state with new config
     }
 
     @SuppressLint("MissingPermission")
@@ -203,8 +221,8 @@ public class BeaconService extends Service {
                             BeaconRequest.fromLocation(locationData.getLocation()),
                             new GrpcFutureWrapper<>(v -> {
                             }, this::failureCallback)
-                    ).get();
-                } catch (IOException | ExecutionException | InterruptedException e) {
+                    );
+                } catch (IOException e) {
                     log.e("Failed to send location", e);
                 }
             } else {
