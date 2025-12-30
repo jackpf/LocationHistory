@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {type Device, DeviceStatus, type StoredDevice} from "../gen/common.ts";
 
 interface DeviceListProps {
@@ -45,36 +45,52 @@ export const DeviceList: React.FC<DeviceListProps> = ({
         }
     }
 
+    const [isOpen, setIsOpen] = useState(true);
+
     return (
-        <aside className="sidebar">
-            <div className="sidebar-header">
-                <h2>Devices</h2>
-            </div>
+        <>
+            <button
+                className={`sidebar-toggle ${isOpen ? 'open' : ''}`}
+                onClick={() => setIsOpen(!isOpen)}
+                aria-label="Toggle Sidebar"
+            >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
 
-            {devices.map((storedDevice: StoredDevice) => {
-                const device: Device | undefined = storedDevice.device;
-                if (!device) return;
+            <aside className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
+                <div className="sidebar-header">
+                    <h2>Devices</h2>
+                </div>
 
-                return (
-                    <div
-                        key={device.id}
-                        onClick={() => setSelectedDeviceId(device.id)}
-                        className={`device-item ${selectedDeviceId === device.id ? 'selected' : ''}`}
-                    >
-                        <strong>{device.id || "No ID"}</strong>
-                        <div className="device-details">
-                            <div className="detail-row">
-                                <span className="detail-label">Status:</span>
-                                <span>{showDeviceStatus(storedDevice.status)}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="detail-label"></span>
-                                <span>{showApproveDeviceIfPending(device.id, storedDevice.status)}</span>
+                {devices.map((storedDevice: StoredDevice) => {
+                    const device: Device | undefined = storedDevice.device;
+                    if (!device) return;
+
+                    return (
+                        <div
+                            key={device.id}
+                            onClick={() => setSelectedDeviceId(device.id)}
+                            className={`device-item ${selectedDeviceId === device.id ? 'selected' : ''}`}
+                        >
+                            <strong>{device.id || "No ID"}</strong>
+                            <div className="device-details">
+                                <div className="detail-row">
+                                    <span className="detail-label">Status:</span>
+                                    <span>{showDeviceStatus(storedDevice.status)}</span>
+                                </div>
+                                <div className="detail-row">
+                                    <span className="detail-label"></span>
+                                    <span>{showApproveDeviceIfPending(device.id, storedDevice.status)}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )
-            })}
-        </aside>
+                    )
+                })}
+            </aside>
+        </>
     );
 };
