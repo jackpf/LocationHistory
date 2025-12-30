@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Circle, CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap} from 'react-leaflet';
+import {Circle, CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap, ZoomControl} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type {StoredLocation} from '../gen/common';
 import {format, formatDistanceToNow} from "date-fns";
@@ -70,11 +70,18 @@ export const MainMap: React.FC<MainMapProps> = ({history, lastUpdated, selectedD
                 <small>Updated: {lastUpdated != null ? formatDistanceToNow(lastUpdated, {addSuffix: true}) : "never"}</small>
             </div>)}
 
-            <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM} preferCanvas={true}>
+            <MapContainer
+                center={DEFAULT_CENTER}
+                zoom={DEFAULT_ZOOM}
+                preferCanvas={true}
+                zoomControl={false}
+            >
                 <TileLayer
                     attribution="&copy; OpenStreetMap contributors"
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+
+                <ZoomControl position="bottomright"/>
 
                 <MapUpdater center={mapCenter} selectedId={selectedDeviceId} history={history}/>
 
