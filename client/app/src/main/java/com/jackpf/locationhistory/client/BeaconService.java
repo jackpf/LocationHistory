@@ -181,7 +181,7 @@ public class BeaconService extends Service {
                 }
             }, error -> {
                 this.failureCallback(error);
-                deviceState.setNotReady();
+                deviceState.setNotReady(); // Set un-ready for any error
             }));
         } catch (IOException e) {
             log.e("Check device error", e);
