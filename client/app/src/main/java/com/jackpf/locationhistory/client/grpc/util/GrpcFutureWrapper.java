@@ -30,7 +30,13 @@ public class GrpcFutureWrapper<T> implements FutureCallback<T> {
     @Override
     public void onFailure(Throwable t) {
         log.e(t, "%s error", tag);
-        if (t instanceof StatusRuntimeException) errorCallback.accept((StatusRuntimeException) t);
-        else throw new RuntimeException(t);
+        if (t instanceof StatusRuntimeException) {
+            errorCallback.accept((StatusRuntimeException) t);
+        } else {
+            errorCallback.accept(io.grpc.Status.INTERNAL
+                    .withDescription("Unexpected GRPC error: " + t.getMessage())
+                    .withCause(t)
+                    .asRuntimeException());
+        }
     }
 }

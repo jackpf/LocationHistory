@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import io.grpc.ManagedChannel;
 
 public class BeaconClient implements AutoCloseable {
+    private final ManagedChannel channel;
     private final BeaconServiceGrpc.BeaconServiceFutureStub beaconService;
     private final long timeoutMillis;
     private final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
@@ -31,6 +32,7 @@ public class BeaconClient implements AutoCloseable {
         beaconService = BeaconServiceGrpc
                 .newFutureStub(channel);
         this.timeoutMillis = timeoutMillis;
+        this.channel = channel;
     }
 
     private BeaconServiceGrpc.BeaconServiceFutureStub createStub() {
@@ -85,8 +87,13 @@ public class BeaconClient implements AutoCloseable {
         return future;
     }
 
+    public boolean isClosed() {
+        return channel.isShutdown() || channel.isTerminated();
+    }
+
     @Override
     public void close() {
         threadExecutor.close();
+        channel.shutdown();
     }
 }

@@ -68,8 +68,13 @@ public class BeaconService extends Service {
         }
     }
 
-    private BeaconClient createBeaconClient() {
+    private void createBeaconClient() {
         log.d("Connecting to server %s:%d", configRepo.getServerHost(), configRepo.getServerPort());
+
+        // Shut down any previous client instances
+        if (beaconClient != null && !beaconClient.isClosed()) {
+            beaconClient.close();
+        }
 
         try {
             ManagedChannel channel = ManagedChannelBuilder
@@ -79,10 +84,10 @@ public class BeaconService extends Service {
                     .usePlaintext()
                     .build();
 
-            return new BeaconClient(channel, CLIENT_TIMEOUT_MILLIS);
+            beaconClient = new BeaconClient(channel, CLIENT_TIMEOUT_MILLIS);
         } catch (IllegalArgumentException e) {
             log.e("Invalid server details", e);
-            return null;
+            beaconClient = null;
         }
     }
 
@@ -112,7 +117,7 @@ public class BeaconService extends Service {
         handler = new Handler(Looper.getMainLooper());
         permissionsManager = new PermissionsManager(this);
         locationProvider = new LocationProvider(this, permissionsManager);
-        beaconClient = createBeaconClient();
+        createBeaconClient();
         setDeviceIdIfNotPresent();
     }
 
@@ -205,9 +210,8 @@ public class BeaconService extends Service {
 
     private void handleConfigUpdate(SharedPreferences sharedPreferences, String key) {
         log.d("Config update detected");
-        beaconClient = createBeaconClient();
-        deviceState.setNotReady();
-        ; // Force re-checking device state with new config
+        createBeaconClient();
+        deviceState.setNotReady(); // Force re-checking device state with new config
     }
 
     @SuppressLint("MissingPermission")
