@@ -93,7 +93,7 @@ public class BeaconClient implements AutoCloseable {
 
     @Override
     public void close() {
-        threadExecutor.close();
+        threadExecutor.shutdown();
         channel.shutdown();
     }
 }
