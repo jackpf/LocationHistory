@@ -81,7 +81,7 @@ export const MainMap: React.FC<MainMapProps> = ({history, lastUpdated, selectedD
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
-                <ZoomControl position="topright"/>
+                <ZoomControl position="bottomright"/>
 
                 <MapUpdater center={mapCenter} selectedId={selectedDeviceId} history={history}/>
 
