@@ -1,5 +1,6 @@
 package com.jackpf.locationhistory.client;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -116,6 +117,7 @@ public class BeaconService extends Service {
     public void onDestroy() {
         super.onDestroy();
         configRepo.unregisterOnSharedPreferenceChangeListener(configListener);
+        locationProvider.close();
     }
 
     @Override
@@ -182,29 +184,26 @@ public class BeaconService extends Service {
         deviceStateReady = false; // Force re-checking device state with new config
     }
 
+    @SuppressLint("MissingPermission")
     private void handleLocationUpdate() {
         log.d("Updating location");
 
-        try {
-            locationProvider.getLocation(location -> {
-                if (location != null) {
-                    log.d("Received location data: %s", location.toString());
-                    try {
-                        getBeaconClient().sendLocation(
-                                _getDeviceId(),
-                                _getPublicKey(),
-                                BeaconRequest.fromLocation(location)
-                        );
-                    } catch (IOException e) {
-                        log.e("Failed to send location", e);
-                    }
-                } else {
-                    log.w("Received null location data");
+        locationProvider.getLocation(locationData -> {
+            if (locationData != null) {
+                log.d("Received location data: %s", locationData.toString());
+                try {
+                    getBeaconClient().sendLocation(
+                            _getDeviceId(),
+                            _getPublicKey(),
+                            BeaconRequest.fromLocation(locationData.getLocation())
+                    );
+                } catch (IOException e) {
+                    log.e("Failed to send location", e);
                 }
-            });
-        } catch (IOException e) {
-            log.e("Failed get location data", e);
-        }
+            } else {
+                log.w("Received null location data");
+            }
+        });
     }
 
     public void testConnection() throws IOException {

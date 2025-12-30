@@ -1,52 +1,108 @@
 package com.jackpf.locationhistory.client.location;
 
-import android.annotation.SuppressLint;
+import android.Manifest;
 import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.util.Logger;
 
-import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-public class LocationProvider {
-    private static final int LOCATION_TIMEOUT_MS = 30000;
+import lombok.Value;
+
+public class LocationProvider implements AutoCloseable {
     private final LocationManager locationManager;
     private final PermissionsManager permissionsManager;
+    private final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
     private final Logger log = new Logger(this);
+
+
+    private static final int LOCATION_TIMEOUT_MS = 30000;
+    private static final long FRESHNESS_THRESHOLD_MS = (long) 1000 * 60 * 5; // 5 Minutes
+
+    @Value
+    public static class LocationData {
+        Location location;
+        String source;
+    }
+
 
     public LocationProvider(Context context, PermissionsManager permissionsManager) {
         this.locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         this.permissionsManager = permissionsManager;
     }
 
-    private boolean gpsEnabled() {
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    private boolean isFresh(LocationData data) {
+        if (data.getLocation() == null) return false;
+        long age = System.currentTimeMillis() - data.getLocation().getTime();
+        return age < FRESHNESS_THRESHOLD_MS;
     }
 
-    @SuppressLint("MissingPermission")
-    private Location fallbackLocation() {
-        return locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
+    private LocationData getCachedLocation() {
+        Location bestLocation = null;
+        String source = null;
+
+        for (String provider : locationManager.getAllProviders()) {
+            Location location = locationManager.getLastKnownLocation(provider);
+            if (location == null) continue;
+
+            if (bestLocation == null || location.getTime() > bestLocation.getTime()) {
+                bestLocation = location;
+                source = provider;
+            }
+        }
+
+        return new LocationData(bestLocation, source);
     }
 
-    @SuppressLint("MissingPermission")
-    public void getLocation(Consumer<Location> consumer) throws IOException {
-        if (!permissionsManager.hasLocationPermissions()) {
-            throw new IOException("No location permissions");
-        }
+    private boolean newLocationManagerSupported() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R;
+    }
 
-        if (!gpsEnabled()) {
-            throw new IOException("GPS is not enabled");
-        }
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
+    private void getLiveLocation(String provider, LocationData fallbackLocation, Consumer<LocationData> consumer) {
+        if (!newLocationManagerSupported())
+            throw new RuntimeException("getLiveLocation requires Android R or above");
+        log.d("Using updated location manager");
+
+        CancellationSignal cancellationSignal = new CancellationSignal();
+
+        locationManager.getCurrentLocation(
+                provider,
+                cancellationSignal,
+                threadExecutor,
+                location -> {
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        if (location != null) {
+                            consumer.accept(new LocationData(location, provider));
+                        } else {
+                            if (fallbackLocation.getLocation() != null)
+                                consumer.accept(fallbackLocation);
+                        }
+                    });
+                }
+        );
+
+    }
+
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
+    private void getLegacyLiveLocation(String provider, LocationData fallbackLocation, Consumer<LocationData> consumer) {
+        log.d("Using legacy location manager");
 
         final AtomicBoolean resultHandled = new AtomicBoolean(false);
 
@@ -55,7 +111,7 @@ public class LocationProvider {
             public void onLocationChanged(@NonNull Location location) {
                 if (resultHandled.compareAndSet(false, true)) {
                     log.d("Location data received from listener");
-                    consumer.accept(location);
+                    consumer.accept(new LocationData(location, provider));
                     locationManager.removeUpdates(this);
                 }
             }
@@ -77,16 +133,52 @@ public class LocationProvider {
             if (resultHandled.compareAndSet(false, true)) {
                 log.w("Location request timed out; using fallback location");
                 locationManager.removeUpdates(listener);
-                consumer.accept(fallbackLocation());
+                consumer.accept(fallbackLocation);
             }
         }, LOCATION_TIMEOUT_MS);
 
-        locationManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                0,
-                0,
-                listener,
-                Looper.getMainLooper()
-        );
+        locationManager.requestSingleUpdate(provider, listener, Looper.getMainLooper());
+    }
+
+    private String getBestProvider() {
+        if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            return LocationManager.NETWORK_PROVIDER;
+        } else if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            return LocationManager.GPS_PROVIDER;
+        } else {
+            return null;
+        }
+    }
+
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
+    public void getLocation(Consumer<LocationData> consumer) throws SecurityException {
+        if (!permissionsManager.hasLocationPermissions()) {
+            throw new SecurityException("No location permissions");
+        }
+
+        LocationData cachedLocation = getCachedLocation();
+        if (isFresh(cachedLocation)) {
+            log.d("Using fresh cached location: %s", cachedLocation);
+            consumer.accept(cachedLocation);
+            return;
+        }
+
+        String provider = getBestProvider();
+
+        if (provider == null) {
+            if (cachedLocation.getLocation() != null) {
+                log.w("No providers enabled, returning stale cached location");
+                consumer.accept(cachedLocation);
+            } else log.e("No location providers available");
+            return;
+        }
+
+        if (newLocationManagerSupported()) getLiveLocation(provider, cachedLocation, consumer);
+        else getLegacyLiveLocation(provider, cachedLocation, consumer);
+    }
+
+    @Override
+    public void close() {
+        threadExecutor.shutdown();
     }
 }
