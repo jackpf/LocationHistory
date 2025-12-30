@@ -60,9 +60,11 @@ public class BeaconService extends Service {
             case UNAUTHENTICATED:
             case PERMISSION_DENIED:
             case NOT_FOUND:
-                log.w("gRPC authentication error, resetting device status", exception);
+                log.e(exception, "gRPC authentication error, resetting device status");
                 deviceState.setNotReady();
                 break;
+            default:
+                log.e(exception, "GRPC error");
         }
     }
 
