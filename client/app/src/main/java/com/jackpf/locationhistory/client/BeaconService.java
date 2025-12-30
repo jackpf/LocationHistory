@@ -77,7 +77,7 @@ public class BeaconService extends Service {
                     .usePlaintext()
                     .build();
 
-            return new BeaconClient(channel, CLIENT_TIMEOUT_MILLIS, this::failureCallback);
+            return new BeaconClient(channel, CLIENT_TIMEOUT_MILLIS);
         } catch (IllegalArgumentException e) {
             log.e("Invalid server details", e);
             return null;
@@ -118,6 +118,7 @@ public class BeaconService extends Service {
     public void onDestroy() {
         super.onDestroy();
         configRepo.unregisterOnSharedPreferenceChangeListener(configListener);
+        beaconClient.close();
         locationProvider.close();
     }
 

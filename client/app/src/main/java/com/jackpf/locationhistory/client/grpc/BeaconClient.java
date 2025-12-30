@@ -12,28 +12,22 @@ import com.jackpf.locationhistory.RegisterDeviceResponse;
 import com.jackpf.locationhistory.SetLocationRequest;
 import com.jackpf.locationhistory.SetLocationResponse;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
-import com.jackpf.locationhistory.client.util.Logger;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import io.grpc.ManagedChannel;
-import io.grpc.StatusRuntimeException;
 
-public class BeaconClient {
+public class BeaconClient implements AutoCloseable {
     private final BeaconServiceGrpc.BeaconServiceFutureStub beaconService;
     private final long timeoutMillis;
     private final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
 
-    private final Logger log = new Logger(this);
 
     public BeaconClient(
             ManagedChannel channel,
-            long timeoutMillis,
-            Consumer<StatusRuntimeException> failureCallback) {
-
+            long timeoutMillis) {
         beaconService = BeaconServiceGrpc
                 .newFutureStub(channel);
         this.timeoutMillis = timeoutMillis;
@@ -89,5 +83,10 @@ public class BeaconClient {
         Futures.addCallback(future, callback, threadExecutor);
 
         return future;
+    }
+
+    @Override
+    public void close() {
+        threadExecutor.close();
     }
 }
