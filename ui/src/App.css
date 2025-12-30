@@ -55,7 +55,7 @@ html, body, #root {
 /* Move the button along with the sidebar */
 .sidebar-toggle.open {
   /* Puts the button inside the sidebar header visually */
-  left: 230px;
+  left: calc(300px - 70px);
   background: transparent;
   border: none;
 }
