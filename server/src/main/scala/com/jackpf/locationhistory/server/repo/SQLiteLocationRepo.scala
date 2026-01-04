@@ -30,7 +30,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
     db.transaction { implicit db =>
       val _ = db.updateRaw(
         """CREATE TABLE IF NOT EXISTS stored_location_table (
-          id UNSIGNED BIG INT PRIMARY KEY,
+          id INTEGER PRIMARY KEY, -- Auto-increment key
           device_id TEXT,
           lat DOUBLE,
           lon DOUBLE,
