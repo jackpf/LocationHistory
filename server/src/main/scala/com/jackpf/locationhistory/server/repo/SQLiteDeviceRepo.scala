@@ -9,6 +9,8 @@ import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
 import scalasql.SqliteDialect.*
 import scalasql.core.DbClient
 import scalasql.simple.SimpleTable
+import org.sqlite.SQLiteErrorCode
+import com.jackpf.locationhistory.server.util.SQLiteMapper.*
 
 import scala.concurrent.{ExecutionContext, Future, blocking}
 import scala.util.{Failure, Try}
@@ -39,25 +41,20 @@ class SQLiteDeviceRepo(db: DbClient.DataSource)(using executionContext: Executio
 
   override def register(device: Device): Future[Try[Unit]] = Future {
     db.transaction { implicit db =>
-      val existingRowMaybe =
-        db.run(StoredDeviceTable.select.filter(_.id === device.id.toString)).headOption
-
-      existingRowMaybe match {
-        case None =>
-          Try {
-            blocking {
-              db.run(
-                StoredDeviceTable.insert.columns(
-                  _.id := device.id.toString,
-                  _.publicKey := device.publicKey,
-                  _.status := DeviceStatus.Pending.toString
-                )
-              )
-            }
-            ()
-          }
-        case Some(existingRow) =>
-          Failure(DeviceAlreadyRegisteredException(DeviceId(existingRow.id)))
+      Try {
+        blocking {
+          db.run(
+            StoredDeviceTable.insert.columns(
+              _.id := device.id.toString,
+              _.publicKey := device.publicKey,
+              _.status := DeviceStatus.Pending.toString
+            )
+          )
+        }
+        ()
+      }.mapErrors {
+        case e if e.getResultCode == SQLiteErrorCode.SQLITE_CONSTRAINT_PRIMARYKEY =>
+          DeviceAlreadyRegisteredException(device.id)
       }
     }
   }
@@ -110,17 +107,10 @@ class SQLiteDeviceRepo(db: DbClient.DataSource)(using executionContext: Executio
 
   override def delete(id: DeviceId.Type): Future[Try[Unit]] = Future {
     db.transaction { implicit db =>
-      val existingRowMaybe =
-        blocking { db.run(StoredDeviceTable.select.filter(_.id === id.toString)).headOption }
-
-      existingRowMaybe match {
-        case Some(existingDevice) =>
-          Try {
-            blocking { db.run(StoredDeviceTable.delete(_.id === existingDevice.id)) }
-            ()
-          }
-        case None =>
-          Failure(DeviceNotFoundException(id))
+      Try {
+        val result = blocking { db.run(StoredDeviceTable.delete(_.id === id.toString)) }
+        if (result == 0) throw DeviceNotFoundException(id)
+        else ()
       }
     }
   }

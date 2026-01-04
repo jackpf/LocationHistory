@@ -13,7 +13,10 @@ class SQLiteLocationRepoTest(implicit ee: ExecutionEnv) extends LocationRepoTest
 //      new DataSourceFactory(null, null)
 //        .create(StorageType.SQLITE_IN_MEMORY)
 //        .get
-      new DataSourceFactory(System.getProperty("java.io.tmpdir"), s"tests_${UUID.randomUUID().toString}.db")
+      new DataSourceFactory(
+        System.getProperty("java.io.tmpdir"),
+        s"tests_${UUID.randomUUID().toString}.db"
+      )
         .create(StorageType.SQLITE)
         .get
     )
