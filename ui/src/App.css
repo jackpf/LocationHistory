@@ -187,10 +187,6 @@ html, body, #root {
   padding: 0 8px;
 }
 
-.device-menu-trigger:hover {
-  color: #000;
-}
-
 /* The floating box */
 .device-menu-dropdown {
   position: absolute;
