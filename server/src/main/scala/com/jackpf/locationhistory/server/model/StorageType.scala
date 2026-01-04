@@ -12,7 +12,7 @@ object StorageType {
       .find(_.toString.equalsIgnoreCase(str))
       .getOrElse(
         throw new IllegalArgumentException(
-          s"'$str' is not a valid RepoType. Allowed: ${StorageType.values.mkString(", ")}"
+          s"'$str' is not a valid StorageType. Allowed: ${StorageType.values.mkString(", ")}"
         )
       )
   }
