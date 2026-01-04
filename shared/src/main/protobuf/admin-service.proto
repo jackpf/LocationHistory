@@ -9,6 +9,7 @@ import "common.proto";
 service AdminService {
   rpc Login(LoginRequest) returns (LoginResponse);
   rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
+  rpc DeleteDevice(DeleteDeviceRequest) returns (DeleteDeviceResponse);
   rpc ApproveDevice(ApproveDeviceRequest) returns (ApproveDeviceResponse);
   rpc ListLocations(ListLocationsRequest) returns (ListLocationsResponse);
 }
@@ -26,6 +27,14 @@ message ListDevicesRequest {
 
 message ListDevicesResponse {
   repeated StoredDevice devices = 1;
+}
+
+message DeleteDeviceRequest {
+  Device device = 1;
+}
+
+message DeleteDeviceResponse {
+  bool success = 1;
 }
 
 message ApproveDeviceRequest {

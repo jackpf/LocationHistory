@@ -1,6 +1,7 @@
 package com.jackpf.locationhistory.server.repo
 
 import com.jackpf.locationhistory.server.model.DeviceId
+import com.jackpf.locationhistory.server.model.DeviceId.Type
 import com.jackpf.locationhistory.server.model.{Location, StoredLocation}
 import scalasql.core.DbClient
 import scalasql.simple.SimpleTable
@@ -72,6 +73,15 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
         db.run(StoredLocationTable.select.filter(_.deviceId === deviceId.toString))
           .toVector
           .map(_.toStoredLocation)
+      }
+    }
+  }
+
+  override def deleteForDevice(deviceId: Type): Future[Unit] = Future {
+    db.transaction { implicit db =>
+      blocking {
+        db.run(StoredLocationTable.delete(_.deviceId === deviceId.toString))
+        ()
       }
     }
   }
