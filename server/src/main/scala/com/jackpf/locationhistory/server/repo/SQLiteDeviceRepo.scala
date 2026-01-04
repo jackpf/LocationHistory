@@ -76,7 +76,6 @@ class SQLiteDeviceRepo(db: DbClient.DataSource)(using executionContext: Executio
                 StoredDeviceTable
                   .update(_.id === id.toString)
                   .set(
-                    _.id := updatedStoredDevice.device.id.toString,
                     _.publicKey := updatedStoredDevice.device.publicKey,
                     _.status := updatedStoredDevice.status.toString
                   )
