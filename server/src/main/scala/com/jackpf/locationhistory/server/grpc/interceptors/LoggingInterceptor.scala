@@ -16,13 +16,30 @@ class LoggingInterceptor(level: LogLevel) extends ServerInterceptor with Logging
     case LogLevel.INFO  => log.info(message)
   }
 
+  private def error(message: String, cause: Throwable): Unit = {
+    log.error(message, cause)
+  }
+
   override def interceptCall[ReqT, RespT](
       call: ServerCall[ReqT, RespT],
       headers: Metadata,
       next: ServerCallHandler[ReqT, RespT]
   ): ServerCall.Listener[ReqT] = {
     val methodName = call.getMethodDescriptor.getFullMethodName
-    val listener = next.startCall(call, headers)
+
+    val loggingServerCall = new ForwardingServerCall.SimpleForwardingServerCall[ReqT, RespT](call) {
+      override def delegate(): ServerCall[ReqT, RespT] = call
+
+      override def close(status: Status, trailers: Metadata): Unit = {
+        if (!status.isOk) {
+          error(s"[gRPC] ${status.getCode}: ${status.getDescription}", status.getCause)
+        }
+
+        delegate().close(status, trailers)
+      }
+    }
+
+    val listener = next.startCall(loggingServerCall, headers)
 
     new ForwardingServerCallListener[ReqT] {
       override def delegate(): ServerCall.Listener[ReqT] = listener

@@ -8,7 +8,7 @@ RUN curl -Lo /bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-healt
 
 RUN mkdir -p /data
 
-COPY target/scala-3.3.7/server-assembly-0.1.0-SNAPSHOT.jar app.jar
+COPY target/scala-3.7.0/server-assembly-0.1.0-SNAPSHOT.jar app.jar
 COPY entrypoint.sh entrypoint.sh
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \

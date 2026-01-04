@@ -6,6 +6,8 @@ import scala.concurrent.Future
 import scala.util.Try
 
 trait DeviceRepo {
+  def init(): Future[Unit] = Future.successful(())
+
   def register(device: Device): Future[Try[Unit]]
 
   def update(
