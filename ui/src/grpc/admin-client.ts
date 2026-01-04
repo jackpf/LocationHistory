@@ -19,9 +19,7 @@ const clientFactory = createClientFactory()
 
 export const adminClient = clientFactory.create(AdminServiceDefinition, channel)
 
-export
-
-const grpcErrorMessage = (message: string, error: any) => {
+export const grpcErrorMessage = (message: string, error: any) => {
     if (error instanceof ClientError) return message + ": " + error.details;
     else return message + ": " + error.message;
 }
