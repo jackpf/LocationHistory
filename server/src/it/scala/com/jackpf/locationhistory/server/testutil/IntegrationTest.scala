@@ -9,7 +9,6 @@ import com.jackpf.locationhistory.server.repo.{
   LocationRepo
 }
 import com.jackpf.locationhistory.server.testutil.IntegrationTest.{resetState, startServer}
-import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification}
 import io.grpc.stub.MetadataUtils
 import io.grpc.{ManagedChannel, ManagedChannelBuilder, Metadata}
 import org.specs2.specification.After

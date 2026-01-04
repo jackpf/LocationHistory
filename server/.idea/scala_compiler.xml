@@ -10,16 +10,16 @@
       <option name="featureWarnings" value="true" />
       <parameters>
         <parameter value="-Xfatal-warnings" />
-        <parameter value="-Ysafe-init" />
+        <parameter value="-Wsafe-init" />
         <parameter value="-Wvalue-discard" />
         <parameter value="-Wunused:all" />
         <parameter value="-Xcheck-macros" />
-        <parameter value="-Wconf:any:warning-verbose" />
         <parameter value="-source:future" />
         <parameter value="-no-indent" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="$PROJECT_DIR$/target/scala-3.3.7/test-meta" />
+        <parameter value="$PROJECT_DIR$/target/scala-3.6.2/test-meta" />
+        <parameter value="-Wconf:msg=discarded:s" />
       </parameters>
     </profile>
     <profile name="sbt 3" modules="server.main">
@@ -29,16 +29,15 @@
       <option name="featureWarnings" value="true" />
       <parameters>
         <parameter value="-Xfatal-warnings" />
-        <parameter value="-Ysafe-init" />
+        <parameter value="-Wsafe-init" />
         <parameter value="-Wvalue-discard" />
         <parameter value="-Wunused:all" />
         <parameter value="-Xcheck-macros" />
-        <parameter value="-Wconf:any:warning-verbose" />
         <parameter value="-source:future" />
         <parameter value="-no-indent" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="$PROJECT_DIR$/target/scala-3.3.7/meta" />
+        <parameter value="$PROJECT_DIR$/target/scala-3.6.2/meta" />
       </parameters>
     </profile>
   </component>

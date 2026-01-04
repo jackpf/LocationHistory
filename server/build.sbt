@@ -1,6 +1,6 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.3.7"
+ThisBuild / scalaVersion := "3.6.2"
 
 lazy val versions = new {
   val sharedProtos = "0.1.0-SNAPSHOT"
@@ -11,6 +11,8 @@ lazy val versions = new {
   val slf4j = "2.0.17"
   val specs2 = "5.7.0"
   val mockito = "5.21.0"
+  val sqlite = "3.51.1.0"
+  val scalasql = "0.2.7"
 }
 
 lazy val IntegrationTest = config("it") extend Test
@@ -28,7 +30,9 @@ lazy val root = (project in file("."))
       "io.grpc" % "grpc-services" % versions.grpc,
       "com.github.scopt" %% "scopt" % versions.scopt,
       "ch.qos.logback" % "logback-classic" % versions.logback,
-      "org.slf4j" % "slf4j-api" % versions.slf4j
+      "org.slf4j" % "slf4j-api" % versions.slf4j,
+      "org.xerial" % "sqlite-jdbc" % versions.sqlite,
+      "com.lihaoyi" %% "scalasql" % versions.scalasql
     ),
     // Test Dependencies
     libraryDependencies ++= Seq(
@@ -36,9 +40,9 @@ lazy val root = (project in file("."))
       "org.mockito" % "mockito-core" % versions.mockito % "test,it"
     ),
     assembly / assemblyMergeStrategy := {
-      case x if x.endsWith("module-info.class") => MergeStrategy.discard
+      case x if x.endsWith("module-info.class")            => MergeStrategy.discard
       case x if x.endsWith("io.netty.versions.properties") => MergeStrategy.discard
-      case x =>
+      case x                                               =>
         val oldStrategy = (assembly / assemblyMergeStrategy).value
         oldStrategy(x)
     },
@@ -47,15 +51,16 @@ lazy val root = (project in file("."))
       "-feature",
       "-unchecked",
       "-Xfatal-warnings",
-      "-Ysafe-init",
+      "-Wsafe-init",
       "-Wvalue-discard",
       "-Wunused:all",
       "-Xcheck-macros",
-      "-Wconf:any:warning-verbose",
       "-source:future",
       "-no-indent",
       "-language:implicitConversions"
     ),
+    // Disable discarding non-unit values for tests
+    Test / scalacOptions += "-Wconf:msg=discarded:s",
     ThisBuild / scalafmtOnCompile := true,
     ThisBuild / semanticdbEnabled := true,
     ThisBuild / semanticdbVersion := scalafixSemanticdb.revision,
