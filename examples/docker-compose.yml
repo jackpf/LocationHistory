@@ -21,7 +21,7 @@ services:
     ports:
       - ${PROXY_PORT}:8080
     command:
-      - "--backend_addr=location-history-server:${SERVER_PORT}"
+      - "--backend_addr=location-history-server:8080"
       - "--run_tls_server=false"
       - "--allow_all_origins"
   location-history-ui:
