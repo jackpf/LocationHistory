@@ -40,10 +40,8 @@ class InMemoryLocationRepo(maxItemsPerDevice: Long = DefaultMaxItemsPerDevice)
     }
 
   override def deleteForDevice(deviceId: Type): Future[Unit] = Future.successful {
-    storedLocations.remove(deviceId) match {
-      case Some(_) => ()
-      case None    => ()
-    }
+    storedLocations.remove(deviceId)
+    ()
   }
 
   override def deleteAll(): Future[Unit] = Future.successful {
