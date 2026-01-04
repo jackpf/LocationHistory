@@ -76,10 +76,10 @@ public class BeaconClient {
         return checkDeviceResponse.getStatus();
     }
 
-    public boolean registerDevice(String deviceId, String publicKey) throws IOException {
+    public boolean registerDevice(String deviceId, String deviceName, String publicKey) throws IOException {
         log.d("Register device request");
 
-        RegisterDeviceRequest registerDeviceRequest = Requests.registerDeviceRequest(deviceId, publicKey);
+        RegisterDeviceRequest registerDeviceRequest = Requests.registerDeviceRequest(deviceId, deviceName, publicKey);
         RegisterDeviceResponse registerDeviceResponse = executeWrapped(() ->
                         createStub().registerDevice(registerDeviceRequest),
                 "Register device failed",

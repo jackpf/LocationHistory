@@ -18,7 +18,7 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecif
 
   trait StoredLocationContext extends Context {
     lazy val device: Device =
-      Device(id = DeviceId("123"), publicKey = "xxx")
+      Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx")
     lazy val location: Location =
       Location(lat = 0.1, lon = 0.2, accuracy = 0.3)
     lazy val timestamp: Long = 123L

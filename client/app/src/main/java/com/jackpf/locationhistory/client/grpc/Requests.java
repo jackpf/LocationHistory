@@ -8,9 +8,10 @@ import com.jackpf.locationhistory.RegisterDeviceRequest;
 import com.jackpf.locationhistory.SetLocationRequest;
 
 public class Requests {
-    private static Device device(String deviceId, String publicKey) {
+    private static Device device(String deviceId, String deviceName, String publicKey) {
         return Device.newBuilder()
                 .setId(deviceId)
+                .setName(deviceName)
                 .setPublicKey(publicKey)
                 .build();
     }
@@ -36,14 +37,14 @@ public class Requests {
     public static CheckDeviceRequest checkDeviceRequest(String deviceId) {
         return CheckDeviceRequest
                 .newBuilder()
-                .setDevice(device(deviceId, ""))
+                .setDevice(device(deviceId, "", ""))
                 .build();
     }
 
-    public static RegisterDeviceRequest registerDeviceRequest(String deviceId, String publicKey) {
+    public static RegisterDeviceRequest registerDeviceRequest(String deviceId, String deviceName, String publicKey) {
         return RegisterDeviceRequest
                 .newBuilder()
-                .setDevice(device(deviceId, publicKey))
+                .setDevice(device(deviceId, deviceName, publicKey))
                 .build();
     }
 
@@ -57,7 +58,7 @@ public class Requests {
     ) {
         return SetLocationRequest
                 .newBuilder()
-                .setDevice(device(deviceId, publicKey))
+                .setDevice(device(deviceId, "", publicKey))
                 .setLocation(location(lat, lon, accuracy))
                 .setTimestamp(timestamp)
                 .build();

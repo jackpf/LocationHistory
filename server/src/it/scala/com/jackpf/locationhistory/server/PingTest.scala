@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server
 
-import com.jackpf.locationhistory.beacon_service.PingRequest
+import com.jackpf.locationhistory.beacon_service.{PingRequest, PingResponse}
 import com.jackpf.locationhistory.server.testutil.IntegrationTest
 
 class PingTest extends IntegrationTest {
@@ -10,7 +10,7 @@ class PingTest extends IntegrationTest {
 
       val response = context.client.ping(request)
 
-      response.message must beEqualTo("pong")
+      response === PingResponse(message = "pong")
     }
   }
 }

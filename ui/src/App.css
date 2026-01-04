@@ -135,6 +135,13 @@ html, body, #root {
   color: #aaa;
 }
 
+.detail-value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 75%;
+}
+
 .map-area {
   flex: 1;
   position: relative;
