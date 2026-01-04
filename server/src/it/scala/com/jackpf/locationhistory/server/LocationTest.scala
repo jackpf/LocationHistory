@@ -43,7 +43,7 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
         )
 
       val response = context.client.setLocation(request)
-      response.success === true
+      response === SetLocationResponse(success = true)
 
       // Check location the fetched location is actually correct
       val listLocationsRequest = ListLocationsRequest(device = Some(context.device))
