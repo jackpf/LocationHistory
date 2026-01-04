@@ -63,6 +63,7 @@ package-local-proxy:
 docker-publish-proxy:
 	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest --push -f proxy.Dockerfile .
 
+# 100.103.216.83:7070
 .PHONY: run-proxy
 run-proxy: package-local-proxy
 	docker run --rm \
