@@ -16,10 +16,13 @@ object Services {
   ): Seq[ServerServiceDefinition] = Seq(
     ServerInterceptors.intercept(
       AdminServiceGrpc.bindService(
-        new AdminServiceImpl(deviceRepo, locationRepo),
+        new AdminServiceImpl(adminPassword, deviceRepo, locationRepo),
         global
       ),
-      new AuthenticationInterceptor(adminPassword)
+      new AuthenticationInterceptor(
+        password = adminPassword,
+        ignoredMethodNames = Set(AdminServiceGrpc.METHOD_LOGIN.getFullMethodName)
+      )
     ),
     BeaconServiceGrpc.bindService(
       new BeaconServiceImpl(deviceRepo, locationRepo),

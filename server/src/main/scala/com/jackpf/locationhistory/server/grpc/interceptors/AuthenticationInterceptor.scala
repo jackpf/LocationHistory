@@ -5,7 +5,8 @@ import io.grpc.*
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
-class AuthenticationInterceptor(password: String) extends ServerInterceptor {
+class AuthenticationInterceptor(password: String, ignoredMethodNames: Set[String])
+    extends ServerInterceptor {
   private val BearerBytes = s"Bearer ${password}".getBytes(StandardCharsets.UTF_8)
   private val AuthKey = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
 
@@ -15,17 +16,22 @@ class AuthenticationInterceptor(password: String) extends ServerInterceptor {
       next: ServerCallHandler[ReqT, RespT]
   ): ServerCall.Listener[ReqT] = {
     val authHeader = headers.get(AuthKey)
+    val methodName = call.getMethodDescriptor.getFullMethodName
 
-    if (
-      authHeader != null && MessageDigest.isEqual(
-        authHeader.getBytes(StandardCharsets.UTF_8),
-        BearerBytes
-      )
-    ) {
-      next.startCall(call, headers)
+    if (!ignoredMethodNames.contains(methodName)) {
+      if (
+        authHeader != null && MessageDigest.isEqual(
+          authHeader.getBytes(StandardCharsets.UTF_8),
+          BearerBytes
+        )
+      ) {
+        next.startCall(call, headers)
+      } else {
+        call.close(Status.UNAUTHENTICATED.withDescription("Invalid password"), headers)
+        new ServerCall.Listener[ReqT] {}
+      }
     } else {
-      call.close(Status.UNAUTHENTICATED.withDescription("Invalid password"), headers)
-      new ServerCall.Listener[ReqT] {}
+      next.startCall(call, headers)
     }
   }
 }

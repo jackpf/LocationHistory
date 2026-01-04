@@ -5,6 +5,7 @@ import com.jackpf.locationhistory.admin_service.*
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
   InvalidDeviceStatus,
+  InvalidPassword,
   NoDeviceProvidedException
 }
 import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
@@ -17,11 +18,19 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 class AdminServiceImpl(
+    adminPassword: String,
     deviceRepo: DeviceRepo,
     locationRepo: LocationRepo
 )(using ec: ExecutionContext)
     extends AdminService
     with Logging {
+  override def login(request: LoginRequest): Future[LoginResponse] = {
+    // TODO Replace with proper tokens
+    if (request.password == adminPassword)
+      Future.successful(LoginResponse(token = request.password))
+    else Future.failed(InvalidPassword().toGrpcError)
+  }
+
   override def listDevices(
       request: ListDevicesRequest
   ): Future[ListDevicesResponse] = {

@@ -7,7 +7,9 @@ import com.jackpf.locationhistory.admin_service.{
   ListDevicesRequest,
   ListDevicesResponse,
   ListLocationsRequest,
-  ListLocationsResponse
+  ListLocationsResponse,
+  LoginRequest,
+  LoginResponse
 }
 import com.jackpf.locationhistory.common.{
   Device,
@@ -33,13 +35,34 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
     extends DefaultSpecification
     with GrpcMatchers {
   trait Context extends DefaultScope {
+    lazy val adminPassword: String = "password"
     val deviceRepo: DeviceRepo = mock(classOf[DeviceRepo])
     val locationRepo: LocationRepo = mock(classOf[LocationRepo])
     val adminService: AdminService =
-      new AdminServiceImpl(deviceRepo, locationRepo)
+      new AdminServiceImpl(adminPassword, deviceRepo, locationRepo)
   }
 
   "Admin service" should {
+    "login endpoint" >> {
+      trait LoginEndpoint extends Context {
+        def password: String
+        val request: LoginRequest = LoginRequest(password = password)
+        val result: Future[LoginResponse] = adminService.login(request)
+      }
+
+      "return password as token on correct password" >> in(new LoginEndpoint {
+        override def password: String = adminPassword
+      }) { context =>
+        context.result must beEqualTo(LoginResponse(token = context.password)).await
+      }
+
+      "return error on incorrect password" >> in(new LoginEndpoint {
+        override def password: String = "wrong-password"
+      }) { context =>
+        context.result must throwAGrpcException(Code.UNAUTHENTICATED, "Invalid password").await
+      }
+    }
+
     "list devices endpoint" >> {
       trait ListDevicesContext extends Context {
         lazy val getAllResponse: Future[Seq[model.StoredDevice]]

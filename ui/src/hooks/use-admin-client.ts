@@ -1,8 +1,7 @@
 import {useCallback, useEffect, useState} from 'react';
-import {adminClient} from '../grpc/admin-client';
+import {adminClient, grpcErrorMessage} from '../grpc/admin-client';
 import {StoredDevice, type StoredLocation} from '../gen/common';
 import type {ListDevicesResponse, ListLocationsResponse} from "../gen/admin-service.ts";
-import {ClientError} from "nice-grpc-web";
 
 export function useAdminClient(refreshInterval: number) {
     const [devices, setDevices] = useState<StoredDevice[]>([]);
@@ -10,11 +9,6 @@ export function useAdminClient(refreshInterval: number) {
     const [history, setHistory] = useState<StoredLocation[]>([]);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [error, setError] = useState<string | null>(null);
-
-    const grpcErrorMessage = (message: string, error: any) => {
-        if (error instanceof ClientError) return message + ": " + error.details;
-        else return message + ": " + error.message;
-    }
 
     const lastUpdatedLocation = (locations: StoredLocation[]): Date | null => {
         if (!locations || !locations.length) return null;

@@ -156,3 +156,8 @@ html, body, #root {
   opacity: 0;
   transition: opacity 0.2s; /* Optional: smooth fade out */
 }
+
+.logout-button {
+  padding-top: 50px;
+  padding-left: 10px;
+}
