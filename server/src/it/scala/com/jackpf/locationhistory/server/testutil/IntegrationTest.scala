@@ -22,15 +22,21 @@ object IntegrationTest {
   val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
   val locationRepo: LocationRepo = new InMemoryLocationRepo
 
-  def startServer(): Unit = TestServer.start(deviceRepo, locationRepo)
+  def startServer(): Unit = {
+    Await.result(
+      Future.sequence(
+        Seq(deviceRepo.init(), locationRepo.init())
+      ),
+      Duration.Inf
+    ): Unit
+
+    TestServer.start(deviceRepo, locationRepo)
+  }
 
   def resetState(): Unit = {
     Await.result(
       Future.sequence(
-        Seq(
-          deviceRepo.deleteAll(),
-          locationRepo.deleteAll()
-        )
+        Seq(deviceRepo.deleteAll(), locationRepo.deleteAll())
       ),
       Duration.Inf
     ): Unit

@@ -57,9 +57,9 @@ object App {
 
     val authenticationManager = new AuthenticationManager(parsedArgs.adminPassword.get)
 
-    val db = new DataSourceFactory(parsedArgs.dataDirectory.get, "database.db")
+    val dataSource = new DataSourceFactory(parsedArgs.dataDirectory.get, "database.db")
       .create(parsedArgs.storageType.get)
-    val repoFactory: RepoFactory = new RepoFactory(db = db)
+    val repoFactory: RepoFactory = new RepoFactory(dataSource = dataSource)
 
     val deviceRepo: DeviceRepo = repoFactory.deviceRepo(parsedArgs.storageType.get)
     val locationRepo: LocationRepo = repoFactory.locationRepo(parsedArgs.storageType.get)
