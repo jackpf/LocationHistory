@@ -133,7 +133,8 @@ public class BeaconService extends Service {
     }
 
     private String _getDeviceName() {
-        return Settings.Global.getString(getContentResolver(), Settings.Global.DEVICE_NAME);
+        String deviceName = Settings.Global.getString(getContentResolver(), Settings.Global.DEVICE_NAME);
+        return deviceName != null ? deviceName : "";
     }
 
     private String _getPublicKey() {
