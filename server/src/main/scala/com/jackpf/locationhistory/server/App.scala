@@ -1,12 +1,8 @@
 package com.jackpf.locationhistory.server
 
 import com.jackpf.locationhistory.server.grpc.{AuthenticationManager, Services}
-import com.jackpf.locationhistory.server.repo.{
-  DeviceRepo,
-  InMemoryDeviceRepo,
-  InMemoryLocationRepo,
-  LocationRepo
-}
+import com.jackpf.locationhistory.server.model.StorageType
+import com.jackpf.locationhistory.server.repo.*
 import scopt.OptionParser
 
 object App {
@@ -30,6 +26,14 @@ object App {
         .required()
         .text(
           "Administrator password for admin endpoints"
+        )
+
+      opt[StorageType]('s', "storage-type")
+        .valueName("<storage-type>")
+        .action((x, c) => c.copy(storageType = Some(x)))
+        .required()
+        .text(
+          "Storage type for data"
         )
     }
 

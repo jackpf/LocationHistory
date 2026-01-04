@@ -1,21 +1,15 @@
 package com.jackpf.locationhistory.server.repo
 
-import com.jackpf.locationhistory.server.repo.RepoFactory.RepoType
-
-object RepoFactory {
-  enum RepoType {
-    case IN_MEMORY, SQLITE
-  }
-}
+import com.jackpf.locationhistory.server.model.StorageType
 
 class RepoFactory {
-  def deviceRepo(repoType: RepoType): DeviceRepo = repoType match {
-    case RepoType.IN_MEMORY => new InMemoryDeviceRepo
-    case RepoType.SQLITE    => new SQLiteDeviceRepo
+  def deviceRepo(storageType: StorageType): DeviceRepo = storageType match {
+    case StorageType.IN_MEMORY => new InMemoryDeviceRepo
+    case StorageType.SQLITE    => new SQLiteDeviceRepo
   }
 
-  def locationRepo(repoType: RepoType): LocationRepo = repoType match {
-    case RepoType.IN_MEMORY => new InMemoryLocationRepo
-    case RepoType.SQLITE    => new SQLiteLocationRepo
+  def locationRepo(storageType: StorageType): LocationRepo = storageType match {
+    case StorageType.IN_MEMORY => new InMemoryLocationRepo
+    case StorageType.SQLITE    => new SQLiteLocationRepo
   }
 }
