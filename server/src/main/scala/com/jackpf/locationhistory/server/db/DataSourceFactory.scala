@@ -5,18 +5,20 @@ import org.sqlite.SQLiteDataSource
 import scalasql.core.DbClient
 
 class DataSourceFactory(dataDir: String, dbName: String) {
-  def create(storageType: StorageType): Option[DbClient.DataSource] = storageType match {
-    case StorageType.IN_MEMORY => None
-    case StorageType.SQLITE    =>
-      import scalasql.SqliteDialect.*
+  private def newSQLite(
+      connectionString: String,
+      config: scalasql.Config = new scalasql.Config {}
+  ): DbClient.DataSource = {
+    import scalasql.SqliteDialect.*
 
-      val dataSource = new SQLiteDataSource()
-      dataSource.setUrl(s"jdbc:sqlite:${dataDir}/${dbName}")
-      Some(
-        new DbClient.DataSource(
-          dataSource,
-          config = new scalasql.Config {}
-        )
-      )
+    val dataSource = new SQLiteDataSource()
+    dataSource.setUrl(s"jdbc:sqlite:${connectionString}")
+    new DbClient.DataSource(dataSource, config)
+  }
+
+  def create(storageType: StorageType): Option[DbClient.DataSource] = storageType match {
+    case StorageType.IN_MEMORY        => None
+    case StorageType.SQLITE_IN_MEMORY => Some(newSQLite(":memory:"))
+    case StorageType.SQLITE           => Some(newSQLite(s"${dataDir}/${dbName}"))
   }
 }

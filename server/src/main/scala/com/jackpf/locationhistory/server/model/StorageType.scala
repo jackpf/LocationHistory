@@ -3,7 +3,7 @@ package com.jackpf.locationhistory.server.model
 import scopt.Read
 
 enum StorageType {
-  case IN_MEMORY, SQLITE
+  case IN_MEMORY, SQLITE, SQLITE_IN_MEMORY
 }
 
 object StorageType {
