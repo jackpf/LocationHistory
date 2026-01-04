@@ -39,6 +39,20 @@ class AdminServiceImpl(
     } yield ListDevicesResponse(devices.map(_.toProto))
   }
 
+  override def deleteDevice(request: DeleteDeviceRequest): Future[DeleteDeviceResponse] = {
+    request.device match {
+      case Some(device) =>
+        for {
+          _ <- locationRepo.deleteForDevice(DeviceId(device.id))
+          deleteDevice <- deviceRepo.delete(DeviceId(device.id))
+        } yield {
+          DeleteDeviceResponse(success = deleteDevice.isSuccess)
+        }
+      case None =>
+        Future.failed(NoDeviceProvidedException().toGrpcError)
+    }
+  }
+
   override def approveDevice(
       request: ApproveDeviceRequest
   ): Future[ApproveDeviceResponse] = {

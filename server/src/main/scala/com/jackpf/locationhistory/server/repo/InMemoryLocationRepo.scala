@@ -1,5 +1,6 @@
 package com.jackpf.locationhistory.server.repo
 
+import com.jackpf.locationhistory.server.model.DeviceId.Type
 import com.jackpf.locationhistory.server.model.{DeviceId, Location, StoredLocation}
 
 import scala.collection.concurrent
@@ -37,6 +38,11 @@ class InMemoryLocationRepo(maxItemsPerDevice: Long = DefaultMaxItemsPerDevice)
     Future.successful {
       storedLocations.getOrElse(deviceId, Vector.empty)
     }
+
+  override def deleteForDevice(deviceId: Type): Future[Unit] = Future.successful {
+    storedLocations.remove(deviceId)
+    ()
+  }
 
   override def deleteAll(): Future[Unit] = Future.successful {
     storedLocations.clear()

@@ -1,14 +1,16 @@
 package com.jackpf.locationhistory.server.repo
 
-import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location, StoredLocation}
-import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification}
+import com.jackpf.locationhistory.server.model.{DeviceId, Location, StoredLocation}
+import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification, GrpcMatchers}
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.util.Try
 
-abstract class LocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
+abstract class LocationRepoTest(implicit ee: ExecutionEnv)
+    extends DefaultSpecification
+    with GrpcMatchers {
   def createLocationRepo: LocationRepo
 
   trait Context extends DefaultScope {
@@ -17,15 +19,17 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecif
   }
 
   trait StoredLocationContext extends Context {
-    lazy val device: Device =
-      Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx")
-    lazy val location: Location =
-      Location(lat = 0.1, lon = 0.2, accuracy = 0.3)
     lazy val timestamp: Long = 123L
-    lazy val expectedStoredLocation: StoredLocation = StoredLocation(location, timestamp)
 
-    lazy val result: Future[Try[Unit]] =
-      locationRepo.storeDeviceLocation(device.id, location, timestamp)
+    lazy val locations: Seq[(DeviceId.Type, Location)] = Seq(
+      DeviceId("123") -> Location(lat = 0.1, lon = 0.2, accuracy = 0.3)
+    )
+
+    lazy val result: Future[Try[Unit]] = Future
+      .sequence(locations.map { l =>
+        locationRepo.storeDeviceLocation(l._1, l._2, timestamp)
+      })
+      .map(s => Try(s.map(_.get)))
   }
 
   "Location repo" should {
@@ -37,8 +41,8 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecif
       context.result must beSuccessfulTry.await
 
       context.locationRepo
-        .getForDevice(context.device.id) must beEqualTo(
-        Seq(context.expectedStoredLocation)
+        .getForDevice(DeviceId("123")) must beEqualTo(
+        Seq(StoredLocation(context.locations.head._2, context.timestamp))
       ).await
     }
 
@@ -51,13 +55,38 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecif
       ].await
     }
 
-    "delete all locations" >> in(new StoredLocationContext {}) { context =>
+    "delete locations for a device" >> in(new StoredLocationContext {
+      override lazy val locations: Seq[(DeviceId.Type, Location)] = Seq(
+        DeviceId("123") -> Location(lat = 0.1, lon = 0.2, accuracy = 0.3),
+        DeviceId("456") -> Location(lat = 0.3, lon = 0.4, accuracy = 0.3)
+      )
+    }) { context =>
+      context.result must beSuccessfulTry.await
+
+      context.locationRepo.deleteForDevice(DeviceId("456")) must beEqualTo(()).await
+
+      context.locationRepo
+        .getForDevice(DeviceId("123")) must beEqualTo(
+        Seq(StoredLocation(context.locations.head._2, context.timestamp))
+      ).await
+      context.locationRepo
+        .getForDevice(DeviceId("456")) must beEmpty[Seq[StoredLocation]].await
+    }
+
+    "delete all locations" >> in(new StoredLocationContext {
+      override lazy val locations: Seq[(DeviceId.Type, Location)] = Seq(
+        DeviceId("123") -> Location(lat = 0.1, lon = 0.2, accuracy = 0.3),
+        DeviceId("456") -> Location(lat = 0.3, lon = 0.4, accuracy = 0.3)
+      )
+    }) { context =>
       context.result must beSuccessfulTry.await
 
       context.locationRepo.deleteAll() must beEqualTo(()).await
 
       context.locationRepo
-        .getForDevice(context.device.id) must beEmpty[Seq[StoredLocation]].await
+        .getForDevice(DeviceId("123")) must beEmpty[Seq[StoredLocation]].await
+      context.locationRepo
+        .getForDevice(DeviceId("456")) must beEmpty[Seq[StoredLocation]].await
     }
   }
 }

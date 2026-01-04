@@ -55,6 +55,19 @@ export function useAdminClient(refreshInterval: number) {
         }
     };
 
+    const deleteDevice = async (deviceId: string) => {
+        try {
+            await adminClient.deleteDevice(
+                {device: {id: deviceId}} as any,
+            );
+            // Refresh list immediately to show the checkmark/status change
+            await fetchDevices();
+        } catch (e) {
+            console.error(e);
+            setError(grpcErrorMessage("Failed to delete device", e));
+        }
+    };
+
     // Poll device list
     useEffect(() => {
         fetchDevices();
@@ -78,6 +91,7 @@ export function useAdminClient(refreshInterval: number) {
     return {
         setSelectedDeviceId,
         approveDevice,
+        deleteDevice,
         devices,
         selectedDeviceId,
         history,
