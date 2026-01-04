@@ -68,6 +68,8 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                     <h2>Devices</h2>
                 </div>
 
+                {devices.length == 0 && <div className="no-devices">No devices</div>}
+
                 {devices.map((storedDevice: StoredDevice) => {
                     const device: Device | undefined = storedDevice.device;
                     if (!device) return;

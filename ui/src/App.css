@@ -92,6 +92,11 @@ html, body, #root {
   transition: background 0.2s;
 }
 
+.no-devices {
+  padding: 1rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
 .device-item:hover {
   background: #2a2a2a;
 }
