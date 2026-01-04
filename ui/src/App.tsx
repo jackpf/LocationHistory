@@ -11,6 +11,7 @@ const Dashboard = () => {
     const {
         setSelectedDeviceId,
         approveDevice,
+        deleteDevice,
         devices,
         selectedDeviceId,
         history,
@@ -30,6 +31,7 @@ const Dashboard = () => {
             <DeviceList devices={devices} selectedDeviceId={selectedDeviceId}
                         setSelectedDeviceId={setSelectedDeviceId}
                         approveDevice={approveDevice}
+                        deleteDevice={deleteDevice}
                         logout={logout}/>
 
             {/* Map Area */}

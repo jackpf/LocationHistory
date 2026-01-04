@@ -6,6 +6,7 @@ interface DeviceListProps {
     selectedDeviceId: string | null;
     setSelectedDeviceId: (deviceId: string) => void;
     approveDevice: (deviceId: string) => void;
+    deleteDevice: (deviceId: string) => void;
     logout: () => void;
 }
 
@@ -14,10 +15,18 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                                                           selectedDeviceId,
                                                           setSelectedDeviceId,
                                                           approveDevice,
+                                                          deleteDevice,
                                                           logout
                                                       }) => {
     const handleApprove = async (deviceId: string) => {
         await approveDevice(deviceId);
+    };
+
+    const handleDelete = async (deviceId: string) => {
+        if (window.confirm("Are you sure you want to delete this device?")) {
+            await deleteDevice(deviceId);
+        }
+        setOpenMenuId(null);
     };
 
     const showDeviceStatus = (deviceStatus: DeviceStatus) => {
@@ -48,6 +57,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
     }
 
     const [isOpen, setIsOpen] = useState(true);
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
     return (
         <>
@@ -80,6 +90,29 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                             onClick={() => setSelectedDeviceId(device.id)}
                             className={`device-item ${selectedDeviceId === device.id ? 'selected' : ''}`}
                         >
+                            <div
+                                className="device-menu-container"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button
+                                    className="device-menu-trigger"
+                                    onClick={() => setOpenMenuId(openMenuId === device.id ? null : device.id)}
+                                >
+                                    ⋮
+                                </button>
+
+                                {openMenuId === device.id && (
+                                    <div className="device-menu-dropdown">
+                                        <button
+                                            className="device-delete-btn"
+                                            onClick={() => handleDelete(device.id)}
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
                             <strong>{device.id || "No ID"}</strong>
                             <div className="device-details">
                                 <div className="detail-row">
