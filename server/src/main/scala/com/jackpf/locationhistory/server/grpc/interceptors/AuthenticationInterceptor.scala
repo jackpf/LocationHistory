@@ -15,23 +15,20 @@ class AuthenticationInterceptor(password: String, ignoredMethodNames: Set[String
       headers: Metadata,
       next: ServerCallHandler[ReqT, RespT]
   ): ServerCall.Listener[ReqT] = {
-    val authHeader = headers.get(AuthKey)
+    val authHeader = Option(headers.get(AuthKey)).getOrElse("")
     val methodName = call.getMethodDescriptor.getFullMethodName
 
-    if (!ignoredMethodNames.contains(methodName)) {
-      if (
-        authHeader != null && MessageDigest.isEqual(
-          authHeader.getBytes(StandardCharsets.UTF_8),
-          BearerBytes
-        )
-      ) {
-        next.startCall(call, headers)
-      } else {
-        call.close(Status.UNAUTHENTICATED.withDescription("Invalid password"), headers)
-        new ServerCall.Listener[ReqT] {}
-      }
-    } else {
+    if (
+      ignoredMethodNames.contains(methodName) ||
+      MessageDigest.isEqual(
+        authHeader.getBytes(StandardCharsets.UTF_8),
+        BearerBytes
+      )
+    ) {
       next.startCall(call, headers)
+    } else {
+      call.close(Status.UNAUTHENTICATED.withDescription("Invalid password"), headers)
+      new ServerCall.Listener[ReqT] {}
     }
   }
 }

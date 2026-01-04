@@ -14,6 +14,8 @@ import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.util.Logging
 
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
@@ -26,7 +28,12 @@ class AdminServiceImpl(
     with Logging {
   override def login(request: LoginRequest): Future[LoginResponse] = {
     // TODO Replace with proper tokens
-    if (request.password == adminPassword)
+    if (
+      MessageDigest.isEqual(
+        request.password.getBytes(StandardCharsets.UTF_8),
+        adminPassword.getBytes(StandardCharsets.UTF_8)
+      )
+    )
       Future.successful(LoginResponse(token = request.password))
     else Future.failed(InvalidPassword().toGrpcError)
   }
