@@ -6,13 +6,15 @@ interface DeviceListProps {
     selectedDeviceId: string | null;
     setSelectedDeviceId: (deviceId: string) => void;
     approveDevice: (deviceId: string) => void;
+    logout: () => void;
 }
 
 export const DeviceList: React.FC<DeviceListProps> = ({
                                                           devices,
                                                           selectedDeviceId,
                                                           setSelectedDeviceId,
-                                                          approveDevice
+                                                          approveDevice,
+                                                          logout
                                                       }) => {
     const handleApprove = async (deviceId: string) => {
         await approveDevice(deviceId);
@@ -66,6 +68,8 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                     <h2>Devices</h2>
                 </div>
 
+                {devices.length === 0 && <div className="no-devices">No devices</div>}
+
                 {devices.map((storedDevice: StoredDevice) => {
                     const device: Device | undefined = storedDevice.device;
                     if (!device) return;
@@ -90,6 +94,10 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                         </div>
                     )
                 })}
+
+                <div className="logout-button">
+                    <button onClick={logout}>Logout</button>
+                </div>
             </aside>
         </>
     );

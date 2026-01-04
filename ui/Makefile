@@ -63,6 +63,7 @@ package-local-proxy:
 docker-publish-proxy:
 	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest --push -f proxy.Dockerfile .
 
+# 100.103.216.83:7070
 .PHONY: run-proxy
 run-proxy: package-local-proxy
 	docker run --rm \
@@ -70,6 +71,6 @@ run-proxy: package-local-proxy
 		--name grpc-proxy \
 		--add-host host.docker.internal:host-gateway \
 		$(APP_NAME)-proxy \
-		--backend_addr=100.103.216.83:7070 \
+		--backend_addr=host.docker.internal:8080 \
 		--run_tls_server=false \
 		--allow_all_origins

@@ -92,6 +92,11 @@ html, body, #root {
   transition: background 0.2s;
 }
 
+.no-devices {
+  padding: 1rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
 .device-item:hover {
   background: #2a2a2a;
 }
@@ -155,4 +160,9 @@ html, body, #root {
 .hide-while-flying .leaflet-overlay-pane {
   opacity: 0;
   transition: opacity 0.2s; /* Optional: smooth fade out */
+}
+
+.logout-button {
+  padding-top: 50px;
+  padding-left: 10px;
 }

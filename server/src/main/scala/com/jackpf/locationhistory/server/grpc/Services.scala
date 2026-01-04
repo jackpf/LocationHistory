@@ -10,16 +10,19 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object Services {
   def apply(
-      adminPassword: String,
+      authenticationManager: AuthenticationManager,
       deviceRepo: DeviceRepo,
       locationRepo: LocationRepo
   ): Seq[ServerServiceDefinition] = Seq(
     ServerInterceptors.intercept(
       AdminServiceGrpc.bindService(
-        new AdminServiceImpl(deviceRepo, locationRepo),
+        new AdminServiceImpl(authenticationManager, deviceRepo, locationRepo),
         global
       ),
-      new AuthenticationInterceptor(adminPassword)
+      new AuthenticationInterceptor(
+        authenticationManager,
+        ignoredMethodNames = Set(AdminServiceGrpc.METHOD_LOGIN.getFullMethodName)
+      )
     ),
     BeaconServiceGrpc.bindService(
       new BeaconServiceImpl(deviceRepo, locationRepo),

@@ -1,9 +1,9 @@
-import {useState} from 'react';
 import './App.css';
 import {useAdminClient} from './hooks/use-admin-client.ts';
 import {Login} from "./components/Login.tsx";
 import {MainMap} from "./components/MainMap.tsx";
 import {DeviceList} from "./components/DeviceList.tsx";
+import {useLogin} from "./hooks/use-login.ts";
 
 const Dashboard = () => {
     const REFRESH_INTERVAL = 10000;
@@ -18,6 +18,10 @@ const Dashboard = () => {
         error
     } = useAdminClient(REFRESH_INTERVAL);
 
+    const {
+        logout
+    } = useLogin();
+
     return (
         <div className="app-container">
             {error && <div className="error-text">{error}</div>}
@@ -25,7 +29,8 @@ const Dashboard = () => {
             {/* Sidebar */}
             <DeviceList devices={devices} selectedDeviceId={selectedDeviceId}
                         setSelectedDeviceId={setSelectedDeviceId}
-                        approveDevice={approveDevice}/>
+                        approveDevice={approveDevice}
+                        logout={logout}/>
 
             {/* Map Area */}
             <MainMap
@@ -38,22 +43,15 @@ const Dashboard = () => {
 };
 
 function App() {
-    const [token, setToken] = useState<string | null>(() => {
-        return localStorage.getItem('auth_token');
-    });
-
-    const handleLogin = (password: string) => {
-        localStorage.setItem('auth_token', password);
-        setToken(password);
-    };
-
-    // const handleLogout = () => {
-    //     localStorage.removeItem('auth_token');
-    //     setToken(null);
-    // };
+    const {
+        login,
+        token,
+        setError,
+        error
+    } = useLogin();
 
     if (!token) {
-        return <Login onLogin={handleLogin}/>;
+        return <Login onLogin={login} setError={setError} error={error}/>;
     }
 
     return <Dashboard/>;
