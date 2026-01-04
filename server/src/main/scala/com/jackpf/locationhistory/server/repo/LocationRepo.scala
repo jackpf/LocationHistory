@@ -6,13 +6,15 @@ import scala.concurrent.Future
 import scala.util.Try
 
 trait LocationRepo {
+  def init(): Future[Unit] = Future.successful(())
+
   def storeDeviceLocation(
-      id: DeviceId.Type,
+      deviceId: DeviceId.Type,
       location: Location,
       timestamp: Long
   ): Future[Try[Unit]]
 
-  def getForDevice(id: DeviceId.Type): Future[Vector[StoredLocation]]
+  def getForDevice(deviceId: DeviceId.Type): Future[Vector[StoredLocation]]
 
   def deleteAll(): Future[Unit]
 }

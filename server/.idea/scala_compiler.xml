@@ -16,9 +16,10 @@
         <parameter value="-Xcheck-macros" />
         <parameter value="-source:future" />
         <parameter value="-no-indent" />
+        <parameter value="-language:adhocExtensions" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="$PROJECT_DIR$/target/scala-3.6.2/test-meta" />
+        <parameter value="$PROJECT_DIR$/target/scala-3.7.0/test-meta" />
         <parameter value="-Wconf:msg=discarded:s" />
       </parameters>
     </profile>
@@ -35,9 +36,10 @@
         <parameter value="-Xcheck-macros" />
         <parameter value="-source:future" />
         <parameter value="-no-indent" />
+        <parameter value="-language:adhocExtensions" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="$PROJECT_DIR$/target/scala-3.6.2/meta" />
+        <parameter value="$PROJECT_DIR$/target/scala-3.7.0/meta" />
       </parameters>
     </profile>
   </component>

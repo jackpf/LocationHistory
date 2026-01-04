@@ -1,6 +1,6 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.6.2"
+ThisBuild / scalaVersion := "3.7.0"
 
 lazy val versions = new {
   val sharedProtos = "0.1.0-SNAPSHOT"
@@ -12,7 +12,7 @@ lazy val versions = new {
   val specs2 = "5.7.0"
   val mockito = "5.21.0"
   val sqlite = "3.51.1.0"
-  val scalasql = "0.2.7"
+  val scalasql = "0.2.3"
 }
 
 lazy val IntegrationTest = config("it") extend Test
@@ -32,7 +32,7 @@ lazy val root = (project in file("."))
       "ch.qos.logback" % "logback-classic" % versions.logback,
       "org.slf4j" % "slf4j-api" % versions.slf4j,
       "org.xerial" % "sqlite-jdbc" % versions.sqlite,
-      "com.lihaoyi" %% "scalasql" % versions.scalasql
+      "com.lihaoyi" %% "scalasql-namedtuples" % versions.scalasql
     ),
     // Test Dependencies
     libraryDependencies ++= Seq(
@@ -57,7 +57,9 @@ lazy val root = (project in file("."))
       "-Xcheck-macros",
       "-source:future",
       "-no-indent",
-      "-language:implicitConversions"
+      "-language:implicitConversions",
+      // Needed by scalasql
+      "-language:adhocExtensions"
     ),
     // Disable discarding non-unit values for tests
     Test / scalacOptions += "-Wconf:msg=discarded:s",

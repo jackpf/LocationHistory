@@ -1,9 +1,14 @@
 package com.jackpf.locationhistory.server
 
+import com.jackpf.locationhistory.server.db.DataSourceFactory
 import com.jackpf.locationhistory.server.grpc.{AuthenticationManager, Services}
 import com.jackpf.locationhistory.server.model.StorageType
 import com.jackpf.locationhistory.server.repo.*
 import scopt.OptionParser
+
+import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.*
 
 object App {
   private val ApplicationName: String = "location-history"
@@ -28,6 +33,14 @@ object App {
           "Administrator password for admin endpoints"
         )
 
+      opt[String]('d', "data-directory")
+        .valueName("<data-directory>")
+        .action((x, c) => c.copy(dataDirectory = Some(x)))
+        .withFallback(() => "/tmp")
+        .text(
+          "Directory for data storage"
+        )
+
       opt[StorageType]('s', "storage-type")
         .valueName("<storage-type>")
         .action((x, c) => c.copy(storageType = Some(x)))
@@ -44,8 +57,22 @@ object App {
 
     val authenticationManager = new AuthenticationManager(parsedArgs.adminPassword.get)
 
-    val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
-    val locationRepo: LocationRepo = new InMemoryLocationRepo
+    val db = new DataSourceFactory(parsedArgs.dataDirectory.get, "database.db")
+      .create(parsedArgs.storageType.get)
+    val repoFactory: RepoFactory = new RepoFactory(db = db)
+
+    val deviceRepo: DeviceRepo = repoFactory.deviceRepo(parsedArgs.storageType.get)
+    val locationRepo: LocationRepo = repoFactory.locationRepo(parsedArgs.storageType.get)
+
+    Await.result(
+      Future.sequence(
+        Seq(
+          deviceRepo.init(),
+          locationRepo.init()
+        )
+      ),
+      1.minute
+    )
 
     new AppServer(
       parsedArgs.listenPort.get,
