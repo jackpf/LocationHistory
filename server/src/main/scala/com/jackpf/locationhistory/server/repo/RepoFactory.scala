@@ -15,11 +15,13 @@ class RepoFactory(dataSource: Option[DbClient.DataSource])(using
 
   def deviceRepo(storageType: StorageType): DeviceRepo = storageType match {
     case StorageType.IN_MEMORY                             => new InMemoryDeviceRepo
-    case StorageType.SQLITE | StorageType.SQLITE_IN_MEMORY => new SQLiteDeviceRepo(getDataSource)
+    case StorageType.SQLITE | StorageType.SQLITE_IN_MEMORY =>
+      new SQLiteDeviceRepo(getDataSource(storageType))
   }
 
   def locationRepo(storageType: StorageType): LocationRepo = storageType match {
     case StorageType.IN_MEMORY                             => new InMemoryLocationRepo
-    case StorageType.SQLITE | StorageType.SQLITE_IN_MEMORY => new SQLiteLocationRepo(getDataSource)
+    case StorageType.SQLITE | StorageType.SQLITE_IN_MEMORY =>
+      new SQLiteLocationRepo(getDataSource(storageType))
   }
 }
