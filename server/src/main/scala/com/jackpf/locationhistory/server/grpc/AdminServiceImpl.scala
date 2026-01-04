@@ -1,7 +1,7 @@
 package com.jackpf.locationhistory.server.grpc
 
-import com.jackpf.locationhistory.admin_service.AdminServiceGrpc.AdminService
 import com.jackpf.locationhistory.admin_service.*
+import com.jackpf.locationhistory.admin_service.AdminServiceGrpc.AdminService
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
   InvalidDeviceStatus,
@@ -14,13 +14,11 @@ import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.util.Logging
 
-import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 class AdminServiceImpl(
-    adminPassword: String,
+    authenticationManager: AuthenticationManager,
     deviceRepo: DeviceRepo,
     locationRepo: LocationRepo
 )(using ec: ExecutionContext)
@@ -28,12 +26,7 @@ class AdminServiceImpl(
     with Logging {
   override def login(request: LoginRequest): Future[LoginResponse] = {
     // TODO Replace with proper tokens
-    if (
-      MessageDigest.isEqual(
-        request.password.getBytes(StandardCharsets.UTF_8),
-        adminPassword.getBytes(StandardCharsets.UTF_8)
-      )
-    )
+    if (authenticationManager.isValidPassword(request.password))
       Future.successful(LoginResponse(token = request.password))
     else Future.failed(InvalidPassword().toGrpcError)
   }

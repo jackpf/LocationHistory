@@ -35,29 +35,32 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
     extends DefaultSpecification
     with GrpcMatchers {
   trait Context extends DefaultScope {
-    lazy val adminPassword: String = "password"
+    val authenticationManager: AuthenticationManager = mock(classOf[AuthenticationManager])
     val deviceRepo: DeviceRepo = mock(classOf[DeviceRepo])
     val locationRepo: LocationRepo = mock(classOf[LocationRepo])
     val adminService: AdminService =
-      new AdminServiceImpl(adminPassword, deviceRepo, locationRepo)
+      new AdminServiceImpl(authenticationManager, deviceRepo, locationRepo)
   }
 
   "Admin service" should {
     "login endpoint" >> {
       trait LoginEndpoint extends Context {
-        def password: String
+        lazy val password: String = "mock-password"
+        def authenticationResponse: Boolean
+        when(authenticationManager.isValidPassword(password)).thenReturn(authenticationResponse)
+
         val request: LoginRequest = LoginRequest(password = password)
         val result: Future[LoginResponse] = adminService.login(request)
       }
 
       "return password as token on correct password" >> in(new LoginEndpoint {
-        override def password: String = adminPassword
+        override def authenticationResponse: Boolean = true
       }) { context =>
         context.result must beEqualTo(LoginResponse(token = context.password)).await
       }
 
       "return error on incorrect password" >> in(new LoginEndpoint {
-        override def password: String = "wrong-password"
+        override def authenticationResponse: Boolean = false
       }) { context =>
         context.result must throwAGrpcException(Code.UNAUTHENTICATED, "Invalid password").await
       }

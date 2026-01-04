@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server
 
-import com.jackpf.locationhistory.server.grpc.Services
+import com.jackpf.locationhistory.server.grpc.{AuthenticationManager, Services}
 import com.jackpf.locationhistory.server.repo.{
   DeviceRepo,
   InMemoryDeviceRepo,
@@ -38,12 +38,14 @@ object App {
       .parse(args, Args())
       .getOrElse(sys.exit(1))
 
+    val authenticationManager = new AuthenticationManager(parsedArgs.adminPassword.get)
+
     val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
     val locationRepo: LocationRepo = new InMemoryLocationRepo
 
     new AppServer(
       parsedArgs.listenPort.get,
-      Services(parsedArgs.adminPassword.get, deviceRepo, locationRepo)*
+      Services(authenticationManager, deviceRepo, locationRepo)*
     ).start().awaitTermination()
   }
 }

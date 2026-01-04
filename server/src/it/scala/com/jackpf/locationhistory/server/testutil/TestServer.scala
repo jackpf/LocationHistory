@@ -1,7 +1,7 @@
 package com.jackpf.locationhistory.server.testutil
 
 import com.jackpf.locationhistory.server.AppServer
-import com.jackpf.locationhistory.server.grpc.Services
+import com.jackpf.locationhistory.server.grpc.{AuthenticationManager, Services}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import io.grpc.Server
 
@@ -19,7 +19,7 @@ object TestServer {
       if (server == null) {
         server = new AppServer(
           TestPort,
-          Services(TestAdminPassword, deviceRepo, locationRepo)*
+          Services(new AuthenticationManager(TestAdminPassword), deviceRepo, locationRepo)*
         ).start()
       }
     }
