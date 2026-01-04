@@ -6,7 +6,8 @@ option java_multiple_files = true;
 
 message Device {
   string id = 1;
-  string public_key = 2;
+  string name = 2;
+  string public_key = 3;
 }
 
 enum DeviceStatus {

@@ -80,8 +80,12 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                             onClick={() => setSelectedDeviceId(device.id)}
                             className={`device-item ${selectedDeviceId === device.id ? 'selected' : ''}`}
                         >
-                            <strong>{device.id || "No ID"}</strong>
+                            <strong>{device.name || "No ID"}</strong>
                             <div className="device-details">
+                                <div className="detail-row">
+                                    <span className="detail-label">ID:</span>
+                                    <span className="detail-value">{device.id}</span>
+                                </div>
                                 <div className="detail-row">
                                     <span className="detail-label">Status:</span>
                                     <span>{showDeviceStatus(storedDevice.status)}</span>

@@ -13,7 +13,7 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
 
       val response = context.client.checkDevice(request)
 
-      response.status === DeviceStatus.DEVICE_UNKNOWN
+      response === CheckDeviceResponse(status = DeviceStatus.DEVICE_UNKNOWN)
     }
 
     "fail on checking an empty device" >> in(new IntegrationContext {}) { context =>
@@ -32,7 +32,7 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
 
       val result = context.client.registerDevice(request)
 
-      result.success === true
+      result === RegisterDeviceResponse(success = true)
     }
 
     "fail registering an empty device" >> in(new IntegrationContext {}) { context =>
@@ -64,7 +64,7 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
 
       val response = context.client.checkDevice(request)
 
-      response.status === DeviceStatus.DEVICE_PENDING
+      response === CheckDeviceResponse(status = DeviceStatus.DEVICE_PENDING)
     }
 
     "fail if re-registering device" >> in(

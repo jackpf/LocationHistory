@@ -12,6 +12,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.provider.Settings;
 
 import com.jackpf.locationhistory.DeviceStatus;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
@@ -131,15 +132,23 @@ public class BeaconService extends Service {
         return configRepo.getDeviceId();
     }
 
+    private String _getDeviceName() {
+        return Settings.Global.getString(getContentResolver(), Settings.Global.DEVICE_NAME);
+    }
+
     private String _getPublicKey() {
         return configRepo.getPublicKey();
     }
 
-    public boolean checkDeviceState(String deviceId, String publicKey) {
+    public boolean checkDeviceState() {
         // Device has been detected as registered & ready - no need to check again
         if (deviceStateReady) {
             return true;
         }
+
+        String deviceId = _getDeviceId();
+        String deviceName = _getDeviceName();
+        String publicKey = _getPublicKey();
 
         try {
             DeviceStatus deviceStatus = getBeaconClient().checkDevice(deviceId);
@@ -155,7 +164,7 @@ public class BeaconService extends Service {
                 case DEVICE_UNKNOWN:
                 default:
                     log.d("Device %s not found, registering as new", deviceId);
-                    if (!getBeaconClient().registerDevice(deviceId, publicKey)) {
+                    if (!getBeaconClient().registerDevice(deviceId, deviceName, publicKey)) {
                         log.e("Device registration unsuccessful");
                     }
                     deviceStateReady = false;
@@ -171,7 +180,7 @@ public class BeaconService extends Service {
     private void loop(long intervalMillis) {
         handler.postDelayed(() -> {
             persistNotification();
-            if (checkDeviceState(configRepo.getDeviceId(), configRepo.getPublicKey()) && permissionsManager.hasLocationPermissions()) {
+            if (checkDeviceState() && permissionsManager.hasLocationPermissions()) {
                 handleLocationUpdate();
             }
             loop(configRepo.getUpdateIntervalMillis());
