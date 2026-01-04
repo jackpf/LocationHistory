@@ -64,6 +64,8 @@ class SQLiteDeviceRepo(db: DbClient.DataSource)(using executionContext: Executio
       updateAction: StoredDevice => StoredDevice
   ): Future[Try[Unit]] = Future {
     db.transaction { implicit db =>
+      /* This is not strictly race-condition-resistant
+       * We can add a `version` field to StoredDeviceRow if needed */
       val existingRowMaybe =
         blocking { db.run(StoredDeviceTable.select.filter(_.id === id.toString)).headOption }
       existingRowMaybe match {
