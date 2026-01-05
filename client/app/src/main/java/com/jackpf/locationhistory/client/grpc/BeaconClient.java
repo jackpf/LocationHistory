@@ -21,8 +21,9 @@ import java.util.function.Consumer;
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 
-public class BeaconClient {
+public class BeaconClient implements AutoCloseable {
     private final BeaconServiceGrpc.BeaconServiceBlockingStub beaconService;
+    private final ManagedChannel channel;
     private final long timeoutMillis;
     private final Consumer<StatusRuntimeException> failureCallback;
 
@@ -32,7 +33,7 @@ public class BeaconClient {
             ManagedChannel channel,
             long timeoutMillis,
             Consumer<StatusRuntimeException> failureCallback) {
-        // TODO Make non-blocking
+        this.channel = channel;
         beaconService = BeaconServiceGrpc
                 .newBlockingStub(channel);
         this.timeoutMillis = timeoutMillis;
@@ -109,5 +110,10 @@ public class BeaconClient {
         log.d("Set location response: %s", setLocationResponse);
 
         return setLocationResponse.getSuccess();
+    }
+
+    @Override
+    public void close() {
+        channel.shutdownNow();
     }
 }

@@ -59,6 +59,8 @@ dependencies {
     implementation libs.lombok
     implementation libs.shared
     implementation libs.grpc
+    implementation libs.work
+    implementation libs.concurrent
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
