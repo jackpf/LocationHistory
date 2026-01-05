@@ -178,7 +178,7 @@ public class BeaconService extends Service {
                         log.d("Device %s not found, registering as new", deviceId);
 
                         try {
-                            getBeaconClient().registerDevice(deviceId, publicKey, new GrpcFutureWrapper<>(v2 -> {
+                            getBeaconClient().registerDevice(deviceId, deviceName, publicKey, new GrpcFutureWrapper<>(v2 -> {
                                 if (v2.getSuccess()) {
                                     log.d("Device %s successfully registered", deviceId);
                                     deviceState.setReady();
