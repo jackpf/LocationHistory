@@ -1,5 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.LocationHistory" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.LocationHistory" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary_accent</item>
+        <item name="android:navigationBarColor">@color/background_dark</item>
+        <item name="android:statusBarColor">@color/background_dark</item>
+
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+
+        <item name="editTextColor">@color/text_primary</item>
+        <item name="android:textViewStyle">@style/DefaultTextViewStyle</item>
+
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+
+        <item name="android:windowBackground">@color/background_dark</item>
+
+        <item name="android:windowLightStatusBar">false</item>
+
+        <item name="colorSurface">@color/background_dark</item>
+
+        <item name="elevationOverlayEnabled">false</item>
+    </style>
+
+    <style name="DefaultTextViewStyle" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
 </resources>
