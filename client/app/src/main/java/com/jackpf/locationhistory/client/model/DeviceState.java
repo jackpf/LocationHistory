@@ -5,12 +5,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DeviceState {
     private final AtomicBoolean ready = new AtomicBoolean(false);
 
-    public void setReady() {
+    public DeviceState setReady() {
         ready.set(true);
+        return this;
     }
 
-    public void setNotReady() {
+    public DeviceState setNotReady() {
         ready.set(false);
+        return this;
     }
 
     public boolean isReady() {
