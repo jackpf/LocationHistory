@@ -30,11 +30,11 @@ class SQLiteDeviceRepo(db: DbClient.DataSource)(using executionContext: Executio
       blocking {
         val _ = db.updateRaw(
           """CREATE TABLE IF NOT EXISTS stored_device_table (
-          id TEXT PRIMARY KEY,
-          name TEXT,
-          public_key TEXT,
-          status TEXT
-       )"""
+            id TEXT PRIMARY KEY,
+            name TEXT,
+            public_key TEXT,
+            status TEXT
+          )"""
         )
       }
     }

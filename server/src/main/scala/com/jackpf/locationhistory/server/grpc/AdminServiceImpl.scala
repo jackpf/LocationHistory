@@ -90,7 +90,7 @@ class AdminServiceImpl(
     request.device match {
       case Some(device) =>
         for {
-          locations <- locationRepo.getForDevice(DeviceId(device.id))
+          locations <- locationRepo.getForDevice(DeviceId(device.id), limit = None)
         } yield ListLocationsResponse(locations.map(_.toProto))
       case None =>
         Future.failed(NoDeviceProvidedException().toGrpcError)

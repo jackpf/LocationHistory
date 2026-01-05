@@ -32,13 +32,16 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
       blocking {
         val _ = db.updateRaw(
           """CREATE TABLE IF NOT EXISTS stored_location_table (
-          id INTEGER PRIMARY KEY, -- Auto-increment key
-          device_id TEXT,
-          lat DOUBLE,
-          lon DOUBLE,
-          accuracy DOUBLE,
-          timestamp UNSIGNED BIG INT
-       )"""
+            id INTEGER PRIMARY KEY, -- Auto-increment key
+            device_id TEXT,
+            lat DOUBLE,
+            lon DOUBLE,
+            accuracy DOUBLE,
+            timestamp UNSIGNED BIG INT
+          );"""
+        )
+        val _ = db.updateRaw(
+          """CREATE INDEX IF NOT EXISTS idx_device_time ON stored_location_table (device_id, timestamp);"""
         )
       }
     }
@@ -67,11 +70,25 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
     }
   }
 
-  override def getForDevice(deviceId: DeviceId.Type): Future[Vector[StoredLocation]] = Future {
+  override def getForDevice(
+      deviceId: DeviceId.Type,
+      limit: Option[Int]
+  ): Future[Vector[StoredLocation]] = Future {
     db.transaction { implicit db =>
       blocking {
-        db.run(StoredLocationTable.select.filter(_.deviceId === deviceId.toString))
-          .toVector
+        db.run(
+          {
+            val q = StoredLocationTable.select
+              .filter(_.deviceId === deviceId.toString)
+              .sortBy(_.timestamp)
+              .desc
+
+            limit match {
+              case Some(l) => q.take(l)
+              case None    => q
+            }
+          }
+        ).toVector
           .map(_.toStoredLocation)
       }
     }

@@ -216,7 +216,8 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
 
         lazy val getResponse: Future[Vector[model.StoredLocation]]
         if (device.isDefined) {
-          when(locationRepo.getForDevice(DeviceId(device.get.id))).thenReturn(getResponse): Unit
+          when(locationRepo.getForDevice(DeviceId(device.get.id), limit = None))
+            .thenReturn(getResponse): Unit
         }
 
         val request: ListLocationsRequest = ListLocationsRequest(device = device)

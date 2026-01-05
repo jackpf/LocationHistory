@@ -1,4 +1,5 @@
 package com.jackpf.locationhistory.server.model
+
 import com.jackpf.locationhistory.common.StoredLocation as ProtoStoredLocation
 
 object StoredLocation {

@@ -14,7 +14,7 @@ trait LocationRepo {
       timestamp: Long
   ): Future[Try[Unit]]
 
-  def getForDevice(deviceId: DeviceId.Type): Future[Vector[StoredLocation]]
+  def getForDevice(deviceId: DeviceId.Type, limit: Option[Int]): Future[Vector[StoredLocation]]
 
   def deleteForDevice(deviceId: DeviceId.Type): Future[Unit]
 

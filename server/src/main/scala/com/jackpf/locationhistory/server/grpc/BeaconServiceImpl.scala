@@ -12,7 +12,7 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
 import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location, StoredDevice}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
-import com.jackpf.locationhistory.server.util.Logging
+import com.jackpf.locationhistory.server.util.{LocationUtils, Logging}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -61,6 +61,21 @@ class BeaconServiceImpl(
     }
   }
 
+  private def hasPreviousDuplicateLocation(
+      deviceId: DeviceId.Type,
+      newLocation: Location
+  ): Future[Boolean] = {
+    for {
+      previousLocationMaybe <- locationRepo
+        .getForDevice(deviceId, limit = Some(1))
+        .map(_.headOption)
+    } yield previousLocationMaybe match {
+      case Some(previousLocation) =>
+        LocationUtils.isDuplicate(previousLocation.location, newLocation, 15)
+      case None => false
+    }
+  }
+
   override def setLocation(
       request: SetLocationRequest
   ): Future[SetLocationResponse] = {
@@ -74,16 +89,25 @@ class BeaconServiceImpl(
       val device = request.device.get
       val deviceId = DeviceId(device.id)
       val location = request.location.get
+      val newLocation = Location.fromProto(location)
 
       deviceRepo.get(deviceId).flatMap {
         case Some(storedDevice) =>
           if (storedDevice.status == StoredDevice.DeviceStatus.Registered) {
-            locationRepo
-              .storeDeviceLocation(
-                deviceId,
-                Location.fromProto(location),
-                timestamp = request.timestamp
-              )
+            {
+              for {
+                isDuplicate <- hasPreviousDuplicateLocation(deviceId, newLocation)
+                setResponse <-
+                  if (!isDuplicate)
+                    locationRepo
+                      .storeDeviceLocation(
+                        deviceId,
+                        newLocation,
+                        timestamp = request.timestamp
+                      )
+                  else Future.successful(Success(())) // TODO Update timestamp of last location
+              } yield setResponse
+            }
               .flatMap {
                 case Failure(exception) => Future.failed(exception.toGrpcError)
                 case Success(_)         => Future.successful(SetLocationResponse(success = true))

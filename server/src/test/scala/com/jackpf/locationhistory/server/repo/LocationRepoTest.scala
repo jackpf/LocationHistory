@@ -19,15 +19,13 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
   }
 
   trait StoredLocationContext extends Context {
-    lazy val timestamp: Long = 123L
-
-    lazy val locations: Seq[(DeviceId.Type, Location)] = Seq(
-      DeviceId("123") -> Location(lat = 0.1, lon = 0.2, accuracy = 0.3)
+    lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
+      (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L)
     )
 
     lazy val result: Future[Try[Unit]] = Future
-      .sequence(locations.map { l =>
-        locationRepo.storeDeviceLocation(l._1, l._2, timestamp)
+      .sequence(locations.map { case (d, l, t) =>
+        locationRepo.storeDeviceLocation(d, l, t)
       })
       .map(s => Try(s.map(_.get)))
   }
@@ -41,8 +39,22 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
       context.result must beSuccessfulTry.await
 
       context.locationRepo
-        .getForDevice(DeviceId("123")) must beEqualTo(
-        Seq(StoredLocation(context.locations.head._2, context.timestamp))
+        .getForDevice(DeviceId("123"), limit = None) must beEqualTo(
+        Seq(StoredLocation(context.locations.head._2, context.locations.head._3))
+      ).await
+    }
+
+    "get locations by device with limit" >> in(new StoredLocationContext {
+      override lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
+        (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
+        (DeviceId("123"), Location(lat = 0.2, lon = 0.3, accuracy = 0.4), 456L)
+      )
+    }) { context =>
+      context.result must beSuccessfulTry.await
+
+      context.locationRepo
+        .getForDevice(DeviceId("123"), limit = Some(1)) must beEqualTo(
+        Seq(StoredLocation(context.locations.last._2, context.locations.last._3))
       ).await
     }
 
@@ -50,15 +62,15 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
       context.result must beSuccessfulTry.await
 
       context.locationRepo
-        .getForDevice(DeviceId("non-existing")) must beEmpty[
+        .getForDevice(DeviceId("non-existing"), limit = None) must beEmpty[
         Seq[StoredLocation]
       ].await
     }
 
     "delete locations for a device" >> in(new StoredLocationContext {
-      override lazy val locations: Seq[(DeviceId.Type, Location)] = Seq(
-        DeviceId("123") -> Location(lat = 0.1, lon = 0.2, accuracy = 0.3),
-        DeviceId("456") -> Location(lat = 0.3, lon = 0.4, accuracy = 0.3)
+      override lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
+        (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
+        (DeviceId("456"), Location(lat = 0.3, lon = 0.4, accuracy = 0.3), 123L)
       )
     }) { context =>
       context.result must beSuccessfulTry.await
@@ -66,17 +78,17 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
       context.locationRepo.deleteForDevice(DeviceId("456")) must beEqualTo(()).await
 
       context.locationRepo
-        .getForDevice(DeviceId("123")) must beEqualTo(
-        Seq(StoredLocation(context.locations.head._2, context.timestamp))
+        .getForDevice(DeviceId("123"), limit = None) must beEqualTo(
+        Seq(StoredLocation(context.locations.head._2, context.locations.head._3))
       ).await
       context.locationRepo
-        .getForDevice(DeviceId("456")) must beEmpty[Seq[StoredLocation]].await
+        .getForDevice(DeviceId("456"), limit = None) must beEmpty[Seq[StoredLocation]].await
     }
 
     "delete all locations" >> in(new StoredLocationContext {
-      override lazy val locations: Seq[(DeviceId.Type, Location)] = Seq(
-        DeviceId("123") -> Location(lat = 0.1, lon = 0.2, accuracy = 0.3),
-        DeviceId("456") -> Location(lat = 0.3, lon = 0.4, accuracy = 0.3)
+      override lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
+        (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
+        (DeviceId("456"), Location(lat = 0.3, lon = 0.4, accuracy = 0.3), 123L)
       )
     }) { context =>
       context.result must beSuccessfulTry.await
@@ -84,9 +96,9 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
       context.locationRepo.deleteAll() must beEqualTo(()).await
 
       context.locationRepo
-        .getForDevice(DeviceId("123")) must beEmpty[Seq[StoredLocation]].await
+        .getForDevice(DeviceId("123"), limit = None) must beEmpty[Seq[StoredLocation]].await
       context.locationRepo
-        .getForDevice(DeviceId("456")) must beEmpty[Seq[StoredLocation]].await
+        .getForDevice(DeviceId("456"), limit = None) must beEmpty[Seq[StoredLocation]].await
     }
   }
 }

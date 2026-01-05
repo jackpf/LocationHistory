@@ -34,9 +34,17 @@ class InMemoryLocationRepo(maxItemsPerDevice: Long = DefaultMaxItemsPerDevice)
     Success(())
   }
 
-  override def getForDevice(deviceId: DeviceId.Type): Future[Vector[StoredLocation]] =
+  override def getForDevice(
+      deviceId: DeviceId.Type,
+      limit: Option[Int]
+  ): Future[Vector[StoredLocation]] =
     Future.successful {
-      storedLocations.getOrElse(deviceId, Vector.empty)
+      val v = storedLocations.getOrElse(deviceId, Vector.empty)
+
+      limit match {
+        case Some(l) => v.takeRight(l)
+        case None    => v
+      }
     }
 
   override def deleteForDevice(deviceId: Type): Future[Unit] = Future.successful {

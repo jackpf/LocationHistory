@@ -4,13 +4,13 @@ import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
 import com.jackpf.locationhistory.beacon_service.*
 import com.jackpf.locationhistory.common.{Device, DeviceStatus, Location}
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.DeviceNotFoundException
-import com.jackpf.locationhistory.server.model
-import com.jackpf.locationhistory.server.model.{DeviceId, StoredDevice}
+import com.jackpf.locationhistory.server.model.{DeviceId, StoredDevice, StoredLocation}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification, GrpcMatchers}
 import io.grpc.Status.Code
 import org.mockito.Mockito.{mock, when}
 import org.specs2.concurrent.ExecutionEnv
+import com.jackpf.locationhistory.server.model
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
@@ -131,6 +131,12 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
           when(deviceRepo.get(DeviceId(device.get.id))).thenReturn(getResponse): Unit
         }
 
+        lazy val previousLocationResponse: Future[Vector[StoredLocation]]
+        if (device.isDefined) {
+          when(locationRepo.getForDevice(DeviceId(device.get.id), limit = Some(1)))
+            .thenReturn(previousLocationResponse): Unit
+        }
+
         lazy val storeDeviceLocationResponse: Future[Try[Unit]]
         if (device.isDefined && location.isDefined) {
           when(
@@ -148,7 +154,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         lazy val result: Future[SetLocationResponse] = beaconService.setLocation(request)
       }
 
-      "set a device location" >> in(new SetLocationContext {
+      "set a device location with no previous location" >> in(new SetLocationContext {
         override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
           Some(
             StoredDevice(
@@ -157,15 +163,44 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
             )
           )
         )
+        override lazy val previousLocationResponse: Future[Vector[StoredLocation]] =
+          Future.successful(Vector.empty)
         override lazy val storeDeviceLocationResponse: Future[Try[Unit]] =
           Future.successful(Success(()))
       }) { context =>
         context.result must beEqualTo(SetLocationResponse(success = true)).await
       }
 
+      "set a device location with a previous non-duplicate location" >> in(new SetLocationContext {
+        override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
+          Some(
+            StoredDevice(
+              device = model.Device.fromProto(device.get),
+              status = StoredDevice.DeviceStatus.Registered
+            )
+          )
+        )
+        override lazy val previousLocationResponse: Future[Vector[StoredLocation]] =
+          Future.successful(
+            Vector(
+              StoredLocation(
+                location = model.Location(lat = 100.0, lon = 200.0, accuracy = 0.5),
+                timestamp = 123L
+              )
+            )
+          )
+        override lazy val storeDeviceLocationResponse: Future[Try[Unit]] =
+          Future.successful(Success(()))
+      }) { context =>
+        context.result must beEqualTo(SetLocationResponse(success = true)).await
+      }
+
+      // TODO Set device with a duplicate test
+
       "fail on empty device" >> in(new SetLocationContext {
         override lazy val device: Option[Device] = None
         override lazy val getResponse: Future[Option[StoredDevice]] = null
+        override lazy val previousLocationResponse: Future[Vector[StoredLocation]] = null
         override lazy val storeDeviceLocationResponse: Future[Try[Unit]] = null
       }) { context =>
         context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No device provided").await
@@ -174,6 +209,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
       "fail on empty location" >> in(new SetLocationContext {
         override lazy val location: Option[Location] = None
         override lazy val getResponse: Future[Option[StoredDevice]] = null
+        override lazy val previousLocationResponse: Future[Vector[StoredLocation]] = null
         override lazy val storeDeviceLocationResponse: Future[Try[Unit]] = null
       }) { context =>
         context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No location provided").await
@@ -188,6 +224,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
             )
           )
         )
+        override lazy val previousLocationResponse: Future[Vector[StoredLocation]] = null
         override lazy val storeDeviceLocationResponse: Future[Try[Unit]] = null
       }) { context =>
         context.result must throwAGrpcException(
@@ -198,6 +235,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
 
       "fail on missing device" >> in(new SetLocationContext {
         override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(None)
+        override lazy val previousLocationResponse: Future[Vector[StoredLocation]] = null
         override lazy val storeDeviceLocationResponse: Future[Try[Unit]] = null
       }) { context =>
         context.result must throwAGrpcException(
@@ -215,6 +253,8 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
             )
           )
         )
+        override lazy val previousLocationResponse: Future[Vector[StoredLocation]] =
+          Future.successful(Vector.empty)
         override lazy val storeDeviceLocationResponse: Future[Try[Unit]] =
           Future.successful(Failure(DeviceNotFoundException(DeviceId("123"))))
       }) { context =>
