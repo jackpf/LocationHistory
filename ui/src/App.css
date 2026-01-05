@@ -14,11 +14,50 @@ html, body, #root {
 
 .sidebar {
   width: 300px;
+  height: 100vh;
   flex-shrink: 0;
   border-right: 1px solid #333;
   overflow-y: auto;
   background: #1a1212;
   color: white;
+  z-index: 1000;
+  transition: transform 0.3s ease-in-out;
+  position: absolute;
+}
+
+/* State: Closed */
+.sidebar.closed {
+  /* Moves the sidebar 100% of its own width to the left */
+  transform: translateX(-100%);
+}
+
+/* State: Open */
+.sidebar.open {
+  transform: translateX(0);
+}
+
+/* The Toggle Button Style */
+.sidebar-toggle {
+  position: fixed; /* Fix it so it stays visible */
+  top: 15px;
+  left: 15px;
+  z-index: 1100; /* Must be higher than sidebar so it's clickable */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: left 0.3s ease-in-out;
+}
+
+/* Move the button along with the sidebar */
+.sidebar-toggle.open {
+  /* Puts the button inside the sidebar header visually */
+  left: calc(300px - 70px);
+  background: transparent;
+  border: none;
 }
 
 .sidebar-header {
@@ -51,6 +90,11 @@ html, body, #root {
   cursor: pointer;
   border-bottom: 1px solid #2a2a2a;
   transition: background 0.2s;
+}
+
+.no-devices {
+  padding: 1rem;
+  border-bottom: 1px solid #2a2a2a;
 }
 
 .device-item:hover {
@@ -91,6 +135,13 @@ html, body, #root {
   color: #aaa;
 }
 
+.detail-value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 75%;
+}
+
 .map-area {
   flex: 1;
   position: relative;
@@ -116,4 +167,49 @@ html, body, #root {
 .hide-while-flying .leaflet-overlay-pane {
   opacity: 0;
   transition: opacity 0.2s; /* Optional: smooth fade out */
+}
+
+.logout-button {
+  padding-top: 50px;
+  padding-left: 10px;
+}
+
+.device-menu-container {
+  position: absolute;
+  display: inline-block;
+  right: 0;
+}
+
+/* The 3 dots button */
+.device-menu-trigger {
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0 8px;
+}
+
+/* The floating box */
+.device-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  z-index: 10;
+  min-width: 100px;
+  padding: 4px 0;
+  background-color: #1a1212;
+}
+
+/* The delete button inside the dropdown */
+.device-delete-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #d32f2f; /* Red color for danger action */
+  font-size: 14px;
 }

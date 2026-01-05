@@ -7,7 +7,9 @@ import com.jackpf.locationhistory.admin_service.{
   ListDevicesRequest,
   ListDevicesResponse,
   ListLocationsRequest,
-  ListLocationsResponse
+  ListLocationsResponse,
+  LoginRequest,
+  LoginResponse
 }
 import com.jackpf.locationhistory.common.{
   Device,
@@ -33,13 +35,37 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
     extends DefaultSpecification
     with GrpcMatchers {
   trait Context extends DefaultScope {
+    val authenticationManager: AuthenticationManager = mock(classOf[AuthenticationManager])
     val deviceRepo: DeviceRepo = mock(classOf[DeviceRepo])
     val locationRepo: LocationRepo = mock(classOf[LocationRepo])
     val adminService: AdminService =
-      new AdminServiceImpl(deviceRepo, locationRepo)
+      new AdminServiceImpl(authenticationManager, deviceRepo, locationRepo)
   }
 
   "Admin service" should {
+    "login endpoint" >> {
+      trait LoginEndpoint extends Context {
+        lazy val password: String = "mock-password"
+        def authenticationResponse: Boolean
+        when(authenticationManager.isValidPassword(password)).thenReturn(authenticationResponse)
+
+        val request: LoginRequest = LoginRequest(password = password)
+        val result: Future[LoginResponse] = adminService.login(request)
+      }
+
+      "return password as token on correct password" >> in(new LoginEndpoint {
+        override def authenticationResponse: Boolean = true
+      }) { context =>
+        context.result must beEqualTo(LoginResponse(token = context.password)).await
+      }
+
+      "return error on incorrect password" >> in(new LoginEndpoint {
+        override def authenticationResponse: Boolean = false
+      }) { context =>
+        context.result must throwAGrpcException(Code.UNAUTHENTICATED, "Invalid password").await
+      }
+    }
+
     "list devices endpoint" >> {
       trait ListDevicesContext extends Context {
         lazy val getAllResponse: Future[Seq[model.StoredDevice]]
@@ -53,11 +79,11 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val getAllResponse: Future[Seq[model.StoredDevice]] = Future.successful(
           Seq(
             model.StoredDevice(
-              device = model.Device(id = DeviceId("123"), publicKey = "xxx"),
+              device = model.Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
               status = model.StoredDevice.DeviceStatus.Pending
             ),
             model.StoredDevice(
-              device = model.Device(id = DeviceId("456"), publicKey = "yyy"),
+              device = model.Device(id = DeviceId("456"), name = "dev2", publicKey = "yyy"),
               status = model.StoredDevice.DeviceStatus.Registered
             )
           )
@@ -67,11 +93,11 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
           ListDevicesResponse(devices =
             Seq(
               StoredDevice(
-                device = Some(Device(id = "123", publicKey = "xxx")),
+                device = Some(Device(id = "123", name = "dev1", publicKey = "xxx")),
                 status = DeviceStatus.DEVICE_PENDING
               ),
               StoredDevice(
-                device = Some(Device(id = "456", publicKey = "yyy")),
+                device = Some(Device(id = "456", name = "dev2", publicKey = "yyy")),
                 status = DeviceStatus.DEVICE_REGISTERED
               )
             )
@@ -109,7 +135,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
           Future.successful(
             Some(
               model.StoredDevice(
-                device = model.Device(id = DeviceId("123"), publicKey = "xxx"),
+                device = model.Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
                 status = model.StoredDevice.DeviceStatus.Pending
               )
             )
@@ -138,7 +164,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val getResponse: Future[Option[model.StoredDevice]] = Future.successful(
           Some(
             model.StoredDevice(
-              device = model.Device(id = DeviceId("123"), publicKey = "xxx"),
+              device = model.Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
               status = model.StoredDevice.DeviceStatus.Unknown
             )
           )
@@ -155,7 +181,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val getResponse: Future[Option[model.StoredDevice]] = Future.successful(
           Some(
             model.StoredDevice(
-              device = model.Device(id = DeviceId("123"), publicKey = "xxx"),
+              device = model.Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
               status = model.StoredDevice.DeviceStatus.Registered
             )
           )
@@ -172,7 +198,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val getResponse: Future[Option[model.StoredDevice]] = Future.successful(
           Some(
             model.StoredDevice(
-              device = model.Device(id = DeviceId("123"), publicKey = "xxx"),
+              device = model.Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
               status = model.StoredDevice.DeviceStatus.Pending
             )
           )

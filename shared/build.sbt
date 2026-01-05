@@ -1,6 +1,6 @@
 ThisBuild / organization := "com.jackpf.locationhistory"
 ThisBuild / version := "0.1.0-SNAPSHOT"
-ThisBuild / scalaVersion := "3.3.7"
+ThisBuild / scalaVersion := "3.7.0"
 
 lazy val versions = new {
   val grpc = "1.78.0"

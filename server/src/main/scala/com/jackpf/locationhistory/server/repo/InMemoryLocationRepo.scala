@@ -1,5 +1,6 @@
 package com.jackpf.locationhistory.server.repo
 
+import com.jackpf.locationhistory.server.model.DeviceId.Type
 import com.jackpf.locationhistory.server.model.{DeviceId, Location, StoredLocation}
 
 import scala.collection.concurrent
@@ -16,13 +17,13 @@ class InMemoryLocationRepo(maxItemsPerDevice: Long = DefaultMaxItemsPerDevice)
     concurrent.TrieMap.empty
 
   override def storeDeviceLocation(
-      id: DeviceId.Type,
+      deviceId: DeviceId.Type,
       location: Location,
       timestamp: Long
   ): Future[Try[Unit]] = Future.successful {
     val storedLocation = StoredLocation.fromLocation(location, timestamp)
 
-    storedLocations.updateWith(id) {
+    storedLocations.updateWith(deviceId) {
       case Some(existingLocations) =>
         Some {
           val updated = existingLocations :+ storedLocation
@@ -33,10 +34,15 @@ class InMemoryLocationRepo(maxItemsPerDevice: Long = DefaultMaxItemsPerDevice)
     Success(())
   }
 
-  override def getForDevice(id: DeviceId.Type): Future[Vector[StoredLocation]] =
+  override def getForDevice(deviceId: DeviceId.Type): Future[Vector[StoredLocation]] =
     Future.successful {
-      storedLocations.getOrElse(id, Vector.empty)
+      storedLocations.getOrElse(deviceId, Vector.empty)
     }
+
+  override def deleteForDevice(deviceId: Type): Future[Unit] = Future.successful {
+    storedLocations.remove(deviceId)
+    ()
+  }
 
   override def deleteAll(): Future[Unit] = Future.successful {
     storedLocations.clear()

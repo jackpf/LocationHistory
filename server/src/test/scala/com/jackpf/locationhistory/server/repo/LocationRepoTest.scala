@@ -1,0 +1,92 @@
+package com.jackpf.locationhistory.server.repo
+
+import com.jackpf.locationhistory.server.model.{DeviceId, Location, StoredLocation}
+import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification, GrpcMatchers}
+import org.specs2.concurrent.ExecutionEnv
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+import scala.util.Try
+
+abstract class LocationRepoTest(implicit ee: ExecutionEnv)
+    extends DefaultSpecification
+    with GrpcMatchers {
+  def createLocationRepo: LocationRepo
+
+  trait Context extends DefaultScope {
+    val locationRepo: LocationRepo = createLocationRepo
+    Await.result(locationRepo.init(), Duration.Inf)
+  }
+
+  trait StoredLocationContext extends Context {
+    lazy val timestamp: Long = 123L
+
+    lazy val locations: Seq[(DeviceId.Type, Location)] = Seq(
+      DeviceId("123") -> Location(lat = 0.1, lon = 0.2, accuracy = 0.3)
+    )
+
+    lazy val result: Future[Try[Unit]] = Future
+      .sequence(locations.map { l =>
+        locationRepo.storeDeviceLocation(l._1, l._2, timestamp)
+      })
+      .map(s => Try(s.map(_.get)))
+  }
+
+  "Location repo" should {
+    "store a device location" >> in(new StoredLocationContext {}) { context =>
+      context.result must beSuccessfulTry.await
+    }
+
+    "get locations by device" >> in(new StoredLocationContext {}) { context =>
+      context.result must beSuccessfulTry.await
+
+      context.locationRepo
+        .getForDevice(DeviceId("123")) must beEqualTo(
+        Seq(StoredLocation(context.locations.head._2, context.timestamp))
+      ).await
+    }
+
+    "get empty locations by device" >> in(new StoredLocationContext {}) { context =>
+      context.result must beSuccessfulTry.await
+
+      context.locationRepo
+        .getForDevice(DeviceId("non-existing")) must beEmpty[
+        Seq[StoredLocation]
+      ].await
+    }
+
+    "delete locations for a device" >> in(new StoredLocationContext {
+      override lazy val locations: Seq[(DeviceId.Type, Location)] = Seq(
+        DeviceId("123") -> Location(lat = 0.1, lon = 0.2, accuracy = 0.3),
+        DeviceId("456") -> Location(lat = 0.3, lon = 0.4, accuracy = 0.3)
+      )
+    }) { context =>
+      context.result must beSuccessfulTry.await
+
+      context.locationRepo.deleteForDevice(DeviceId("456")) must beEqualTo(()).await
+
+      context.locationRepo
+        .getForDevice(DeviceId("123")) must beEqualTo(
+        Seq(StoredLocation(context.locations.head._2, context.timestamp))
+      ).await
+      context.locationRepo
+        .getForDevice(DeviceId("456")) must beEmpty[Seq[StoredLocation]].await
+    }
+
+    "delete all locations" >> in(new StoredLocationContext {
+      override lazy val locations: Seq[(DeviceId.Type, Location)] = Seq(
+        DeviceId("123") -> Location(lat = 0.1, lon = 0.2, accuracy = 0.3),
+        DeviceId("456") -> Location(lat = 0.3, lon = 0.4, accuracy = 0.3)
+      )
+    }) { context =>
+      context.result must beSuccessfulTry.await
+
+      context.locationRepo.deleteAll() must beEqualTo(()).await
+
+      context.locationRepo
+        .getForDevice(DeviceId("123")) must beEmpty[Seq[StoredLocation]].await
+      context.locationRepo
+        .getForDevice(DeviceId("456")) must beEmpty[Seq[StoredLocation]].await
+    }
+  }
+}

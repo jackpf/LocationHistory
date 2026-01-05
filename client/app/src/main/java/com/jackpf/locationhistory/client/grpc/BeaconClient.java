@@ -60,10 +60,10 @@ public class BeaconClient implements AutoCloseable {
         return future;
     }
 
-    public ListenableFuture<RegisterDeviceResponse> registerDevice(String deviceId, String publicKey, GrpcFutureWrapper<RegisterDeviceResponse> callback) {
+    public ListenableFuture<RegisterDeviceResponse> registerDevice(String deviceId, String deviceName, String publicKey, GrpcFutureWrapper<RegisterDeviceResponse> callback) {
         callback.setTag("Register device");
 
-        RegisterDeviceRequest request = Requests.registerDeviceRequest(deviceId, publicKey);
+        RegisterDeviceRequest request = Requests.registerDeviceRequest(deviceId,deviceName, publicKey);
         ListenableFuture<RegisterDeviceResponse> future = createStub().registerDevice(request);
         Futures.addCallback(future, callback, threadExecutor);
 

@@ -1,12 +1,12 @@
 package com.jackpf.locationhistory.server.grpc.interceptors
 
+import com.jackpf.locationhistory.server.grpc.AuthenticationManager
 import io.grpc.*
 
-import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
-
-class AuthenticationInterceptor(password: String) extends ServerInterceptor {
-  private val BearerBytes = s"Bearer ${password}".getBytes(StandardCharsets.UTF_8)
+class AuthenticationInterceptor(
+    authenticationManager: AuthenticationManager,
+    ignoredMethodNames: Set[String]
+) extends ServerInterceptor {
   private val AuthKey = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
 
   override def interceptCall[ReqT, RespT](
@@ -14,13 +14,12 @@ class AuthenticationInterceptor(password: String) extends ServerInterceptor {
       headers: Metadata,
       next: ServerCallHandler[ReqT, RespT]
   ): ServerCall.Listener[ReqT] = {
-    val authHeader = headers.get(AuthKey)
+    val authHeader = Option(headers.get(AuthKey)).getOrElse("").replaceFirst("Bearer\\s+", "")
+    val methodName = call.getMethodDescriptor.getFullMethodName
 
     if (
-      authHeader != null && MessageDigest.isEqual(
-        authHeader.getBytes(StandardCharsets.UTF_8),
-        BearerBytes
-      )
+      ignoredMethodNames.contains(methodName) ||
+      authenticationManager.isValidPassword(authHeader)
     ) {
       next.startCall(call, headers)
     } else {

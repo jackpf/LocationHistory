@@ -12,6 +12,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.provider.Settings;
 
 import com.jackpf.locationhistory.PingResponse;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
@@ -140,16 +141,25 @@ public class BeaconService extends Service {
         return configRepo.getDeviceId();
     }
 
+    private String _getDeviceName() {
+        String deviceName = Settings.Global.getString(getContentResolver(), Settings.Global.DEVICE_NAME);
+        return deviceName != null ? deviceName : "";
+    }
+
     private String _getPublicKey() {
         return configRepo.getPublicKey();
     }
 
-    public void onDeviceStateReady(String deviceId, String publicKey, Runnable callback) {
+    public void onDeviceStateReady(Runnable callback) {
         // Device has been detected as registered & ready - no need to check again
         if (deviceState.isReady()) {
             callback.run();
             return;
         }
+
+        String deviceId = _getDeviceId();
+        String deviceName = _getDeviceName();
+        String publicKey = _getPublicKey();
 
         try {
             getBeaconClient().checkDevice(deviceId, new GrpcFutureWrapper<>(v -> {
@@ -197,7 +207,7 @@ public class BeaconService extends Service {
     private void loop(long intervalMillis) {
         handler.postDelayed(() -> {
             persistNotification();
-            onDeviceStateReady(configRepo.getDeviceId(), configRepo.getPublicKey(), () -> {
+            onDeviceStateReady(() -> {
                 if (permissionsManager.hasLocationPermissions()) {
                     handleLocationUpdate();
                 } else {

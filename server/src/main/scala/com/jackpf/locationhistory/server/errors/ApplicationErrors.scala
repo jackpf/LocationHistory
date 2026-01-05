@@ -10,6 +10,10 @@ sealed abstract class ApplicationError(message: String, cause: Throwable)
 }
 
 object ApplicationErrors {
+  case class InvalidPassword() extends ApplicationError("Invalid password", None.orNull) {
+    override val status: Status = Status.UNAUTHENTICATED
+  }
+
   case class NoDeviceProvidedException(cause: Throwable = None.orNull)
       extends ApplicationError("No device provided", cause) {
     override val status: Status = Status.INVALID_ARGUMENT
