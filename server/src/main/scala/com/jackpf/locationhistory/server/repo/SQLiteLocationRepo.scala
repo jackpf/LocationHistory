@@ -89,6 +89,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
             }
           }
         ).toVector
+          .reverse // Reverse -> ascending order
           .map(_.toStoredLocation)
       }
     }

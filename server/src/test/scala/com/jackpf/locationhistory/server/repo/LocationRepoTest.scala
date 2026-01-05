@@ -47,14 +47,18 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
     "get locations by device with limit" >> in(new StoredLocationContext {
       override lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
         (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
-        (DeviceId("123"), Location(lat = 0.2, lon = 0.3, accuracy = 0.4), 456L)
+        (DeviceId("123"), Location(lat = 0.2, lon = 0.3, accuracy = 0.4), 456L),
+        (DeviceId("123"), Location(lat = 0.5, lon = 0.6, accuracy = 0.4), 789L)
       )
     }) { context =>
       context.result must beSuccessfulTry.await
 
       context.locationRepo
-        .getForDevice(DeviceId("123"), limit = Some(1)) must beEqualTo(
-        Seq(StoredLocation(context.locations.last._2, context.locations.last._3))
+        .getForDevice(DeviceId("123"), limit = Some(2)) must beEqualTo(
+        Seq(
+          StoredLocation(context.locations(1)._2, context.locations(1)._3),
+          StoredLocation(context.locations(2)._2, context.locations(2)._3)
+        )
       ).await
     }
 

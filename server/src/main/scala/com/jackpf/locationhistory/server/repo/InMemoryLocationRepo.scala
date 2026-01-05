@@ -42,8 +42,9 @@ class InMemoryLocationRepo(maxItemsPerDevice: Long = DefaultMaxItemsPerDevice)
       val v = storedLocations.getOrElse(deviceId, Vector.empty)
 
       limit match {
-        case Some(l) => v.takeRight(l)
-        case None    => v
+        case Some(l) =>
+          v.takeRight(l) // Assuming already timestamp ordered to avoid large .sortBy()
+        case None => v
       }
     }
 
