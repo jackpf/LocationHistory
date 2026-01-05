@@ -6,7 +6,7 @@ import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import scala.util.Try
+import scala.util.{Success, Try}
 
 abstract class LocationRepoTest(implicit ee: ExecutionEnv)
     extends DefaultSpecification
@@ -23,11 +23,19 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
       (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L)
     )
 
-    lazy val result: Future[Try[Unit]] = Future
-      .sequence(locations.map { case (d, l, t) =>
-        locationRepo.storeDeviceLocation(d, l, t)
-      })
-      .map(s => Try(s.map(_.get)))
+    lazy val result: Future[Try[Unit]] = {
+      // Guarantee insertion order
+      locations.foldLeft(Future.successful(Try(()))) { (acc, item) =>
+        acc.flatMap {
+          case Success(_) =>
+            val (d, l, t) = item
+            locationRepo.storeDeviceLocation(d, l, t)
+
+          case failure =>
+            Future.successful(failure)
+        }
+      }
+    }
   }
 
   "Location repo" should {
@@ -40,7 +48,7 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
 
       context.locationRepo
         .getForDevice(DeviceId("123"), limit = None) must beEqualTo(
-        Seq(StoredLocation(context.locations.head._2, context.locations.head._3))
+        Seq(StoredLocation(1L, context.locations.head._2, context.locations.head._3))
       ).await
     }
 
@@ -56,8 +64,8 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
       context.locationRepo
         .getForDevice(DeviceId("123"), limit = Some(2)) must beEqualTo(
         Seq(
-          StoredLocation(context.locations(1)._2, context.locations(1)._3),
-          StoredLocation(context.locations(2)._2, context.locations(2)._3)
+          StoredLocation(2L, context.locations(1)._2, context.locations(1)._3),
+          StoredLocation(3L, context.locations(2)._2, context.locations(2)._3)
         )
       ).await
     }
@@ -83,7 +91,7 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
 
       context.locationRepo
         .getForDevice(DeviceId("123"), limit = None) must beEqualTo(
-        Seq(StoredLocation(context.locations.head._2, context.locations.head._3))
+        Seq(StoredLocation(1L, context.locations.head._2, context.locations.head._3))
       ).await
       context.locationRepo
         .getForDevice(DeviceId("456"), limit = None) must beEmpty[Seq[StoredLocation]].await

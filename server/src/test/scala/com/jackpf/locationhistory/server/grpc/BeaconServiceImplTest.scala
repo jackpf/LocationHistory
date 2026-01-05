@@ -184,6 +184,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
           Future.successful(
             Vector(
               StoredLocation(
+                id = 1L,
                 location = model.Location(lat = 100.0, lon = 200.0, accuracy = 0.5),
                 timestamp = 123L
               )

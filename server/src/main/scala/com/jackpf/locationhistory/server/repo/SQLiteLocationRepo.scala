@@ -19,6 +19,7 @@ private case class StoredLocationRow(
     timestamp: Long
 ) {
   def toStoredLocation: StoredLocation = StoredLocation(
+    id = id,
     location = Location(lat = lat, lon = lon, accuracy = accuracy),
     timestamp = timestamp
   )
