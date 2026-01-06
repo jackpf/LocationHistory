@@ -2,12 +2,15 @@ package com.jackpf.locationhistory.client;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.PingResponse;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
@@ -26,6 +29,13 @@ public class MainActivity extends AppCompatActivity {
 
     private final PermissionsFlow permissionsFlow = createPermissionsFlow();
 
+    private final SharedPreferences.OnSharedPreferenceChangeListener preferenceListener =
+            (sharedPreferences, key) -> {
+                // TODO Refactor a bit
+                log.i("Refreshing client");
+                beaconClient.close();
+                beaconClient = BeaconClientFactory.createClient(configRepo);
+            };
 
     private PermissionsFlow createPermissionsFlow() {
         PermissionsFlow permissionsFlow = new PermissionsFlow(this);
@@ -61,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         configRepo = new ConfigRepository(this);
+        configRepo.registerOnSharedPreferenceChangeListener(preferenceListener);
         if (beaconClient == null || beaconClient.isClosed()) {
             beaconClient = BeaconClientFactory.createClient(configRepo);
         }
@@ -77,11 +88,12 @@ public class MainActivity extends AppCompatActivity {
         else throw new IOException("Client not connected");
     }
 
-    public void ping(GrpcFutureWrapper<PingResponse> callback) {
+    public ListenableFuture<PingResponse> ping(GrpcFutureWrapper<PingResponse> callback) {
         try {
-            getBeaconClient().ping(callback);
+            return getBeaconClient().ping(callback);
         } catch (IOException e) {
             callback.onFailure(e);
+            return Futures.immediateFuture(null);
         }
     }
 

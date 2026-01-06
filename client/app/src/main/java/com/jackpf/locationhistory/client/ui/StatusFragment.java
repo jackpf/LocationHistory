@@ -7,10 +7,17 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.jackpf.locationhistory.PingResponse;
+import com.jackpf.locationhistory.client.MainActivity;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentStatusBinding;
+import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.text.SimpleDateFormat;
@@ -61,8 +68,35 @@ public class StatusFragment extends Fragment {
         binding = null;
     }
 
+    private ListenableFuture<PingResponse> testConnection() {
+        if (getActivity() instanceof MainActivity) {
+            return ((MainActivity) getActivity()).ping(GrpcFutureWrapper.empty());
+        }
+        return Futures.immediateFuture(null);
+    }
+
     private void updateUI() {
         log.d("Updating status fragment");
+
+        // TODO This needs to happen after client is refreshed
+        Futures.addCallback(
+                testConnection(),
+                new FutureCallback<>() {
+                    @Override
+                    public void onSuccess(PingResponse result) {
+                        if (result.getMessage().equals("pong")) {
+                            binding.statusTextView.setText("connected");
+                        } else {
+                            binding.statusTextView.setText("invalid response");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        binding.statusTextView.setText("disconnected");
+                    }
+                },
+                ContextCompat.getMainExecutor(requireContext()));
 
         getActivity().runOnUiThread(() -> {
             // 1. Time
