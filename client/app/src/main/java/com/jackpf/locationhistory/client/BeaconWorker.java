@@ -21,16 +21,15 @@ import com.jackpf.locationhistory.client.service.DeviceStateService;
 import com.jackpf.locationhistory.client.service.LocationUpdateService;
 import com.jackpf.locationhistory.client.util.Logger;
 
+import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
-import lombok.SneakyThrows;
 
 public class BeaconWorker extends ListenableWorker {
     private final ConfigRepository configRepository;
     private final DeviceState deviceState;
     private final LocationProvider locationProvider;
-    private final BeaconClient beaconClient;
+    private BeaconClient beaconClient;
     private final PermissionsManager permissionsManager;
     private final Executor backgroundExecutor;
 
@@ -44,7 +43,6 @@ public class BeaconWorker extends ListenableWorker {
 
     private final Logger log = new Logger(this);
 
-    @SneakyThrows
     public BeaconWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
 
@@ -54,7 +52,6 @@ public class BeaconWorker extends ListenableWorker {
 
         permissionsManager = new PermissionsManager(getApplicationContext());
         locationProvider = new LocationProvider(getApplicationContext(), permissionsManager);
-        beaconClient = BeaconClientFactory.createClient(configRepository);
         backgroundExecutor = Executors.newSingleThreadExecutor();
 
         deviceStateService = new DeviceStateService(beaconClient, backgroundExecutor);
@@ -67,6 +64,12 @@ public class BeaconWorker extends ListenableWorker {
         if (updateRunTimestamp)
             builder.putLong(WORKER_DATA_RUN_TIMESTAMP, System.currentTimeMillis());
         return builder.build();
+    }
+
+    private void completeNoConnection(CallbackToFutureAdapter.Completer<Result> completer, Throwable t) {
+        String message = "Completing with failure: no connection available";
+        log.e(t, message);
+        finish(completer, Result.failure(completeData(message, false)));
     }
 
     private void completeNoLocationPermissions(CallbackToFutureAdapter.Completer<Result> completer) {
@@ -118,6 +121,13 @@ public class BeaconWorker extends ListenableWorker {
 
         return CallbackToFutureAdapter.getFuture(completer -> {
             backgroundExecutor.execute(() -> {
+                try {
+                    beaconClient = BeaconClientFactory.createClient(configRepository);
+                } catch (IOException e) {
+                    completeNoConnection(completer, e);
+                    return;
+                }
+
                 if (!permissionsManager.hasLocationPermissions()) {
                     completeNoLocationPermissions(completer);
                     return;
@@ -188,7 +198,7 @@ public class BeaconWorker extends ListenableWorker {
     private void close() {
         log.d("Closing resources");
         try {
-            beaconClient.close();
+            if (beaconClient != null) beaconClient.close();
             locationProvider.close();
         } catch (Exception e) {
             log.e("Error closing resources", e);
