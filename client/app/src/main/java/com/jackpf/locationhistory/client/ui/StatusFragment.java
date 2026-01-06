@@ -115,6 +115,10 @@ public class StatusFragment extends Fragment {
     }
 
     private void updateUI() {
+        if (getActivity() == null) {
+            return;
+        }
+
         log.d("Updating status fragment");
 
         getActivity().runOnUiThread(() -> {
