@@ -18,7 +18,6 @@ public class ConfigRepository {
 
     private static final String SERVER_HOST_KEY = "server-host";
     private static final String SERVER_PORT_KEY = "server-port";
-    private static final String UPDATE_INTERVAL_KEY = "update-interval";
 
     private static final String LAST_RUN_TIMESTAMP_KEY = "last-run-timestamp";
 
@@ -94,14 +93,6 @@ public class ConfigRepository {
 
     public void setServerPort(int port) {
         prefs.edit().putInt(SERVER_PORT_KEY, port).apply();
-    }
-
-    public long getUpdateIntervalMillis() {
-        return prefs.getLong(UPDATE_INTERVAL_KEY, 10_000L);
-    }
-
-    public void setUpdateIntervalMillis(long updateInterval) {
-        prefs.edit().putLong(UPDATE_INTERVAL_KEY, updateInterval).apply();
     }
 
     public void setLastRunTimestamp(long lastRunTime) {

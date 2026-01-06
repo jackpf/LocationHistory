@@ -6,8 +6,6 @@
     <string name="server_host_hint">10.0.2.2</string>
     <string name="server_port">Server Port</string>
     <string name="server_port_hint">8080</string>
-    <string name="update_interval">Update Interval</string>
-    <string name="update_interval_hint">10000</string>
 
     <string name="test">Test</string>
     <string name="save">Save</string>

@@ -62,7 +62,6 @@ public class SettingsFragment extends Fragment {
 
         binding.serverHostInput.setText(configRepository.getServerHost());
         binding.serverPortInput.setText(Integer.toString(configRepository.getServerPort()));
-        binding.updateIntervalInput.setText(Long.toString(configRepository.getUpdateIntervalMillis()));
 
         binding.testButton.setOnClickListener(view -> handleTestClick());
         binding.saveButton.setOnClickListener(view -> handleSaveClick());
@@ -106,7 +105,6 @@ public class SettingsFragment extends Fragment {
             try {
                 configRepository.setServerHost(binding.serverHostInput.getText().toString());
                 configRepository.setServerPort(Integer.parseInt(binding.serverPortInput.getText().toString()));
-                configRepository.setUpdateIntervalMillis(Long.parseLong(binding.updateIntervalInput.getText().toString()));
 
                 MainActivity activity = (MainActivity) getActivity();
                 activity.refreshBeaconClient();

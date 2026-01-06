@@ -17,7 +17,6 @@
         android:inputType="textUri" />
 
     <TextView
-        android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/server_port"
@@ -28,20 +27,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/server_port_hint"
-        android:inputType="textUri" />
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/update_interval"
-        android:textSize="18sp" />
-
-    <EditText
-        android:id="@+id/updateIntervalInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/update_interval_hint"
         android:inputType="textUri" />
 
     <Button
