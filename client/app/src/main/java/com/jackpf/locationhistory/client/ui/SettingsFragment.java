@@ -86,7 +86,7 @@ public class SettingsFragment extends Fragment {
                         if ("pong".equals(responseMessage)) {
                             Toast.makeText(getActivity(), getString(R.string.toast_connection_successful), Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(getActivity(), getString(R.string.invalid_response, responseMessage), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(), getString(R.string.toast_invalid_response, responseMessage), Toast.LENGTH_SHORT).show();
                         }
                         tempClient.close();
                     }),
