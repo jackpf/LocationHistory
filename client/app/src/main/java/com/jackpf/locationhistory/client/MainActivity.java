@@ -81,7 +81,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        beaconClient.close();
+        
+        if (beaconClient != null) beaconClient.close();
     }
 
     private BeaconClient getBeaconClient() throws IOException {

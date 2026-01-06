@@ -86,10 +86,7 @@ public class StatusFragment extends Fragment {
     }
 
     private ListenableFuture<PingResponse> testConnection() {
-        if (getActivity() instanceof MainActivity) {
-            return ((MainActivity) getActivity()).ping(GrpcFutureWrapper.empty());
-        }
-        return Futures.immediateFuture(null);
+        return ((MainActivity) getActivity()).ping(GrpcFutureWrapper.empty());
     }
 
     private void updateConnectionAsync() {

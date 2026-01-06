@@ -97,20 +97,18 @@ public class SettingsFragment extends Fragment {
     }
 
     private void handleSaveClick() {
-        if (getActivity() instanceof MainActivity) {
-            try {
-                configRepository.setServerHost(binding.serverHostInput.getText().toString());
-                configRepository.setServerPort(Integer.parseInt(binding.serverPortInput.getText().toString()));
-                configRepository.setUpdateIntervalMillis(Long.parseLong(binding.updateIntervalInput.getText().toString()));
+        try {
+            configRepository.setServerHost(binding.serverHostInput.getText().toString());
+            configRepository.setServerPort(Integer.parseInt(binding.serverPortInput.getText().toString()));
+            configRepository.setUpdateIntervalMillis(Long.parseLong(binding.updateIntervalInput.getText().toString()));
 
-                MainActivity activity = (MainActivity) getActivity();
-                activity.refreshBeaconClient();
-                BeaconWorkerFactory.runOnce(getContext());
+            MainActivity activity = (MainActivity) getActivity();
+            activity.refreshBeaconClient();
+            BeaconWorkerFactory.runOnce(getContext());
 
-                Toast.makeText(getContext(), "Saved", Toast.LENGTH_SHORT).show();
-            } catch (NumberFormatException e) {
-                Toast.makeText(getContext(), "Invalid settings: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+            Toast.makeText(getContext(), "Saved", Toast.LENGTH_SHORT).show();
+        } catch (NumberFormatException e) {
+            Toast.makeText(getContext(), "Invalid settings: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 }
