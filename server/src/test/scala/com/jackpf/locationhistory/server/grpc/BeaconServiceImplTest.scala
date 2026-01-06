@@ -55,7 +55,9 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
       "register a device" >> in(new RegisterDeviceContext {
         override lazy val registerResponse: Future[Try[Unit]] = Future.successful(Success(()))
       }) { context =>
-        context.result must beEqualTo(RegisterDeviceResponse(success = true)).await
+        context.result must beEqualTo(
+          RegisterDeviceResponse(success = true, status = DeviceStatus.DEVICE_PENDING)
+        ).await
       }
 
       "fail on empty device" >> in(new RegisterDeviceContext {

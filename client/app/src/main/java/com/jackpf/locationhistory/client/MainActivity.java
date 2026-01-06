@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
             (sharedPreferences, key) -> {
                 // TODO Refactor a bit
                 log.i("Refreshing client");
-                beaconClient.close();
+                if (beaconClient != null && !beaconClient.isClosed()) beaconClient.close();
                 beaconClient = BeaconClientFactory.createClient(configRepo);
             };
 
@@ -96,6 +96,22 @@ public class MainActivity extends AppCompatActivity {
             return Futures.immediateFuture(null);
         }
     }
+
+    // TODO Register device on save
+    // TODO Remove test button
+//    public ListenableFuture<RegisterDeviceResponse> registerDevice(DeviceState deviceState, GrpcFutureWrapper<RegisterDeviceResponse> callback) {
+//        try {
+//            return getBeaconClient().registerDevice(
+//                    deviceState.getDeviceId(),
+//                    deviceState.getDeviceName(),
+//                    deviceState.getPublicKey(),
+//                    callback
+//            );
+//        } catch (IOException e) {
+//            callback.onFailure(e);
+//            return Futures.immediateFuture(null);
+//        }
+//    }
 
     @Override
     public void onRequestPermissionsResult(int code, @NonNull String[] permissions, @NonNull int[] grantResult) {

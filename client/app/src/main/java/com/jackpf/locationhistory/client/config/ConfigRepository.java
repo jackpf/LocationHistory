@@ -7,14 +7,20 @@ import android.provider.Settings;
 public class ConfigRepository {
     private final Context context;
     private final SharedPreferences prefs;
+
     private static final String PREFERENCES_KEY = "beacon";
+
     private static final String DEVICE_ID_KEY = "device-id";
     private static final String DEVICE_READY_KEY = "device-ready";
+    private static final String DEVICE_STATUS_KEY = "device-status";
     private static final String PRIVATE_KEY_KEY = "private-key";
     private static final String PUBLIC_KEY_KEY = "public-key";
+
     private static final String SERVER_HOST_KEY = "server-host";
     private static final String SERVER_PORT_KEY = "server-port";
     private static final String UPDATE_INTERVAL_KEY = "update-interval";
+
+    private static final String LAST_RUN_TIMESTAMP_KEY = "last-run-timestamp";
 
     public ConfigRepository(Context context) {
         this.context = context;
@@ -48,6 +54,14 @@ public class ConfigRepository {
 
     public void setDeviceReady(boolean deviceReady) {
         prefs.edit().putBoolean(DEVICE_READY_KEY, deviceReady).apply();
+    }
+
+    public void setDeviceStatus(String deviceStatus) {
+        prefs.edit().putString(DEVICE_STATUS_KEY, deviceStatus).apply();
+    }
+
+    public String getDeviceStatus() {
+        return prefs.getString(DEVICE_STATUS_KEY, "unknown");
     }
 
     public String getPrivateKey() {
@@ -88,5 +102,13 @@ public class ConfigRepository {
 
     public void setUpdateIntervalMillis(long updateInterval) {
         prefs.edit().putLong(UPDATE_INTERVAL_KEY, updateInterval).apply();
+    }
+
+    public void setLastRunTimestamp(long lastRunTime) {
+        prefs.edit().putLong(LAST_RUN_TIMESTAMP_KEY, lastRunTime).apply();
+    }
+
+    public long getLastRunTimestamp() {
+        return prefs.getLong(LAST_RUN_TIMESTAMP_KEY, 0L);
     }
 }

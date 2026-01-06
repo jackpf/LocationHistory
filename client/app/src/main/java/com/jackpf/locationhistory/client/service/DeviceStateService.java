@@ -40,13 +40,11 @@ public class DeviceStateService {
         );
     }
 
-    private DeviceState handleRegisterDevice(RegisterDeviceResponse registerDeviceResponse, DeviceState deviceState) {
-        if (registerDeviceResponse.getSuccess()) return deviceState.setReady();
-        else return deviceState.setNotReady();
-    }
-
     public ListenableFuture<DeviceState> onDeviceStateReady(DeviceState deviceState) {
+        log.d("Checking device state");
+
         if (deviceState.isReady()) {
+            log.d("Device is already ready");
             return Futures.immediateFuture(deviceState);
         }
 
@@ -58,17 +56,17 @@ public class DeviceStateService {
         ListenableFuture<DeviceState> registerDevice = Futures.transformAsync(checkDevice, checkDeviceResponse -> {
             DeviceStatus status = checkDeviceResponse.getStatus();
             log.d("Device %s has state %s", deviceState.getDeviceId(), status);
+            deviceState.updateFromStatus(status);
 
             if (shouldRegisterDevice(status)) {
                 log.d("Registering device");
 
                 return Futures.transform(registerDevice(deviceState),
-                        registerDeviceResponse -> handleRegisterDevice(registerDeviceResponse, deviceState),
+                        registerDeviceResponse -> deviceState.updateFromStatus(registerDeviceResponse.getStatus()),
                         backgroundExecutor
                 );
             } else {
                 log.d("Not registering device");
-                deviceState.updateFromStatus(status);
                 return Futures.immediateFuture(deviceState);
             }
         }, backgroundExecutor);

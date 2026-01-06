@@ -58,7 +58,6 @@ public class SettingsFragment extends Fragment {
         binding.serverPortInput.setText(Integer.toString(configRepository.getServerPort()));
         binding.updateIntervalInput.setText(Long.toString(configRepository.getUpdateIntervalMillis()));
 
-
         binding.testButton.setOnClickListener(view -> handleTestClick());
         binding.saveButton.setOnClickListener(view -> handleSaveClick());
     }

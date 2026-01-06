@@ -4,6 +4,7 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
+import androidx.work.Data;
 import androidx.work.ListenableWorker;
 import androidx.work.WorkerParameters;
 
@@ -35,7 +36,9 @@ public class BeaconWorker extends ListenableWorker {
     private final DeviceStateService deviceStateService;
     private final LocationUpdateService locationUpdateService;
 
-    private final String WORKER_FUTURE_NAME = "BeaconWorkerFuture";
+    private static final String WORKER_FUTURE_NAME = "BeaconWorkerFuture";
+    public static final String WORKER_DATA_RUN_TIMESTAMP = "BeaconWorkerRunTimestamp";
+    public static final String WORKER_DATA_MESSAGE = "BeaconWorkerMessage";
 
     private final Logger log = new Logger(this);
 
@@ -55,39 +58,54 @@ public class BeaconWorker extends ListenableWorker {
         locationUpdateService = new LocationUpdateService(beaconClient, backgroundExecutor);
     }
 
+    private Data completeData(String message, boolean updateRunTimestamp) {
+        Data.Builder builder = new Data.Builder();
+        builder.putString(WORKER_DATA_MESSAGE, message);
+        if (updateRunTimestamp)
+            builder.putLong(WORKER_DATA_RUN_TIMESTAMP, System.currentTimeMillis());
+        return builder.build();
+    }
+
     private void completeNoLocationPermissions(CallbackToFutureAdapter.Completer<Result> completer) {
-        log.e("Completing with failure: no location permissions");
-        finish(completer, Result.failure());
+        String message = "Completing with failure: no location permissions";
+        log.e(message);
+        finish(completer, Result.failure(completeData(message, false)));
     }
 
     private void completeDeviceNotReady(CallbackToFutureAdapter.Completer<Result> completer) {
-        log.w("Completing with retry: device not ready");
+        String message = "Completing with retry: device not ready";
+        log.w(message);
         finish(completer, Result.retry());
     }
 
     private void completeDeviceCheckError(CallbackToFutureAdapter.Completer<Result> completer, Throwable t) {
-        log.e(t, "Completing with failure: device not ready");
-        finish(completer, Result.failure());
+        String message = "Completing with failure: device check error";
+        log.e(t, message);
+        finish(completer, Result.failure(completeData(message, false)));
     }
 
     private void completeEmptyLocationData(CallbackToFutureAdapter.Completer<Result> completer) {
-        log.e("Completing with failure: empty location data");
-        finish(completer, Result.failure());
+        String message = "Completing with failure: empty location data";
+        log.e(message);
+        finish(completer, Result.failure(completeData(message, false)));
     }
 
     private void completeSetLocationSuccess(CallbackToFutureAdapter.Completer<Result> completer) {
-        log.i("Completing with success: location updated");
-        finish(completer, Result.success());
+        String message = "Completing with success: location updated";
+        log.i(message);
+        finish(completer, Result.success(completeData(message, true)));
     }
 
     private void completeSetLocationFailure(CallbackToFutureAdapter.Completer<Result> completer) {
-        log.e("Completing with failure: location update failed");
-        finish(completer, Result.failure());
+        String message = "Completing with failure: location update failed";
+        log.e(message);
+        finish(completer, Result.failure(completeData(message, false)));
     }
 
     private void completeSetLocationError(CallbackToFutureAdapter.Completer<Result> completer, Throwable t) {
-        log.e(t, "Completing with failure: set location error");
-        finish(completer, Result.failure());
+        String message = "Completing with failure: set location error";
+        log.e(t, message);
+        finish(completer, Result.failure(completeData(message, false)));
     }
 
     @NonNull
@@ -150,6 +168,7 @@ public class BeaconWorker extends ListenableWorker {
         try {
             close();
         } finally {
+            deviceState.setLastRunTimestamp(System.currentTimeMillis());
             deviceState.storeToConfig(configRepository);
             completer.set(result);
         }

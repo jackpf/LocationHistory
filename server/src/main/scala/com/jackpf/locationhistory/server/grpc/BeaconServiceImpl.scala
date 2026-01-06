@@ -36,7 +36,9 @@ class BeaconServiceImpl(
           case Failure(exception) =>
             Future.failed(exception.toGrpcError)
           case Success(_) =>
-            Future.successful(RegisterDeviceResponse(success = true))
+            Future.successful(
+              RegisterDeviceResponse(success = true, status = DeviceStatus.DEVICE_PENDING)
+            )
         }
       case None =>
         Future.failed(NoDeviceProvidedException().toGrpcError)

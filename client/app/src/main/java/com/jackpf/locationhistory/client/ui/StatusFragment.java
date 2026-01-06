@@ -118,14 +118,17 @@ public class StatusFragment extends Fragment {
         log.d("Updating status fragment");
 
         getActivity().runOnUiThread(() -> {
-            // 1. Time
-            long lastRun = 123L;//repo.getLastRunTime();
-            if (lastRun > 0) {
+            // Last run time
+            long lastRunTimestamp = configRepository.getLastRunTimestamp();
+            if (lastRunTimestamp > 0) {
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
-                binding.lastPingTextView.setText(sdf.format(new Date(lastRun)));
+                binding.lastPingTextView.setText(sdf.format(new Date(lastRunTimestamp)));
             } else {
-                binding.lastPingTextView.setText("Never");
+                binding.lastPingTextView.setText("never");
             }
+
+            // Device status
+            binding.deviceStateTextView.setText(configRepository.getDeviceStatus());
 
 //            // 2. Result
 //            String error = repo.getLastError();

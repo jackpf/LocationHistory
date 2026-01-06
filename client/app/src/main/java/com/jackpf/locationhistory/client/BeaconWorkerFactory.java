@@ -33,14 +33,13 @@ public class BeaconWorkerFactory {
     }
 
     public static void createTestWorker(Context context, int period, TimeUnit timeUnit) {
-        try (ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor()) {
-            scheduler.scheduleAtFixedRate(() -> {
-                WorkManager.getInstance(context).enqueueUniqueWork(
-                        "BeaconLocationSync_Test",
-                        ExistingWorkPolicy.REPLACE,
-                        new OneTimeWorkRequest.Builder(BeaconWorker.class).build()
-                );
-            }, 0, period, timeUnit);
-        }
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.scheduleAtFixedRate(() -> {
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                    "BeaconLocationSync_Test",
+                    ExistingWorkPolicy.REPLACE,
+                    new OneTimeWorkRequest.Builder(BeaconWorker.class).build()
+            );
+        }, 0, period, timeUnit);
     }
 }
