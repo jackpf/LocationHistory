@@ -24,6 +24,8 @@ import com.jackpf.locationhistory.client.util.Logger;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import lombok.SneakyThrows;
+
 public class BeaconWorker extends ListenableWorker {
     private final ConfigRepository configRepository;
     private final DeviceState deviceState;
@@ -42,6 +44,7 @@ public class BeaconWorker extends ListenableWorker {
 
     private final Logger log = new Logger(this);
 
+    @SneakyThrows
     public BeaconWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
 

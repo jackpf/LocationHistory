@@ -4,6 +4,7 @@ import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.util.Logger;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import io.grpc.ManagedChannel;
@@ -16,11 +17,11 @@ public class BeaconClientFactory {
 
     private static final int CLIENT_IDLE_TIMEOUT_MILLIS = 15_000;
 
-    public static BeaconClient createClient(ConfigRepository configRepo) {
+    public static BeaconClient createClient(ConfigRepository configRepo) throws IOException {
         return createClient(configRepo, CLIENT_TIMEOUT_MILLIS);
     }
 
-    public static BeaconClient createClient(ConfigRepository configRepo, int timeout) {
+    public static BeaconClient createClient(ConfigRepository configRepo, int timeout) throws IOException {
         return createClient(
                 configRepo.getServerHost(),
                 configRepo.getServerPort(),
@@ -28,7 +29,7 @@ public class BeaconClientFactory {
         );
     }
 
-    public static BeaconClient createClient(String host, int port, int timeout) {
+    public static BeaconClient createClient(String host, int port, int timeout) throws IOException {
         log.d("Connecting to server %s:%d", host, port);
 
         try {
@@ -42,7 +43,7 @@ public class BeaconClientFactory {
             return new BeaconClient(channel, timeout);
         } catch (IllegalArgumentException e) {
             log.e("Invalid server details", e);
-            return null;
+            throw new IOException("Invalid server details", e);
         }
     }
 }

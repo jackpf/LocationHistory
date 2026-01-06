@@ -49,7 +49,11 @@ public class MainActivity extends AppCompatActivity {
     public void refreshBeaconClient() {
         log.d("Refreshing beacon client");
         if (beaconClient != null && !beaconClient.isClosed()) beaconClient.close();
-        beaconClient = BeaconClientFactory.createClient(configRepo);
+        try {
+            beaconClient = BeaconClientFactory.createClient(configRepo);
+        } catch (IOException e) {
+            beaconClient = null;
+        }
     }
 
     @SuppressLint("SetTextI18n")
