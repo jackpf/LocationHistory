@@ -66,28 +66,32 @@ public class SettingsFragment extends Fragment {
     }
 
     private void handleTestClick() {
-        // Create a temp client with current (non-saved) settings
-        BeaconClient tempClient = BeaconClientFactory.createClient(
-                binding.serverHostInput.getText().toString(),
-                Integer.parseInt(binding.serverPortInput.getText().toString()),
-                1500 // Smaller timeout for pings
-        );
+        try {
+            // Create a temp client with current (non-saved) settings
+            BeaconClient tempClient = BeaconClientFactory.createClient(
+                    binding.serverHostInput.getText().toString(),
+                    Integer.parseInt(binding.serverPortInput.getText().toString()),
+                    1500 // Smaller timeout for pings
+            );
 
-        tempClient.ping(new GrpcFutureWrapper<>(
-                response -> getActivity().runOnUiThread(() -> {
-                    String responseMessage = response.getMessage();
-                    if ("pong".equals(responseMessage)) {
-                        Toast.makeText(getActivity(), "Connection successful", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(getActivity(), String.format("Invalid response message: %s", responseMessage), Toast.LENGTH_SHORT).show();
-                    }
-                    tempClient.close();
-                }),
-                e -> getActivity().runOnUiThread(() -> {
-                    Toast.makeText(getActivity(), String.format("Connection failed: %s", e.getMessage()), Toast.LENGTH_SHORT).show();
-                    tempClient.close();
-                })
-        ));
+            tempClient.ping(new GrpcFutureWrapper<>(
+                    response -> getActivity().runOnUiThread(() -> {
+                        String responseMessage = response.getMessage();
+                        if ("pong".equals(responseMessage)) {
+                            Toast.makeText(getActivity(), "Connection successful", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getActivity(), String.format("Invalid response message: %s", responseMessage), Toast.LENGTH_SHORT).show();
+                        }
+                        tempClient.close();
+                    }),
+                    e -> getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getActivity(), String.format("Connection failed: %s", e.getMessage()), Toast.LENGTH_SHORT).show();
+                        tempClient.close();
+                    })
+            ));
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Invalid settings: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void handleSaveClick() {
