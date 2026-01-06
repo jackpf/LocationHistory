@@ -9,10 +9,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.jackpf.locationhistory.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.MainActivity;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
+import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.util.Logger;
 
@@ -64,19 +66,28 @@ public class SettingsFragment extends Fragment {
     }
 
     private void handleTestClick() {
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).ping(new GrpcFutureWrapper<>(
-                    response -> getActivity().runOnUiThread(() -> {
-                        String responseMessage = response.getMessage();
-                        if ("pong".equals(responseMessage)) {
-                            Toast.makeText(getActivity(), "Connection successful", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(getActivity(), String.format("Invalid response message: %s", responseMessage), Toast.LENGTH_SHORT).show();
-                        }
-                    }),
-                    e -> getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), String.format("Connection failed: %s", e.getMessage()), Toast.LENGTH_SHORT).show())
-            ));
-        }
+        // Create a temp client with current (non-saved) settings
+        BeaconClient tempClient = BeaconClientFactory.createClient(
+                binding.serverHostInput.getText().toString(),
+                Integer.parseInt(binding.serverPortInput.getText().toString()),
+                1500 // Smaller timeout for pings
+        );
+
+        tempClient.ping(new GrpcFutureWrapper<>(
+                response -> getActivity().runOnUiThread(() -> {
+                    String responseMessage = response.getMessage();
+                    if ("pong".equals(responseMessage)) {
+                        Toast.makeText(getActivity(), "Connection successful", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getActivity(), String.format("Invalid response message: %s", responseMessage), Toast.LENGTH_SHORT).show();
+                    }
+                    tempClient.close();
+                }),
+                e -> getActivity().runOnUiThread(() -> {
+                    Toast.makeText(getActivity(), String.format("Connection failed: %s", e.getMessage()), Toast.LENGTH_SHORT).show();
+                    tempClient.close();
+                })
+        ));
     }
 
     private void handleSaveClick() {

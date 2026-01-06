@@ -14,17 +14,27 @@ public class BeaconClientFactory {
 
     private static final int CLIENT_TIMEOUT_MILLIS = 10_000;
 
+    private static final int CLIENT_IDLE_TIMEOUT_MILLIS = 15_000;
+
     public static BeaconClient createClient(ConfigRepository configRepo) {
         return createClient(configRepo, CLIENT_TIMEOUT_MILLIS);
     }
 
     public static BeaconClient createClient(ConfigRepository configRepo, int timeout) {
-        log.d("Connecting to server %s:%d", configRepo.getServerHost(), configRepo.getServerPort());
+        return createClient(
+                configRepo.getServerHost(),
+                configRepo.getServerPort(),
+                timeout
+        );
+    }
+
+    public static BeaconClient createClient(String host, int port, int timeout) {
+        log.d("Connecting to server %s:%d", host, port);
 
         try {
             ManagedChannel channel = ManagedChannelBuilder
-                    .forAddress(configRepo.getServerHost(), configRepo.getServerPort())
-                    .idleTimeout(15, TimeUnit.SECONDS)
+                    .forAddress(host, port)
+                    .idleTimeout(CLIENT_IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
                     .keepAliveWithoutCalls(false)
                     .usePlaintext()
                     .build();
@@ -35,5 +45,4 @@ public class BeaconClientFactory {
             return null;
         }
     }
-
 }

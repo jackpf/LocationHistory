@@ -12,16 +12,13 @@ import androidx.appcompat.app.AppCompatDelegate;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.PingResponse;
-import com.jackpf.locationhistory.RegisterDeviceResponse;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
-import com.jackpf.locationhistory.client.model.DeviceState;
 import com.jackpf.locationhistory.client.permissions.PermissionsFlow;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     private ConfigRepository configRepo;
@@ -43,8 +40,8 @@ public class MainActivity extends AppCompatActivity {
             log.d("Permission flow complete");
 
             log.d("Starting beacon worker...");
-//            BeaconWorkerFactory.createWorker(this);
-            BeaconWorkerFactory.createTestWorker(this, 10, TimeUnit.SECONDS);
+            BeaconWorkerFactory.createWorker(this);
+//            BeaconWorkerFactory.createTestWorker(this, 10, TimeUnit.SECONDS);
             log.d("Beacon worker started");
         });
     }
@@ -91,22 +88,6 @@ public class MainActivity extends AppCompatActivity {
     public ListenableFuture<PingResponse> ping(GrpcFutureWrapper<PingResponse> callback) {
         try {
             return getBeaconClient().ping(callback);
-        } catch (IOException e) {
-            callback.onFailure(e);
-            return Futures.immediateFuture(null);
-        }
-    }
-
-    // TODO Register device on save
-    // TODO Remove test button
-    public ListenableFuture<RegisterDeviceResponse> registerDevice(DeviceState deviceState, GrpcFutureWrapper<RegisterDeviceResponse> callback) {
-        try {
-            return getBeaconClient().registerDevice(
-                    deviceState.getDeviceId(),
-                    deviceState.getDeviceName(),
-                    deviceState.getPublicKey(),
-                    callback
-            );
         } catch (IOException e) {
             callback.onFailure(e);
             return Futures.immediateFuture(null);
