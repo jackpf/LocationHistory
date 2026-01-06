@@ -43,9 +43,10 @@ public class StatusFragment extends Fragment {
     private final Runnable heartbeatRunnable = new Runnable() {
         @Override
         public void run() {
-            updateConnectionAsync();
-
-            heartbeatHandler.postDelayed(this, HEARTBEAT_INTERVAL_MS);
+            updateConnectionAsync().addListener(
+                    () -> heartbeatHandler.postDelayed(heartbeatRunnable, HEARTBEAT_INTERVAL_MS),
+                    ContextCompat.getMainExecutor(requireContext())
+            );
         }
     };
 
@@ -92,9 +93,11 @@ public class StatusFragment extends Fragment {
         return Futures.immediateFailedFuture(new IllegalStateException("No activity"));
     }
 
-    private void updateConnectionAsync() {
+    private ListenableFuture<PingResponse> updateConnectionAsync() {
+        ListenableFuture<PingResponse> testConnectionFuture = testConnection();
+
         Futures.addCallback(
-                testConnection(),
+                testConnectionFuture,
                 new FutureCallback<>() {
                     @Override
                     public void onSuccess(PingResponse result) {
@@ -112,6 +115,8 @@ public class StatusFragment extends Fragment {
                 },
                 ContextCompat.getMainExecutor(requireContext())
         );
+
+        return testConnectionFuture;
     }
 
     private void updateUI() {
