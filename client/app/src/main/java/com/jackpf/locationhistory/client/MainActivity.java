@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
             return getBeaconClient().ping(callback);
         } catch (IOException e) {
             callback.onFailure(e);
-            return Futures.immediateFuture(null);
+            return Futures.immediateFailedFuture(e);
         }
     }
 
