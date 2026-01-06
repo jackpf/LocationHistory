@@ -3,6 +3,8 @@ package com.jackpf.locationhistory.client.permissions;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -24,6 +26,10 @@ public class PermissionsManager {
     }
 
     public boolean hasBackgroundPermission() {
-        return isGranted(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager powerManager = (PowerManager) context.getSystemService(android.content.Context.POWER_SERVICE);
+            return powerManager.isIgnoringBatteryOptimizations(context.getPackageName());
+        }
+        return true;
     }
 }
