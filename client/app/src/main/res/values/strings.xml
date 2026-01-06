@@ -1,3 +1,33 @@
 <resources>
+
     <string name="app_name">Location History</string>
+
+    <string name="server_host">Server Host</string>
+    <string name="server_host_hint">10.0.2.2</string>
+    <string name="server_port">Server Port</string>
+    <string name="server_port_hint">8080</string>
+    <string name="update_interval">Update Interval</string>
+    <string name="update_interval_hint">10000</string>
+
+    <string name="test">Test</string>
+    <string name="save">Save</string>
+
+    <string name="status_key">Status:</string>
+    <string name="device_state_key">Device State:</string>
+    <string name="last_ping_key">Last Ping:</string>
+
+    <string name="connected">connected</string>
+    <string name="disconnected">disconnected</string>
+    <string name="unknown">unknown</string>
+    <string name="never">never</string>
+
+    <string name="invalid_response">invalid_response</string>
+
+    <string name="toast_permission_denied">Required permission denied - app won\'t function properly</string>
+    <string name="toast_connection_successful">Connection successful</string>
+    <string name="toast_invalid_response">Invalid response message: %s</string>
+    <string name="toast_connection_failed">Connection failed: %s</string>
+    <string name="toast_invalid_settings">Invalid settings: %s</string>
+    <string name="toast_saved">Saved</string>
+
 </resources>

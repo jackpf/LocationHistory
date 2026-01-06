@@ -17,6 +17,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.PingResponse;
 import com.jackpf.locationhistory.client.MainActivity;
+import com.jackpf.locationhistory.client.R;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentStatusBinding;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
@@ -102,15 +103,15 @@ public class StatusFragment extends Fragment {
                     @Override
                     public void onSuccess(PingResponse result) {
                         if (result.getMessage().equals("pong")) {
-                            binding.statusTextView.setText("connected");
+                            binding.statusTextView.setText(getString(R.string.connected));
                         } else {
-                            binding.statusTextView.setText("invalid response");
+                            binding.statusTextView.setText(getString(R.string.invalid_response));
                         }
                     }
 
                     @Override
                     public void onFailure(@NonNull Throwable t) {
-                        binding.statusTextView.setText("disconnected");
+                        binding.statusTextView.setText(getString(R.string.disconnected));
                     }
                 },
                 ContextCompat.getMainExecutor(requireContext())
@@ -127,29 +128,17 @@ public class StatusFragment extends Fragment {
         log.d("Updating status fragment");
 
         getActivity().runOnUiThread(() -> {
+            // Device status
+            binding.deviceStateTextView.setText(configRepository.getDeviceStatus());
+
             // Last run time
             long lastRunTimestamp = configRepository.getLastRunTimestamp();
             if (lastRunTimestamp > 0) {
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
                 binding.lastPingTextView.setText(sdf.format(new Date(lastRunTimestamp)));
             } else {
-                binding.lastPingTextView.setText("never");
+                binding.lastPingTextView.setText(getString(R.string.never));
             }
-
-            // Device status
-            binding.deviceStateTextView.setText(configRepository.getDeviceStatus());
-
-//            // 2. Result
-//            String error = repo.getLastError();
-//            if (error != null) {
-//                binding.tvResultValue.setText(error);
-//                binding.tvResultValue.setTextColor(Color.RED);
-//                binding.tvStatus.setText("Error");
-//            } else {
-//                binding.tvResultValue.setText(repo.getLastLocation());
-//                binding.tvResultValue.setTextColor(Color.BLACK);
-//                binding.tvStatus.setText("Healthy");
-//            }
         });
     }
 }

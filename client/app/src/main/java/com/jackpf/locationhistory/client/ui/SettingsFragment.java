@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import com.jackpf.locationhistory.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.MainActivity;
+import com.jackpf.locationhistory.client.R;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
@@ -68,6 +69,10 @@ public class SettingsFragment extends Fragment {
     }
 
     private void handleTestClick() {
+        if (getActivity() == null) {
+            return;
+        }
+
         try {
             // Create a temp client with current (non-saved) settings
             BeaconClient tempClient = BeaconClientFactory.createClient(
@@ -80,19 +85,19 @@ public class SettingsFragment extends Fragment {
                     response -> getActivity().runOnUiThread(() -> {
                         String responseMessage = response.getMessage();
                         if ("pong".equals(responseMessage)) {
-                            Toast.makeText(getActivity(), "Connection successful", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(), getString(R.string.toast_connection_successful), Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(getActivity(), String.format("Invalid response message: %s", responseMessage), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(), getString(R.string.invalid_response, responseMessage), Toast.LENGTH_SHORT).show();
                         }
                         tempClient.close();
                     }),
                     e -> getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getActivity(), String.format("Connection failed: %s", e.getMessage()), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), getString(R.string.toast_connection_failed, e.getMessage()), Toast.LENGTH_SHORT).show();
                         tempClient.close();
                     })
             ));
         } catch (NumberFormatException | IOException e) {
-            Toast.makeText(getContext(), "Invalid settings: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -107,9 +112,9 @@ public class SettingsFragment extends Fragment {
                 activity.refreshBeaconClient();
                 BeaconWorkerFactory.runOnce(getContext());
 
-                Toast.makeText(getContext(), "Saved", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.toast_saved), Toast.LENGTH_SHORT).show();
             } catch (NumberFormatException e) {
-                Toast.makeText(getContext(), "Invalid settings: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
             }
         }
     }
