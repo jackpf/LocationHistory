@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -20,6 +21,7 @@ import com.jackpf.locationhistory.client.permissions.PermissionsFlow;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     private ConfigRepository configRepo;
@@ -41,8 +43,8 @@ public class MainActivity extends AppCompatActivity {
             log.d("Permission flow complete");
 
             log.d("Starting beacon worker...");
-            BeaconWorkerFactory.createWorker(this);
-//            BeaconWorkerFactory.createTestWorker(this, 10, TimeUnit.SECONDS);
+//            BeaconWorkerFactory.createWorker(this);
+            BeaconWorkerFactory.createTestWorker(this, 10, TimeUnit.SECONDS);
             log.d("Beacon worker started");
         });
     }
@@ -59,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(bundle);
 
         setContentView(R.layout.activity_main);
+
+        // TODO FixMe
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         permissionsFlow.start();
     }

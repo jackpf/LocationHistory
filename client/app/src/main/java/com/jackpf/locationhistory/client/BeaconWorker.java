@@ -151,8 +151,10 @@ public class BeaconWorker extends ListenableWorker {
                 ), new FutureCallback<>() {
                     @Override
                     public void onSuccess(SetLocationResponse response) {
-                        if (response.getSuccess()) completeSetLocationSuccess(completer);
-                        else completeSetLocationFailure(completer);
+                        if (response.getSuccess()) {
+                            deviceState.setLastRunTimestamp(System.currentTimeMillis());
+                            completeSetLocationSuccess(completer);
+                        } else completeSetLocationFailure(completer);
                     }
 
                     @Override
@@ -168,7 +170,6 @@ public class BeaconWorker extends ListenableWorker {
         try {
             close();
         } finally {
-            deviceState.setLastRunTimestamp(System.currentTimeMillis());
             deviceState.storeToConfig(configRepository);
             completer.set(result);
         }
