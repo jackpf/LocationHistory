@@ -2,15 +2,13 @@ package com.jackpf.locationhistory.client;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
+import com.jackpf.locationhistory.PingResponse;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
@@ -20,14 +18,9 @@ import com.jackpf.locationhistory.client.util.Logger;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
     private ConfigRepository configRepo;
     private BeaconClient beaconClient;
-    private EditText serverHostInput;
-    private EditText serverPortInput;
-    private EditText updateIntervalInput;
-    private Button testButton;
-    private Button saveButton;
 
     private final Logger log = new Logger(this);
 
@@ -57,25 +50,26 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
 
-        configRepo = new ConfigRepository(this);
-        beaconClient = BeaconClientFactory.createClient(configRepo);
-
         setContentView(R.layout.activity_main);
 
         permissionsFlow.start();
+    }
 
-        serverHostInput = findViewById(R.id.serverHostInput);
-        serverPortInput = findViewById(R.id.serverPortInput);
-        updateIntervalInput = findViewById(R.id.updateIntervalInput);
-        testButton = findViewById(R.id.testButton);
-        saveButton = findViewById(R.id.saveButton);
 
-        serverHostInput.setText(configRepo.getServerHost());
-        serverPortInput.setText(Integer.toString(configRepo.getServerPort()));
-        updateIntervalInput.setText(Long.toString(configRepo.getUpdateIntervalMillis()));
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-        testButton.setOnClickListener(view -> handleTestClick());
-        saveButton.setOnClickListener(view -> handleSaveClick());
+        configRepo = new ConfigRepository(this);
+        if (beaconClient == null || beaconClient.isClosed()) {
+            beaconClient = BeaconClientFactory.createClient(configRepo);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        beaconClient.close();
     }
 
     private BeaconClient getBeaconClient() throws IOException {
@@ -83,29 +77,12 @@ public class MainActivity extends Activity {
         else throw new IOException("Client not connected");
     }
 
-    private void handleTestClick() {
+    public void ping(GrpcFutureWrapper<PingResponse> callback) {
         try {
-            getBeaconClient().ping(new GrpcFutureWrapper<>(
-                    response -> runOnUiThread(() -> {
-                        String responseMessage = response.getMessage();
-                        if ("pong".equals(responseMessage)) {
-                            Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(this, String.format("Invalid response message: %s", responseMessage), Toast.LENGTH_SHORT).show();
-                        }
-                    }),
-                    e -> runOnUiThread(() -> Toast.makeText(this, String.format("Connection failed: %s", e.getMessage()), Toast.LENGTH_SHORT).show())
-            ));
+            getBeaconClient().ping(callback);
         } catch (IOException e) {
-            Toast.makeText(this, String.format("Connection failed: %s", e.getMessage()), Toast.LENGTH_SHORT).show();
+            callback.onFailure(e);
         }
-    }
-
-    private void handleSaveClick() {
-        configRepo.setServerHost(serverHostInput.getText().toString());
-        configRepo.setServerPort(Integer.parseInt(serverPortInput.getText().toString()));
-        configRepo.setUpdateIntervalMillis(Long.parseLong(updateIntervalInput.getText().toString()));
-        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -114,17 +91,5 @@ public class MainActivity extends Activity {
         permissionsFlow.onRequestPermissionsResult(code, permissions, grantResult, deniedPermission -> {
             throw new RuntimeException(String.format("Permissions %s was denied", deniedPermission));
         });
-    }
-
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        beaconClient.close();
     }
 }

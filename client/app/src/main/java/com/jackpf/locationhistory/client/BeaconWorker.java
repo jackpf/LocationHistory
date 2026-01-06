@@ -1,6 +1,5 @@
 package com.jackpf.locationhistory.client;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -121,7 +120,6 @@ public class BeaconWorker extends ListenableWorker {
         });
     }
 
-    @SuppressLint("MissingPermission")
     private void handleLocationUpdate(CallbackToFutureAdapter.Completer<Result> completer) {
         log.d("Updating location");
 
