@@ -4,6 +4,8 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +18,7 @@ import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.permissions.PermissionsFlow;
+import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
@@ -26,14 +29,18 @@ public class MainActivity extends AppCompatActivity {
 
     private final Logger log = new Logger(this);
 
-    private final PermissionsFlow permissionsFlow = createPermissionsFlow();
+    private PermissionsFlow permissionsFlow;
 
     private PermissionsFlow createPermissionsFlow() {
+        PermissionsManager permissionsManager = new PermissionsManager(this);
         PermissionsFlow permissionsFlow = new PermissionsFlow(this);
 
         permissionsFlow.require(new String[]{Manifest.permission.ACCESS_FINE_LOCATION});
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             permissionsFlow.thenRequire(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION});
+        }
+        if (!permissionsManager.hasBackgroundPermission()) {
+            permissionsFlow.requireSetting(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
         }
 
         return permissionsFlow.onComplete(() -> {
@@ -66,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         // TODO FixMe
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
+        permissionsFlow = createPermissionsFlow();
         permissionsFlow.start();
     }
 
@@ -81,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        
+
         if (beaconClient != null) beaconClient.close();
     }
 
@@ -103,7 +111,9 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int code, @NonNull String[] permissions, @NonNull int[] grantResult) {
         super.onRequestPermissionsResult(code, permissions, grantResult);
         permissionsFlow.onRequestPermissionsResult(code, permissions, grantResult, deniedPermission -> {
-            throw new RuntimeException(String.format("Permissions %s was denied", deniedPermission));
+            log.w("Permissions %s was denied", deniedPermission);
+            Toast.makeText(this, "Required permission denied - app won't function properly", android.widget.Toast.LENGTH_LONG).show();
+            return false;
         });
     }
 }

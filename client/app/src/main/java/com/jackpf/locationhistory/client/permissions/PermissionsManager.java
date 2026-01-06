@@ -22,4 +22,8 @@ public class PermissionsManager {
         return isGranted(Manifest.permission.ACCESS_FINE_LOCATION)
                 && isGranted(Manifest.permission.ACCESS_COARSE_LOCATION);
     }
+
+    public boolean hasBackgroundPermission() {
+        return isGranted(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+    }
 }
