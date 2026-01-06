@@ -2,7 +2,6 @@ package com.jackpf.locationhistory.client;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -12,14 +11,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.PingResponse;
+import com.jackpf.locationhistory.RegisterDeviceResponse;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
+import com.jackpf.locationhistory.client.model.DeviceState;
 import com.jackpf.locationhistory.client.permissions.PermissionsFlow;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     private ConfigRepository configRepo;
@@ -28,14 +28,6 @@ public class MainActivity extends AppCompatActivity {
     private final Logger log = new Logger(this);
 
     private final PermissionsFlow permissionsFlow = createPermissionsFlow();
-
-    private final SharedPreferences.OnSharedPreferenceChangeListener preferenceListener =
-            (sharedPreferences, key) -> {
-                // TODO Refactor a bit
-                log.i("Refreshing client");
-                if (beaconClient != null && !beaconClient.isClosed()) beaconClient.close();
-                beaconClient = BeaconClientFactory.createClient(configRepo);
-            };
 
     private PermissionsFlow createPermissionsFlow() {
         PermissionsFlow permissionsFlow = new PermissionsFlow(this);
@@ -49,10 +41,16 @@ public class MainActivity extends AppCompatActivity {
             log.d("Permission flow complete");
 
             log.d("Starting beacon worker...");
-//            BeaconWorkerFactory.createWorker(this);
-            BeaconWorkerFactory.createTestWorker(this, 10, TimeUnit.SECONDS);
+            BeaconWorkerFactory.createWorker(this);
+//            BeaconWorkerFactory.createTestWorker(this, 10, TimeUnit.SECONDS);
             log.d("Beacon worker started");
         });
+    }
+
+    public void refreshBeaconClient() {
+        log.d("Refreshing beacon client");
+        if (beaconClient != null && !beaconClient.isClosed()) beaconClient.close();
+        beaconClient = BeaconClientFactory.createClient(configRepo);
     }
 
     @SuppressLint("SetTextI18n")
@@ -71,10 +69,7 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         configRepo = new ConfigRepository(this);
-        configRepo.registerOnSharedPreferenceChangeListener(preferenceListener);
-        if (beaconClient == null || beaconClient.isClosed()) {
-            beaconClient = BeaconClientFactory.createClient(configRepo);
-        }
+        refreshBeaconClient();
     }
 
     @Override
@@ -99,19 +94,19 @@ public class MainActivity extends AppCompatActivity {
 
     // TODO Register device on save
     // TODO Remove test button
-//    public ListenableFuture<RegisterDeviceResponse> registerDevice(DeviceState deviceState, GrpcFutureWrapper<RegisterDeviceResponse> callback) {
-//        try {
-//            return getBeaconClient().registerDevice(
-//                    deviceState.getDeviceId(),
-//                    deviceState.getDeviceName(),
-//                    deviceState.getPublicKey(),
-//                    callback
-//            );
-//        } catch (IOException e) {
-//            callback.onFailure(e);
-//            return Futures.immediateFuture(null);
-//        }
-//    }
+    public ListenableFuture<RegisterDeviceResponse> registerDevice(DeviceState deviceState, GrpcFutureWrapper<RegisterDeviceResponse> callback) {
+        try {
+            return getBeaconClient().registerDevice(
+                    deviceState.getDeviceId(),
+                    deviceState.getDeviceName(),
+                    deviceState.getPublicKey(),
+                    callback
+            );
+        } catch (IOException e) {
+            callback.onFailure(e);
+            return Futures.immediateFuture(null);
+        }
+    }
 
     @Override
     public void onRequestPermissionsResult(int code, @NonNull String[] permissions, @NonNull int[] grantResult) {

@@ -9,6 +9,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.MainActivity;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
@@ -79,13 +80,20 @@ public class SettingsFragment extends Fragment {
     }
 
     private void handleSaveClick() {
-        try {
-            configRepository.setServerHost(binding.serverHostInput.getText().toString());
-            configRepository.setServerPort(Integer.parseInt(binding.serverPortInput.getText().toString()));
-            configRepository.setUpdateIntervalMillis(Long.parseLong(binding.updateIntervalInput.getText().toString()));
-            Toast.makeText(getContext(), "Saved", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(getContext(), "Invalid settings: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        if (getActivity() instanceof MainActivity) {
+            try {
+                configRepository.setServerHost(binding.serverHostInput.getText().toString());
+                configRepository.setServerPort(Integer.parseInt(binding.serverPortInput.getText().toString()));
+                configRepository.setUpdateIntervalMillis(Long.parseLong(binding.updateIntervalInput.getText().toString()));
+
+                MainActivity activity = (MainActivity) getActivity();
+                activity.refreshBeaconClient();
+                BeaconWorkerFactory.runOnce(getContext());
+
+                Toast.makeText(getContext(), "Saved", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Toast.makeText(getContext(), "Invalid settings: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }
