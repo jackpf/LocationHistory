@@ -18,6 +18,8 @@ import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.util.Logger;
 
+import java.io.IOException;
+
 import javax.annotation.Nullable;
 
 public class SettingsFragment extends Fragment {
@@ -89,7 +91,7 @@ public class SettingsFragment extends Fragment {
                         tempClient.close();
                     })
             ));
-        } catch (Exception e) {
+        } catch (NumberFormatException | IOException e) {
             Toast.makeText(getContext(), "Invalid settings: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
@@ -106,7 +108,7 @@ public class SettingsFragment extends Fragment {
                 BeaconWorkerFactory.runOnce(getContext());
 
                 Toast.makeText(getContext(), "Saved", Toast.LENGTH_SHORT).show();
-            } catch (Exception e) {
+            } catch (NumberFormatException e) {
                 Toast.makeText(getContext(), "Invalid settings: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
