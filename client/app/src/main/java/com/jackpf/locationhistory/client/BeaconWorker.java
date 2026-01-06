@@ -34,8 +34,8 @@ public class BeaconWorker extends ListenableWorker {
     private final ExecutorService backgroundExecutor;
 
     // Services
-    private final DeviceStateService deviceStateService;
-    private final LocationUpdateService locationUpdateService;
+    private DeviceStateService deviceStateService;
+    private LocationUpdateService locationUpdateService;
 
     private static final String WORKER_FUTURE_NAME = "BeaconWorkerFuture";
     public static final String WORKER_DATA_RUN_TIMESTAMP = "BeaconWorkerRunTimestamp";
@@ -53,9 +53,6 @@ public class BeaconWorker extends ListenableWorker {
         permissionsManager = new PermissionsManager(getApplicationContext());
         locationProvider = new LocationProvider(getApplicationContext(), permissionsManager);
         backgroundExecutor = Executors.newSingleThreadExecutor();
-
-        deviceStateService = new DeviceStateService(beaconClient, backgroundExecutor);
-        locationUpdateService = new LocationUpdateService(beaconClient, backgroundExecutor);
     }
 
     private Data completeData(String message, boolean updateRunTimestamp) {
@@ -127,6 +124,9 @@ public class BeaconWorker extends ListenableWorker {
                     completeNoConnection(completer, e);
                     return;
                 }
+
+                deviceStateService = new DeviceStateService(beaconClient, backgroundExecutor);
+                locationUpdateService = new LocationUpdateService(beaconClient, backgroundExecutor);
 
                 if (!permissionsManager.hasLocationPermissions()) {
                     completeNoLocationPermissions(completer);
