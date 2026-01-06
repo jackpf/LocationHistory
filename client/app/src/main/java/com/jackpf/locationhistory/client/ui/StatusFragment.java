@@ -86,7 +86,10 @@ public class StatusFragment extends Fragment {
     }
 
     private ListenableFuture<PingResponse> testConnection() {
-        return ((MainActivity) getActivity()).ping(GrpcFutureWrapper.empty());
+        if (getActivity() instanceof MainActivity) {
+            return ((MainActivity) getActivity()).ping(GrpcFutureWrapper.empty());
+        }
+        return Futures.immediateFailedFuture(new IllegalStateException("No activity"));
     }
 
     private void updateConnectionAsync() {
