@@ -9,7 +9,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -70,9 +69,6 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        // TODO FixMe
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-
         permissionsFlow = createPermissionsFlow();
         permissionsFlow.start();
     }
@@ -112,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(code, permissions, grantResult);
         permissionsFlow.onRequestPermissionsResult(code, permissions, grantResult, deniedPermission -> {
             log.w("Permissions %s was denied", deniedPermission);
-            Toast.makeText(this, "Required permission denied - app won't function properly", android.widget.Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.toast_permission_denied), android.widget.Toast.LENGTH_LONG).show();
             return false;
         });
     }

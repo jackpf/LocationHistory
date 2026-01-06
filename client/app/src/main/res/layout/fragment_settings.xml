@@ -6,54 +6,39 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Server host"
+        android:text="@string/server_host"
         android:textSize="18sp" />
 
     <EditText
         android:id="@+id/serverHostInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="10.0.2.2"
+        android:hint="@string/server_host_hint"
         android:inputType="textUri" />
 
     <TextView
-        android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Server port"
+        android:text="@string/server_port"
         android:textSize="18sp" />
 
     <EditText
         android:id="@+id/serverPortInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="8080"
-        android:inputType="textUri" />
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Update Interval"
-        android:textSize="18sp" />
-
-    <EditText
-        android:id="@+id/updateIntervalInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="60"
+        android:hint="@string/server_port_hint"
         android:inputType="textUri" />
 
     <Button
         android:id="@+id/testButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Test" />
+        android:text="@string/test" />
 
     <Button
         android:id="@+id/saveButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Save" />
+        android:text="@string/save" />
 
 </LinearLayout>
