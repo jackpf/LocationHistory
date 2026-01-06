@@ -2,6 +2,8 @@ package com.jackpf.locationhistory.client.ui;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +38,17 @@ public class StatusFragment extends Fragment {
     private final SharedPreferences.OnSharedPreferenceChangeListener preferenceListener =
             (sharedPreferences, key) -> updateUI();
 
+    private final Handler heartbeatHandler = new Handler(Looper.getMainLooper());
+    private static final long HEARTBEAT_INTERVAL_MS = 2000;
+    private final Runnable heartbeatRunnable = new Runnable() {
+        @Override
+        public void run() {
+            updateConnectionAsync();
+
+            heartbeatHandler.postDelayed(this, HEARTBEAT_INTERVAL_MS);
+        }
+    };
+
     @Override
     public void onResume() {
         super.onResume();
@@ -44,6 +57,8 @@ public class StatusFragment extends Fragment {
         configRepository.registerOnSharedPreferenceChangeListener(preferenceListener);
 
         updateUI();
+
+        heartbeatHandler.post(heartbeatRunnable);
     }
 
     @Override
@@ -53,6 +68,8 @@ public class StatusFragment extends Fragment {
         if (configRepository != null) {
             configRepository.unregisterOnSharedPreferenceChangeListener(preferenceListener);
         }
+
+        heartbeatHandler.removeCallbacks(heartbeatRunnable);
     }
 
     @Nullable
@@ -75,10 +92,7 @@ public class StatusFragment extends Fragment {
         return Futures.immediateFuture(null);
     }
 
-    private void updateUI() {
-        log.d("Updating status fragment");
-
-        // TODO This needs to happen after client is refreshed
+    private void updateConnectionAsync() {
         Futures.addCallback(
                 testConnection(),
                 new FutureCallback<>() {
@@ -92,11 +106,16 @@ public class StatusFragment extends Fragment {
                     }
 
                     @Override
-                    public void onFailure(Throwable t) {
+                    public void onFailure(@NonNull Throwable t) {
                         binding.statusTextView.setText("disconnected");
                     }
                 },
-                ContextCompat.getMainExecutor(requireContext()));
+                ContextCompat.getMainExecutor(requireContext())
+        );
+    }
+
+    private void updateUI() {
+        log.d("Updating status fragment");
 
         getActivity().runOnUiThread(() -> {
             // 1. Time
