@@ -3,7 +3,6 @@ package com.jackpf.locationhistory.client;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.widget.Button;
@@ -19,6 +18,7 @@ import com.jackpf.locationhistory.client.permissions.PermissionsFlow;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity {
     private ConfigRepository configRepo;
@@ -33,7 +33,6 @@ public class MainActivity extends Activity {
 
     private final PermissionsFlow permissionsFlow = createPermissionsFlow();
 
-    private static final long CLIENT_TIMEOUT_MILLIS = 10_000;
 
     private PermissionsFlow createPermissionsFlow() {
         PermissionsFlow permissionsFlow = new PermissionsFlow(this);
@@ -44,8 +43,12 @@ public class MainActivity extends Activity {
         }
 
         return permissionsFlow.onComplete(() -> {
-            log.d("Starting foreground service");
-            startForegroundService(new Intent(this, BeaconService.class));
+            log.d("Permission flow complete");
+
+            log.d("Starting beacon worker...");
+//            BeaconWorkerFactory.createWorker(this);
+            BeaconWorkerFactory.createTestWorker(this, 10, TimeUnit.SECONDS);
+            log.d("Beacon worker started");
         });
     }
 
@@ -74,7 +77,6 @@ public class MainActivity extends Activity {
         testButton.setOnClickListener(view -> handleTestClick());
         saveButton.setOnClickListener(view -> handleSaveClick());
     }
-
 
     private BeaconClient getBeaconClient() throws IOException {
         if (beaconClient != null && !beaconClient.isClosed()) return beaconClient;

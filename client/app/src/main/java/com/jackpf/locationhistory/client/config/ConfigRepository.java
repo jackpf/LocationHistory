@@ -2,18 +2,22 @@ package com.jackpf.locationhistory.client.config;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.provider.Settings;
 
 public class ConfigRepository {
+    private final Context context;
     private final SharedPreferences prefs;
     private static final String PREFERENCES_KEY = "beacon";
     private static final String DEVICE_ID_KEY = "device-id";
+    private static final String DEVICE_READY_KEY = "device-ready";
     private static final String PRIVATE_KEY_KEY = "private-key";
-    private static final String PUBLIC_KEY_KEY = "private-key";
+    private static final String PUBLIC_KEY_KEY = "public-key";
     private static final String SERVER_HOST_KEY = "server-host";
     private static final String SERVER_PORT_KEY = "server-port";
     private static final String UPDATE_INTERVAL_KEY = "update-interval";
 
     public ConfigRepository(Context context) {
+        this.context = context;
         this.prefs = context.getSharedPreferences(PREFERENCES_KEY, Context.MODE_PRIVATE);
     }
 
@@ -31,6 +35,19 @@ public class ConfigRepository {
 
     public void setDeviceId(String deviceId) {
         prefs.edit().putString(DEVICE_ID_KEY, deviceId).apply();
+    }
+
+    public String getDeviceName() {
+        String deviceName = Settings.Global.getString(context.getContentResolver(), Settings.Global.DEVICE_NAME);
+        return deviceName != null ? deviceName : "";
+    }
+
+    public boolean getDeviceReady() {
+        return prefs.getBoolean(DEVICE_READY_KEY, false);
+    }
+
+    public void setDeviceReady(boolean deviceReady) {
+        prefs.edit().putBoolean(DEVICE_READY_KEY, deviceReady).apply();
     }
 
     public String getPrivateKey() {

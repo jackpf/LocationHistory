@@ -21,6 +21,12 @@ public class GrpcFutureWrapper<T> implements FutureCallback<T> {
         this.errorCallback = errorCallback;
     }
 
+    public static <T> GrpcFutureWrapper<T> empty() {
+        return new GrpcFutureWrapper<>((v) -> {
+        }, (e) -> {
+        });
+    }
+
     @Override
     public void onSuccess(T value) {
         log.d("%s response: %s", tag, value != null ? value.toString() : "null");
