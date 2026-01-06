@@ -1,0 +1,69 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/table_border"
+        android:padding="16dp"
+        android:stretchColumns="1">
+
+        <TableRow android:layout_marginBottom="8dp">
+
+            <TextView
+                android:text="Status:"
+                android:textStyle="bold"
+                android:textColor="#333333" />
+
+            <TextView
+                android:id="@+id/statusTextView"
+                android:text="disconnected"
+                android:gravity="end" />
+        </TableRow>
+
+        <TableRow android:layout_marginBottom="8dp">
+
+            <TextView
+                android:text="Device State:"
+                android:textStyle="bold"
+                android:textColor="#333333" />
+
+            <TextView
+                android:id="@+id/deviceStateTextView"
+                android:text="unknown"
+                android:gravity="end" />
+        </TableRow>
+
+        <TableRow android:layout_marginBottom="8dp">
+
+            <TextView
+                android:text="Last Ping:"
+                android:textStyle="bold"
+                android:textColor="#333333" />
+
+            <TextView
+                android:id="@+id/lastPingTextView"
+                android:text="never"
+                android:gravity="end" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:text="Result:"
+                android:textStyle="bold"
+                android:textColor="#333333" />
+
+            <TextView
+                android:id="@+id/resultTextView"
+                android:text="-"
+                android:gravity="end"
+                android:ellipsize="end"
+                android:maxLines="1" />
+        </TableRow>
+
+    </TableLayout>
+
+</LinearLayout>

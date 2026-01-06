@@ -26,6 +26,7 @@ message RegisterDeviceRequest {
 
 message RegisterDeviceResponse {
   bool success = 1;
+  DeviceStatus status = 2;
 }
 
 message CheckDeviceRequest {

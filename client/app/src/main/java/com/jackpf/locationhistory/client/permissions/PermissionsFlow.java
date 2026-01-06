@@ -1,7 +1,9 @@
 package com.jackpf.locationhistory.client.permissions;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -18,6 +20,7 @@ public class PermissionsFlow {
 
     private final Activity activity;
     private final List<String[]> permissionsSteps = new ArrayList<>();
+    private final List<String> settingSteps = new ArrayList<>();
     private Optional<Runnable> onCompleteAction;
 
     private final Logger log = new Logger(this);
@@ -36,6 +39,12 @@ public class PermissionsFlow {
         return require(permissions);
     }
 
+    public PermissionsFlow requireSetting(String setting) {
+        log.d("Requiring setting %s", setting);
+        settingSteps.add(setting);
+        return this;
+    }
+
     public PermissionsFlow onComplete(Runnable action) {
         log.d("Setting onComplete action");
         onCompleteAction = Optional.of(action);
@@ -48,12 +57,30 @@ public class PermissionsFlow {
         ActivityCompat.requestPermissions(activity, permissions, step);
     }
 
+    private void requestSettings() {
+        // TODO This is not ideal for multiple settings - they all open instantly
+        for (String setting : settingSteps) {
+            log.d("Requesting setting %s", setting);
+            Intent intent = new Intent();
+            intent.setAction(setting);
+            intent.setData(Uri.parse("package:" + activity.getPackageName()));
+            activity.startActivity(intent);
+        }
+    }
+
     public void start() {
         log.d("Starting permissions flow");
+
+        if (permissionsSteps.isEmpty() && settingSteps.isEmpty()) {
+            throw new IllegalStateException("No permissions or settings to request");
+        }
+
         if (!permissionsSteps.isEmpty()) {
             requestPermissions(0);
-        } else {
-            throw new IllegalStateException("No permissions to request");
+        }
+
+        if (!settingSteps.isEmpty()) {
+            requestSettings();
         }
     }
 

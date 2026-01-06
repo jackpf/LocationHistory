@@ -2,132 +2,118 @@ package com.jackpf.locationhistory.client;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.widget.Button;
-import android.widget.EditText;
+import android.provider.Settings;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.jackpf.locationhistory.PingResponse;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
+import com.jackpf.locationhistory.client.grpc.BeaconClient;
+import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.permissions.PermissionsFlow;
+import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
 
-public class MainActivity extends Activity {
-    private ConfigRepository configRepository;
-    private BeaconService beaconService;
-    private final ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            beaconService = ((BeaconService.LocalBinder) service).getService();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            beaconService = null;
-        }
-    };
-
-    private EditText serverHostInput;
-    private EditText serverPortInput;
-    private EditText updateIntervalInput;
-    private Button testButton;
-    private Button saveButton;
+public class MainActivity extends AppCompatActivity {
+    private ConfigRepository configRepo;
+    private BeaconClient beaconClient;
 
     private final Logger log = new Logger(this);
 
-    private final PermissionsFlow permissionsFlow = createPermissionsFlow();
+    private PermissionsFlow permissionsFlow;
 
     private PermissionsFlow createPermissionsFlow() {
+        PermissionsManager permissionsManager = new PermissionsManager(this);
         PermissionsFlow permissionsFlow = new PermissionsFlow(this);
 
         permissionsFlow.require(new String[]{Manifest.permission.ACCESS_FINE_LOCATION});
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             permissionsFlow.thenRequire(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION});
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissionsFlow.thenRequire(new String[]{Manifest.permission.POST_NOTIFICATIONS});
+        if (!permissionsManager.hasBackgroundPermission()) {
+            permissionsFlow.requireSetting(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
         }
 
         return permissionsFlow.onComplete(() -> {
-            log.d("Starting foreground service");
-            startForegroundService(new Intent(this, BeaconService.class));
+            log.d("Permission flow complete");
+
+            log.d("Starting beacon worker...");
+            BeaconWorkerFactory.createWorker(this);
+//            BeaconWorkerFactory.createTestWorker(this, 10, TimeUnit.SECONDS);
+            log.d("Beacon worker started");
         });
+    }
+
+    public void refreshBeaconClient() {
+        log.d("Refreshing beacon client");
+        if (beaconClient != null && !beaconClient.isClosed()) beaconClient.close();
+        try {
+            beaconClient = BeaconClientFactory.createClient(configRepo);
+        } catch (IOException e) {
+            beaconClient = null;
+        }
     }
 
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
-        configRepository = new ConfigRepository(this);
+
         setContentView(R.layout.activity_main);
 
+        // TODO FixMe
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
+        permissionsFlow = createPermissionsFlow();
         permissionsFlow.start();
-
-        serverHostInput = findViewById(R.id.serverHostInput);
-        serverPortInput = findViewById(R.id.serverPortInput);
-        updateIntervalInput = findViewById(R.id.updateIntervalInput);
-        testButton = findViewById(R.id.testButton);
-        saveButton = findViewById(R.id.saveButton);
-
-        serverHostInput.setText(configRepository.getServerHost());
-        serverPortInput.setText(Integer.toString(configRepository.getServerPort()));
-        updateIntervalInput.setText(Long.toString(configRepository.getUpdateIntervalMillis()));
-
-        testButton.setOnClickListener(view -> handleTestClick());
-        saveButton.setOnClickListener(view -> handleSaveClick());
-    }
-
-    private void handleTestClick() {
-        if (beaconService == null) {
-            Toast.makeText(this, "Service not ready", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try {
-            beaconService.testConnection();
-            Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            Toast.makeText(this, String.format("Connection failed: %s", e.getMessage()), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void handleSaveClick() {
-        configRepository.setServerHost(serverHostInput.getText().toString());
-        configRepository.setServerPort(Integer.parseInt(serverPortInput.getText().toString()));
-        configRepository.setUpdateIntervalMillis(Long.parseLong(updateIntervalInput.getText().toString()));
-        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int code, @NonNull String[] permissions, @NonNull int[] grantResult) {
-        super.onRequestPermissionsResult(code, permissions, grantResult);
-        permissionsFlow.onRequestPermissionsResult(code, permissions, grantResult, deniedPermission -> {
-            throw new RuntimeException(String.format("Permissions %s was denied", deniedPermission));
-        });
     }
 
 
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this, BeaconService.class);
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);
+
+        configRepo = new ConfigRepository(this);
+        refreshBeaconClient();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        unbindService(connection);
-        beaconService = null;
+
+        if (beaconClient != null) beaconClient.close();
+    }
+
+    private BeaconClient getBeaconClient() throws IOException {
+        if (beaconClient != null && !beaconClient.isClosed()) return beaconClient;
+        else throw new IOException("Client not connected");
+    }
+
+    public ListenableFuture<PingResponse> ping(GrpcFutureWrapper<PingResponse> callback) {
+        try {
+            return getBeaconClient().ping(callback);
+        } catch (IOException e) {
+            callback.onFailure(e);
+            return Futures.immediateFailedFuture(e);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, @NonNull String[] permissions, @NonNull int[] grantResult) {
+        super.onRequestPermissionsResult(code, permissions, grantResult);
+        permissionsFlow.onRequestPermissionsResult(code, permissions, grantResult, deniedPermission -> {
+            log.w("Permissions %s was denied", deniedPermission);
+            Toast.makeText(this, "Required permission denied - app won't function properly", android.widget.Toast.LENGTH_LONG).show();
+            return false;
+        });
     }
 }
