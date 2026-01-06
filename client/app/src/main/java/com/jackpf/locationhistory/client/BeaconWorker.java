@@ -22,7 +22,7 @@ import com.jackpf.locationhistory.client.service.LocationUpdateService;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class BeaconWorker extends ListenableWorker {
@@ -31,7 +31,7 @@ public class BeaconWorker extends ListenableWorker {
     private final LocationProvider locationProvider;
     private BeaconClient beaconClient;
     private final PermissionsManager permissionsManager;
-    private final Executor backgroundExecutor;
+    private final ExecutorService backgroundExecutor;
 
     // Services
     private final DeviceStateService deviceStateService;
@@ -200,6 +200,7 @@ public class BeaconWorker extends ListenableWorker {
         try {
             if (beaconClient != null) beaconClient.close();
             locationProvider.close();
+            backgroundExecutor.shutdown();
         } catch (Exception e) {
             log.e("Error closing resources", e);
         }
