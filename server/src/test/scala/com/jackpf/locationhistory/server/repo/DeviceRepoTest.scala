@@ -6,7 +6,7 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
 }
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
-import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification}
+import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification, MockModels}
 import org.specs2.collection.IsEmpty
 import org.specs2.concurrent.ExecutionEnv
 
@@ -97,7 +97,7 @@ abstract class DeviceRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecific
         context.deviceRepo.get(context.device.id)
 
       getResult must beSome(
-        StoredDevice(device = context.device, status = DeviceStatus.Pending)
+        MockModels.storedDevice(device = context.device, status = DeviceStatus.Pending)
       ).await
     }
 
@@ -109,7 +109,7 @@ abstract class DeviceRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecific
 
       getAllResult must beEqualTo(
         Seq(
-          StoredDevice(device = context.device, status = DeviceStatus.Pending)
+          MockModels.storedDevice(device = context.device, status = DeviceStatus.Pending)
         )
       ).await
     }

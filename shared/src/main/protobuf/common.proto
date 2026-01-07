@@ -19,6 +19,7 @@ enum DeviceStatus {
 message StoredDevice {
   Device device = 1;
   DeviceStatus status = 2;
+  PushHandler push_handler = 3;
 }
 
 message Location {
@@ -30,4 +31,9 @@ message Location {
 message StoredLocation {
   Location location = 1;
   int64 timestamp = 2;
+}
+
+message PushHandler {
+  string name = 1;
+  string url = 2;
 }

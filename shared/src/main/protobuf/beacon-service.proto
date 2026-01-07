@@ -11,6 +11,7 @@ service BeaconService {
   rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse);
   rpc CheckDevice(CheckDeviceRequest) returns (CheckDeviceResponse);
   rpc SetLocation(SetLocationRequest) returns (SetLocationResponse);
+  rpc RegisterPushHandler(RegisterPushHandlerRequest) returns (RegisterPushHandlerResponse);
 }
 
 message PingRequest {
@@ -44,5 +45,14 @@ message SetLocationRequest {
 }
 
 message SetLocationResponse {
+  bool success = 1;
+}
+
+message RegisterPushHandlerRequest {
+  string deviceId = 1;
+  PushHandler push_handler = 2;
+}
+
+message RegisterPushHandlerResponse {
   bool success = 1;
 }
