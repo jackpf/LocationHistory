@@ -4,7 +4,7 @@ set -e
 
 ## SSL certs
 
-CERTS_DIR="/data/keys"
+CERTS_DIR="/data/certs"
 
 mkdir -p "${CERTS_DIR}"
 if [ ! -f "${CERTS_DIR}/server.key" ] || [ ! -f "${CERTS_DIR}/server.pem" ]; then
