@@ -24,6 +24,7 @@ public class BeaconClient implements AutoCloseable {
     private final ManagedChannel channel;
     private final DynamicTrustManager dynamicTrustManager;
     private final BeaconServiceGrpc.BeaconServiceFutureStub beaconService;
+    private final long timeoutMillis;
     private final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
 
 
@@ -31,11 +32,15 @@ public class BeaconClient implements AutoCloseable {
             ManagedChannel channel,
             DynamicTrustManager dynamicTrustManager,
             long timeoutMillis) {
+        beaconService = BeaconServiceGrpc
+                .newFutureStub(channel);
         this.channel = channel;
         this.dynamicTrustManager = dynamicTrustManager;
-        beaconService = BeaconServiceGrpc
-                .newFutureStub(channel)
-                .withWaitForReady() // Wait for network to wake up
+        this.timeoutMillis = timeoutMillis;
+    }
+
+    private BeaconServiceGrpc.BeaconServiceFutureStub createStub() {
+        return beaconService
                 .withDeadlineAfter(timeoutMillis, TimeUnit.MILLISECONDS);
     }
 
@@ -43,7 +48,7 @@ public class BeaconClient implements AutoCloseable {
         callback.setTag("Ping");
 
         PingRequest request = Requests.pingRequest();
-        ListenableFuture<PingResponse> future = beaconService.ping(request);
+        ListenableFuture<PingResponse> future = createStub().ping(request);
         Futures.addCallback(future, callback, threadExecutor);
 
         return future;
@@ -53,7 +58,7 @@ public class BeaconClient implements AutoCloseable {
         callback.setTag("Check device");
 
         CheckDeviceRequest request = Requests.checkDeviceRequest(deviceId);
-        ListenableFuture<CheckDeviceResponse> future = beaconService.checkDevice(request);
+        ListenableFuture<CheckDeviceResponse> future = createStub().checkDevice(request);
         Futures.addCallback(future, callback, threadExecutor);
 
         return future;
@@ -63,7 +68,7 @@ public class BeaconClient implements AutoCloseable {
         callback.setTag("Register device");
 
         RegisterDeviceRequest request = Requests.registerDeviceRequest(deviceId, deviceName, publicKey);
-        ListenableFuture<RegisterDeviceResponse> future = beaconService.registerDevice(request);
+        ListenableFuture<RegisterDeviceResponse> future = createStub().registerDevice(request);
         Futures.addCallback(future, callback, threadExecutor);
 
         return future;
@@ -80,7 +85,7 @@ public class BeaconClient implements AutoCloseable {
                 (double) beaconRequest.getAccuracy(),
                 beaconRequest.getTimestamp()
         );
-        ListenableFuture<SetLocationResponse> future = beaconService.setLocation(request);
+        ListenableFuture<SetLocationResponse> future = createStub().setLocation(request);
         Futures.addCallback(future, callback, threadExecutor);
 
         return future;
