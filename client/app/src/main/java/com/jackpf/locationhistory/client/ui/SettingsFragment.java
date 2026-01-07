@@ -122,7 +122,7 @@ public class SettingsFragment extends Fragment {
 
                 MainActivity activity = (MainActivity) getActivity();
                 activity.refreshBeaconClient();
-                BeaconWorkerFactory.runOnce(getContext());
+                BeaconWorkerFactory.scheduleOnce(getContext());
 
                 Toast.makeText(getContext(), getString(R.string.toast_saved), Toast.LENGTH_SHORT).show();
             } catch (NumberFormatException e) {

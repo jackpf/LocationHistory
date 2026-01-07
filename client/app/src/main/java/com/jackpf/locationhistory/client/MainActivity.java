@@ -22,6 +22,7 @@ import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     private ConfigRepository configRepo;
@@ -47,8 +48,7 @@ public class MainActivity extends AppCompatActivity {
             log.d("Permission flow complete");
 
             log.d("Starting beacon worker...");
-            BeaconWorkerFactory.createWorker(this);
-//            BeaconWorkerFactory.createTestWorker(this, 10, TimeUnit.SECONDS);
+            BeaconWorkerFactory.scheduleFrequent(this, 10, TimeUnit.MINUTES);
             log.d("Beacon worker started");
         });
     }
