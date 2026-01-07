@@ -35,15 +35,10 @@ public class DynamicTrustManager implements X509TrustManager, AutoCloseable {
     }
 
     private void reloadTrustedFingerPrints() {
-        Set<String> trustedFingerprints = storage.getTrustedFingerprints();
-        log.i("Loading %d trusted fingerprints", trustedFingerprints.size());
-        for (String fingerprint : trustedFingerprints) {
-            addTrustedFingerprint(fingerprint);
-        }
-    }
-
-    private void addTrustedFingerprint(String sha256) {
-        trustedFingerprints.add(sha256);
+        trustedFingerprints.clear();
+        Set<String> newTrustedFingerprints = storage.getTrustedFingerprints();
+        log.i("Loading %d trusted fingerprints", newTrustedFingerprints.size());
+        trustedFingerprints.addAll(newTrustedFingerprints);
     }
 
     @Override
