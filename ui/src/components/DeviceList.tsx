@@ -87,7 +87,10 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                     return (
                         <div
                             key={device.id}
-                            onClick={() => setSelectedDeviceId(device.id)}
+                            onClick={() => {
+                                setSelectedDeviceId(device.id);
+                                setIsOpen(false);
+                            }}
                             className={`device-item ${selectedDeviceId === device.id ? 'selected' : ''}`}
                         >
                             <div
