@@ -17,6 +17,9 @@ import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
+import com.jackpf.locationhistory.client.ssl.SSLPrompt;
+import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
+import com.jackpf.locationhistory.client.ssl.UntrustedCertException;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
@@ -28,6 +31,9 @@ public class SettingsFragment extends Fragment {
     @Nullable
     private ConfigRepository configRepository;
 
+    @Nullable
+    private SSLPrompt sslPrompt;
+
     private final Logger log = new Logger(this);
 
     @Override
@@ -35,6 +41,7 @@ public class SettingsFragment extends Fragment {
         super.onResume();
 
         configRepository = new ConfigRepository(requireContext());
+        sslPrompt = new SSLPrompt(getActivity());
 
         updateUI();
     }
@@ -77,7 +84,8 @@ public class SettingsFragment extends Fragment {
             BeaconClient tempClient = BeaconClientFactory.createClient(
                     binding.serverHostInput.getText().toString(),
                     Integer.parseInt(binding.serverPortInput.getText().toString()),
-                    1500 // Smaller timeout for pings
+                    1500, // Smaller timeout for pings
+                    new TrustedCertStorage(getActivity())
             );
 
             tempClient.ping(new GrpcFutureWrapper<>(
@@ -90,10 +98,16 @@ public class SettingsFragment extends Fragment {
                         }
                         tempClient.close();
                     }),
-                    e -> getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getActivity(), getString(R.string.toast_connection_failed, e.getMessage()), Toast.LENGTH_SHORT).show();
+                    e -> {
+                        if (UntrustedCertException.isCauseOf(e)) {
+                            getActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint(), true));
+                        } else {
+                            getActivity().runOnUiThread(() ->
+                                    Toast.makeText(getActivity(), getString(R.string.toast_connection_failed, e.getMessage()), Toast.LENGTH_SHORT).show()
+                            );
+                        }
                         tempClient.close();
-                    })
+                    }
             ));
         } catch (NumberFormatException | IOException e) {
             Toast.makeText(getContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
