@@ -33,4 +33,6 @@ services:
     ports:
       - ${UI_PORT}:80
     environment:
+      - MAP_TYPE=${MAP_TYPE}
+      - MAPTILER_API_KEY=${MAPTILER_API_KEY:-}
       - PROXY_URL=http://${SERVER_NAME}:${PROXY_PORT}

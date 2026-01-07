@@ -6,8 +6,9 @@ import {useLogin} from "./hooks/use-login.ts";
 import {MLMap} from "./components/MLMap.tsx";
 import {MAP_TYPE} from "./config/config.ts";
 import {OSMMap} from "./components/OSMMap.tsx";
+import type {StoredLocation} from "./gen/common.ts";
 
-const DisplayMap = ({history, selectedDeviceId}: any) => {
+const DisplayMap = ({history, selectedDeviceId}: { history: StoredLocation[], selectedDeviceId: string | null }) => {
     switch (MAP_TYPE) {
         case "maptiler":
             return (
@@ -16,7 +17,6 @@ const DisplayMap = ({history, selectedDeviceId}: any) => {
                     selectedDeviceId={selectedDeviceId}
                 />
             )
-            break;
         case "openstreetmaps":
             return (
                 <OSMMap
@@ -24,7 +24,6 @@ const DisplayMap = ({history, selectedDeviceId}: any) => {
                     selectedDeviceId={selectedDeviceId}
                 />
             )
-            break;
         default:
             alert("Invalid map type " + MAP_TYPE + ", must be one of: [maptiler, openstreetmaps]");
             return null;
