@@ -30,7 +30,7 @@ public class BeaconClientFactory {
             OkHttpChannelBuilder builder,
             DynamicTrustManager trustManager,
             String host
-    ) {
+    ) throws IOException {
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
@@ -40,7 +40,7 @@ public class BeaconClientFactory {
                     .overrideAuthority(host);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             log.e(e, "Error creating secure channel");
-            throw new RuntimeException(e);
+            throw new IOException("Error creating secure channel", e);
         }
     }
 
