@@ -84,6 +84,7 @@ public class SettingsFragment extends Fragment {
             BeaconClient tempClient = BeaconClientFactory.createClient(
                     binding.serverHostInput.getText().toString(),
                     Integer.parseInt(binding.serverPortInput.getText().toString()),
+                    false,
                     1500, // Smaller timeout for pings
                     new TrustedCertStorage(getActivity())
             );
