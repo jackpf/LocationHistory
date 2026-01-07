@@ -38,7 +38,7 @@ public class SSLPrompt {
         if (isShowing.compareAndSet(false, true)) {
             new AlertDialog.Builder(activity)
                     .setTitle(activity.getString(R.string.security_warning))
-                    .setMessage(activity.getString(R.string.security_warning, fingerprint))
+                    .setMessage(activity.getString(R.string.message_ssl_prompt, fingerprint))
                     .setPositiveButton(activity.getString(R.string.trust_always), (dialog, which) -> {
                         isShowing.set(false);
                         storage.addFingerprint(fingerprint);
