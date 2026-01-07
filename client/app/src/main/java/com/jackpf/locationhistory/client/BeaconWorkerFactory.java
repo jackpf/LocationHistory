@@ -2,7 +2,6 @@ package com.jackpf.locationhistory.client;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -64,17 +63,9 @@ public class BeaconWorkerFactory {
         );
     }
 
-    private static class FrequentReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            scheduleOnce(context);
-            // TODO Fetch this from config
-            scheduleFrequent(context, 10, TimeUnit.MINUTES);
-        }
-    }
-
-    private static PendingIntent frequentPendingIntent(Context context) {
+    private static PendingIntent frequentPendingIntent(Context context, long periodMillis) {
         Intent intent = new Intent(context, FrequentReceiver.class);
+        intent.putExtra(FrequentReceiver.PERIOD_MILLIS, periodMillis);
 
         return PendingIntent.getBroadcast(
                 context,
@@ -84,13 +75,13 @@ public class BeaconWorkerFactory {
         );
     }
 
-    public static void scheduleFrequent(Context context, int period, TimeUnit timeUnit) {
+    public static void scheduleFrequent(Context context, int periodMillis) {
         log.d("Scheduling frequent beacon worker");
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        PendingIntent pendingIntent = frequentPendingIntent(context);
+        PendingIntent pendingIntent = frequentPendingIntent(context, periodMillis);
 
-        long triggerTime = System.currentTimeMillis() + timeUnit.toMillis(period);
+        long triggerTime = System.currentTimeMillis() + periodMillis;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
@@ -103,7 +94,7 @@ public class BeaconWorkerFactory {
         log.d("Cancelling frequent beacon worker");
 
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        PendingIntent pendingIntent = frequentPendingIntent(context);
+        PendingIntent pendingIntent = frequentPendingIntent(context, -1);
         am.cancel(pendingIntent);
         pendingIntent.cancel();
     }
