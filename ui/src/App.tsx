@@ -4,6 +4,32 @@ import {Login} from "./components/Login.tsx";
 import {DeviceList} from "./components/DeviceList.tsx";
 import {useLogin} from "./hooks/use-login.ts";
 import {MLMap} from "./components/MLMap.tsx";
+import {MAP_TYPE} from "./config/config.ts";
+import {OSMMap} from "./components/OSMMap.tsx";
+
+const DisplayMap = ({history, selectedDeviceId}: any) => {
+    switch (MAP_TYPE) {
+        case "maptiler":
+            return (
+                <MLMap
+                    history={history}
+                    selectedDeviceId={selectedDeviceId}
+                />
+            )
+            break;
+        case "openstreetmaps":
+            return (
+                <OSMMap
+                    history={history}
+                    selectedDeviceId={selectedDeviceId}
+                />
+            )
+            break;
+        default:
+            alert("Invalid map type " + MAP_TYPE + ", must be one of: [maptiler, openstreetmaps]");
+            return null;
+    }
+}
 
 const Dashboard = () => {
     const REFRESH_INTERVAL = 10000;
@@ -15,7 +41,6 @@ const Dashboard = () => {
         devices,
         selectedDeviceId,
         history,
-        lastUpdated,
         error
     } = useAdminClient(REFRESH_INTERVAL);
 
@@ -27,24 +52,15 @@ const Dashboard = () => {
         <div className="app-container">
             {error && <div className="error-text">{error}</div>}
 
-            {/* Sidebar */}
-            <DeviceList devices={devices} selectedDeviceId={selectedDeviceId}
+            <DeviceList devices={devices}
+                        selectedDeviceId={selectedDeviceId}
                         setSelectedDeviceId={setSelectedDeviceId}
                         approveDevice={approveDevice}
                         deleteDevice={deleteDevice}
                         logout={logout}/>
 
-            {/* Map Area */}
-            {/*<OSMMap*/}
-            {/*    history={history}*/}
-            {/*    lastUpdated={lastUpdated}*/}
-            {/*    selectedDeviceId={selectedDeviceId}*/}
-            {/*/>*/}
-            <MLMap
-                history={history}
-                lastUpdated={lastUpdated}
-                selectedDeviceId={selectedDeviceId}
-            />
+            <DisplayMap history={history}
+                        selectedDeviceId={selectedDeviceId}/>
         </div>
     );
 };

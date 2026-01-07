@@ -50,11 +50,10 @@ function MapUpdater({center, selectedId, history}: {
 
 interface OSMMapProps {
     history: StoredLocation[];
-    lastUpdated: Date | null;
     selectedDeviceId: string | null;
 }
 
-export const OSMMap: React.FC<OSMMapProps> = ({history, lastUpdated, selectedDeviceId}) => {
+export const OSMMap: React.FC<OSMMapProps> = ({history, selectedDeviceId}) => {
     const polylinePositions: [number, number][] = history.flatMap(loc => {
         if (!loc.location) return [];
         return [[loc.location.lat, loc.location.lon] as [number, number]];
@@ -67,7 +66,11 @@ export const OSMMap: React.FC<OSMMapProps> = ({history, lastUpdated, selectedDev
         <main className="map-area">
             {selectedDeviceId && (<div className="map-overlay">
                 <strong>Points:</strong> {history.length} <br/>
-                <small>Updated: {lastUpdated != null ? formatDistanceToNow(lastUpdated, {addSuffix: true}) : "never"}</small>
+                <small>
+                    Updated: {lastLocation
+                    ? formatDistanceToNow(new Date(lastLocation.timestamp), {addSuffix: true})
+                    : "never"}
+                </small>
             </div>)}
 
             <MapContainer

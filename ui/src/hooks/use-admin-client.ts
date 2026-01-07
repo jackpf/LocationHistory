@@ -7,14 +7,7 @@ export function useAdminClient(refreshInterval: number) {
     const [devices, setDevices] = useState<StoredDevice[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const [history, setHistory] = useState<StoredLocation[]>([]);
-    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [error, setError] = useState<string | null>(null);
-
-    const lastUpdatedLocation = (locations: StoredLocation[]): Date | null => {
-        if (!locations || !locations.length) return null;
-
-        return new Date(locations[locations.length - 1].timestamp);
-    }
 
     const fetchDevices = useCallback(async () => {
         try {
@@ -35,7 +28,6 @@ export function useAdminClient(refreshInterval: number) {
             } as any);
             console.log("ListLocationsResponse", response);
             setHistory(response.locations);
-            setLastUpdated(lastUpdatedLocation(response.locations));
         } catch (e) {
             console.error(e);
             setError(grpcErrorMessage("Failed to fetch locations", e));
@@ -95,7 +87,6 @@ export function useAdminClient(refreshInterval: number) {
         devices,
         selectedDeviceId,
         history,
-        lastUpdated,
         error
     };
 }

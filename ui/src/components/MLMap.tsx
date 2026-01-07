@@ -77,7 +77,6 @@ function MapUpdater({center, selectedId, history}: {
 
 interface MLMapProps {
     history: StoredLocation[];
-    lastUpdated: Date | null;
     selectedDeviceId: string | null;
 }
 
