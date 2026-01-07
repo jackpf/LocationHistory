@@ -9,6 +9,8 @@ import com.jackpf.locationhistory.PingRequest;
 import com.jackpf.locationhistory.PingResponse;
 import com.jackpf.locationhistory.RegisterDeviceRequest;
 import com.jackpf.locationhistory.RegisterDeviceResponse;
+import com.jackpf.locationhistory.RegisterPushHandlerRequest;
+import com.jackpf.locationhistory.RegisterPushHandlerResponse;
 import com.jackpf.locationhistory.SetLocationRequest;
 import com.jackpf.locationhistory.SetLocationResponse;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
@@ -92,6 +94,21 @@ public class BeaconClient implements AutoCloseable {
                 beaconRequest.getTimestamp()
         );
         ListenableFuture<SetLocationResponse> future = createStub().setLocation(request);
+        Futures.addCallback(future, callback, threadExecutor);
+
+        return future;
+    }
+
+    public ListenableFuture<RegisterPushHandlerResponse> registerPushHandler(
+            String deviceId,
+            String pushHandlerName,
+            String pushHandlerUrl,
+            GrpcFutureWrapper<RegisterPushHandlerResponse> callback
+    ) {
+        callback.setTag("Register push handler");
+
+        RegisterPushHandlerRequest request = Requests.registerPushHandler(deviceId, pushHandlerName, pushHandlerUrl);
+        ListenableFuture<RegisterPushHandlerResponse> future = createStub().registerPushHandler(request);
         Futures.addCallback(future, callback, threadExecutor);
 
         return future;

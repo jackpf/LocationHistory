@@ -31,7 +31,7 @@ message RegisterDeviceResponse {
 }
 
 message CheckDeviceRequest {
-  Device device = 1;
+  Device device = 1; // TODO make deviceId
 }
 
 message CheckDeviceResponse {
@@ -40,7 +40,7 @@ message CheckDeviceResponse {
 
 message SetLocationRequest {
   int64  timestamp = 1;
-  Device device = 2;
+  Device device = 2; // TODO make deviceId
   Location location = 3;
 }
 

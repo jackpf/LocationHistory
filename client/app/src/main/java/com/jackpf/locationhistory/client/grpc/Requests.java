@@ -4,7 +4,9 @@ import com.jackpf.locationhistory.CheckDeviceRequest;
 import com.jackpf.locationhistory.Device;
 import com.jackpf.locationhistory.Location;
 import com.jackpf.locationhistory.PingRequest;
+import com.jackpf.locationhistory.PushHandler;
 import com.jackpf.locationhistory.RegisterDeviceRequest;
+import com.jackpf.locationhistory.RegisterPushHandlerRequest;
 import com.jackpf.locationhistory.SetLocationRequest;
 
 public class Requests {
@@ -61,6 +63,19 @@ public class Requests {
                 .setDevice(device(deviceId, "", publicKey))
                 .setLocation(location(lat, lon, accuracy))
                 .setTimestamp(timestamp)
+                .build();
+    }
+
+    public static RegisterPushHandlerRequest registerPushHandler(String deviceId, String pushHandlerName, String pushHandlerUrl) {
+        return RegisterPushHandlerRequest
+                .newBuilder()
+                .setDeviceId(deviceId)
+                .setPushHandler(
+                        PushHandler.newBuilder()
+                                .setName(pushHandlerName)
+                                .setUrl(pushHandlerUrl)
+                                .build()
+                )
                 .build();
     }
 }

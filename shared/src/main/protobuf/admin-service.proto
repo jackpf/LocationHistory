@@ -38,7 +38,7 @@ message DeleteDeviceResponse {
 }
 
 message ApproveDeviceRequest {
-  Device device = 1;
+  Device device = 1; // TODO make deviceId
 }
 
 message ApproveDeviceResponse {
