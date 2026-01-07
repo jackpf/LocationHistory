@@ -37,10 +37,12 @@ const DEFAULT_CENTER: [number, number] = [40, 0];
 const DEFAULT_ZOOM = 2;
 const DEFAULT_ZOOM_IN = 15;
 
-function MapUpdater({center, selectedId, history}: {
+function MapUpdater({center, selectedId, history, forceRecenter, setForceRecenter}: {
     center: [number, number],
     selectedId: string | null,
-    history: StoredLocation[]
+    history: StoredLocation[],
+    forceRecenter: boolean,
+    setForceRecenter: (forceRecenter: boolean) => void,
 }) {
     const {current: map} = useMap();
 
@@ -57,7 +59,7 @@ function MapUpdater({center, selectedId, history}: {
         const isHistoryFresh = history !== lastHistory.current;
         const isWorldCenter = center[0] === DEFAULT_CENTER[0] && center[1] === DEFAULT_CENTER[1];
 
-        if (isNewDevice && isHistoryFresh && !isWorldCenter) {
+        if ((forceRecenter && !isNewDevice) || (isNewDevice && isHistoryFresh && !isWorldCenter)) {
             const targetCenter: LngLatLike = [center[1], center[0]];
 
             map.flyTo({
@@ -67,10 +69,11 @@ function MapUpdater({center, selectedId, history}: {
             });
 
             lastFlownId.current = selectedId;
+            setForceRecenter(false);
         }
 
         lastHistory.current = history;
-    }, [selectedId, center, map, history]);
+    }, [selectedId, center, map, history, forceRecenter]);
 
     return null;
 }
@@ -78,9 +81,11 @@ function MapUpdater({center, selectedId, history}: {
 interface MLMapProps {
     history: StoredLocation[];
     selectedDeviceId: string | null;
+    forceRecenter: boolean;
+    setForceRecenter: (forceRecenter: boolean) => void;
 }
 
-export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId}) => {
+export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRecenter, setForceRecenter}) => {
     const [popupInfo, setPopupInfo] = useState<MapGeoJSONFeature | null>(null);
     const [cursor, setCursor] = useState('');
 
@@ -160,7 +165,13 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId}) => {
                     }
                 }}
             >
-                <MapUpdater center={mapCenter} selectedId={selectedDeviceId} history={history}/>
+                <MapUpdater
+                    center={mapCenter}
+                    selectedId={selectedDeviceId}
+                    history={history}
+                    forceRecenter={forceRecenter}
+                    setForceRecenter={setForceRecenter}
+                />
 
                 <NavigationControl position="bottom-right"/>
 

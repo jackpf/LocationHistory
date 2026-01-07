@@ -5,6 +5,7 @@ interface DeviceListProps {
     devices: StoredDevice[];
     selectedDeviceId: string | null;
     setSelectedDeviceId: (deviceId: string) => void;
+    setForceRecenter: (force: boolean) => void;
     approveDevice: (deviceId: string) => void;
     deleteDevice: (deviceId: string) => void;
     logout: () => void;
@@ -14,6 +15,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                                                           devices,
                                                           selectedDeviceId,
                                                           setSelectedDeviceId,
+                                                          setForceRecenter,
                                                           approveDevice,
                                                           deleteDevice,
                                                           logout
@@ -89,6 +91,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                             key={device.id}
                             onClick={() => {
                                 setSelectedDeviceId(device.id);
+                                setForceRecenter(true);
                                 setIsOpen(false);
                             }}
                             className={`device-item ${selectedDeviceId === device.id ? 'selected' : ''}`}
