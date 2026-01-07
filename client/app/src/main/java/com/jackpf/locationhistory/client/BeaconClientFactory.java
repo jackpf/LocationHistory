@@ -44,20 +44,32 @@ public class BeaconClientFactory {
         }
     }
 
-    public static BeaconClient createClient(ConfigRepository configRepo, TrustedCertStorage storage) throws IOException {
-        return createClient(configRepo, CLIENT_TIMEOUT_MILLIS, storage);
+    public static BeaconClient createClient(ConfigRepository configRepo, boolean waitForReady, TrustedCertStorage storage) throws IOException {
+        return createClient(configRepo, waitForReady, CLIENT_TIMEOUT_MILLIS, storage);
     }
 
-    public static BeaconClient createClient(ConfigRepository configRepo, int timeout, TrustedCertStorage storage) throws IOException {
+    public static BeaconClient createClient(
+            ConfigRepository configRepo,
+            boolean waitForReady,
+            int timeout,
+            TrustedCertStorage storage
+    ) throws IOException {
         return createClient(
                 configRepo.getServerHost(),
                 configRepo.getServerPort(),
+                waitForReady,
                 timeout,
                 storage
         );
     }
 
-    public static BeaconClient createClient(String host, int port, int timeout, TrustedCertStorage storage) throws IOException {
+    public static BeaconClient createClient(
+            String host,
+            int port,
+            boolean waitForReady,
+            int timeout,
+            TrustedCertStorage storage
+    ) throws IOException {
         log.d("Connecting to server %s:%d", host, port);
 
         try {
@@ -69,7 +81,7 @@ public class BeaconClientFactory {
             builder = secureChannel(builder, dynamicTrustManager, host);
             ManagedChannel channel = builder.build();
 
-            return new BeaconClient(channel, dynamicTrustManager, timeout);
+            return new BeaconClient(channel, dynamicTrustManager, waitForReady, timeout);
         } catch (IllegalArgumentException e) {
             log.e("Invalid server details", e);
             throw new IOException("Invalid server details", e);

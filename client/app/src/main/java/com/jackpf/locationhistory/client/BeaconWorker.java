@@ -122,7 +122,7 @@ public class BeaconWorker extends ListenableWorker {
         return CallbackToFutureAdapter.getFuture(completer -> {
             backgroundExecutor.execute(() -> {
                 try {
-                    beaconClient = BeaconClientFactory.createClient(configRepository, new TrustedCertStorage(getApplicationContext()));
+                    beaconClient = BeaconClientFactory.createClient(configRepository, true, new TrustedCertStorage(getApplicationContext()));
                 } catch (IOException e) {
                     completeNoConnection(completer, e);
                     return;
