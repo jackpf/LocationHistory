@@ -100,10 +100,10 @@ public class SettingsFragment extends Fragment {
                     }),
                     e -> {
                         if (UntrustedCertException.isCauseOf(e)) {
-                            getActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint()));
+                            getActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint(), true));
                         } else {
                             getActivity().runOnUiThread(() ->
-                                Toast.makeText(getActivity(), getString(R.string.toast_connection_failed, e.getMessage()), Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(getActivity(), getString(R.string.toast_connection_failed, e.getMessage()), Toast.LENGTH_SHORT).show()
                             );
                         }
                         tempClient.close();

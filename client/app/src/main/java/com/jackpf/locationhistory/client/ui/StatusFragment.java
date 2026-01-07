@@ -118,7 +118,7 @@ public class StatusFragment extends Fragment {
                     @Override
                     public void onFailure(@NonNull Throwable t) {
                         if (UntrustedCertException.isCauseOf(t)) {
-                            getActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(t).getFingerprint()));
+                            getActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(t).getFingerprint(), false));
                         } else {
                             binding.statusTextView.setText(getString(R.string.disconnected));
                         }

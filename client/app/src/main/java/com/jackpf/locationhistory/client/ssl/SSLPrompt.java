@@ -23,12 +23,12 @@ public class SSLPrompt {
         this.storage = new TrustedCertStorage(activity);
     }
 
-    public void show(String fingerprint) {
+    public void show(String fingerprint, boolean force) {
         if (activity.isFinishing() || activity.isDestroyed()) {
             return;
         }
 
-        if (deniedCache.containsKey(fingerprint)) {
+        if (!force && deniedCache.containsKey(fingerprint)) {
             long lastDenied = deniedCache.get(fingerprint);
             if (System.currentTimeMillis() - lastDenied < PROMPT_COOLDOWN_MS) {
                 return;
