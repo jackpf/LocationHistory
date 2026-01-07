@@ -15,6 +15,6 @@ RUN mkdir -p ./bin
 COPY bin/generate-ssl-cert.sh ./bin
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD /bin/grpc_health_probe -addr=:8080 || exit 1
+    CMD (/bin/grpc_health_probe -addr=:8080 -tls -tls-no-verify && /bin/grpc_health_probe -addr=:8081) || exit 1
 
 ENTRYPOINT ["/app/entrypoint.sh"]
