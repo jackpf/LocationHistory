@@ -24,6 +24,6 @@ openssl req -x509 -newkey rsa:4096 -nodes \
   -out "${OUT_DIR}/server.crt" \
   -days 3650 \
   -subj "/CN=LocationServer" \
-  -addext "subjectAltName = DNS:localhost,IP:127.0.0.1,${SAN_PREFIX}:${$SERVER_NAME}"
+  -addext "subjectAltName = DNS:localhost,IP:127.0.0.1,${SAN_PREFIX}:${SERVER_NAME}"
 
 openssl pkcs8 -topk8 -nocrypt -in "${OUT_DIR}/server.key" -out "${OUT_DIR}/server.pem"
