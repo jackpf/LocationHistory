@@ -75,7 +75,7 @@ public class BeaconClientFactory {
             throw new IOException("Invalid server details", e);
         } catch (NoSuchAlgorithmException | KeyStoreException e) {
             log.e(e, "Error creating dynamic trust manager");
-            throw new RuntimeException(e);
+            throw new IOException("Error creating dynamic trust manager", e);
         }
     }
 }
