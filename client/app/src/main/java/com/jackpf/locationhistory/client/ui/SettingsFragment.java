@@ -102,11 +102,11 @@ public class SettingsFragment extends Fragment {
                         if (UntrustedCertException.isCauseOf(e)) {
                             getActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint()));
                         } else {
-                            getActivity().runOnUiThread(() -> {
-                                Toast.makeText(getActivity(), getString(R.string.toast_connection_failed, e.getMessage()), Toast.LENGTH_SHORT).show();
-                                tempClient.close();
-                            });
+                            getActivity().runOnUiThread(() ->
+                                Toast.makeText(getActivity(), getString(R.string.toast_connection_failed, e.getMessage()), Toast.LENGTH_SHORT).show()
+                            );
                         }
+                        tempClient.close();
                     }
             ));
         } catch (NumberFormatException | IOException e) {
