@@ -93,26 +93,22 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId}) => {
         return {
             type: 'FeatureCollection',
             features: history
-                .map((h, index) => {
-                    const location = h.location;
-                    if (!location) return;
-
-                    return {
-                        type: 'Feature',
-                        properties: {
-                            // Popup properties
-                            lat: location.lat,
-                            lon: location.lon,
-                            accuracy: location.accuracy,
-                            time: h.timestamp,
-                            index: index
-                        },
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [location.lon, location.lat]
-                        }
-                    };
-                })
+                .filter(h => !!h.location)
+                .map((h, index) => ({
+                    type: 'Feature',
+                    properties: {
+                        // Popup properties
+                        lat: h.location!.lat,
+                        lon: h.location!.lon,
+                        accuracy: h.location!.accuracy,
+                        time: h.timestamp,
+                        index: index
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [h.location!.lon, h.location!.lat]
+                    }
+                }))
         };
     }, [history]);
 
@@ -123,11 +119,8 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId}) => {
             geometry: {
                 type: 'LineString',
                 coordinates: history
-                    .map(h => {
-                        const location = h.location;
-                        if (!location) return;
-                        return [location.lon, location.lat];
-                    })
+                    .filter(h => !!h.location)
+                    .map(h => [h.location!.lon, h.location!.lat])
             }
         };
     }, [history]);
