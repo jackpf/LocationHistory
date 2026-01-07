@@ -7,14 +7,22 @@ import {MLMap} from "./components/MLMap.tsx";
 import {MAP_TYPE} from "./config/config.ts";
 import {OSMMap} from "./components/OSMMap.tsx";
 import type {StoredLocation} from "./gen/common.ts";
+import {useState} from "react";
 
-const DisplayMap = ({history, selectedDeviceId}: { history: StoredLocation[], selectedDeviceId: string | null }) => {
+const DisplayMap = ({history, selectedDeviceId, forceRecenter, setForceRecenter}: {
+    history: StoredLocation[],
+    selectedDeviceId: string | null,
+    forceRecenter: boolean,
+    setForceRecenter: (forceRecenter: boolean) => void,
+}) => {
     switch (MAP_TYPE) {
         case "maptiler":
             return (
                 <MLMap
                     history={history}
                     selectedDeviceId={selectedDeviceId}
+                    forceRecenter={forceRecenter}
+                    setForceRecenter={setForceRecenter}
                 />
             )
         case "openstreetmaps":
@@ -22,6 +30,8 @@ const DisplayMap = ({history, selectedDeviceId}: { history: StoredLocation[], se
                 <OSMMap
                     history={history}
                     selectedDeviceId={selectedDeviceId}
+                    forceRecenter={forceRecenter}
+                    setForceRecenter={setForceRecenter}
                 />
             )
         default:
@@ -43,6 +53,8 @@ const Dashboard = () => {
         error
     } = useAdminClient(REFRESH_INTERVAL);
 
+    const [forceRecenter, setForceRecenter] = useState<boolean>(false);
+
     const {
         logout
     } = useLogin();
@@ -54,12 +66,15 @@ const Dashboard = () => {
             <DeviceList devices={devices}
                         selectedDeviceId={selectedDeviceId}
                         setSelectedDeviceId={setSelectedDeviceId}
+                        setForceRecenter={setForceRecenter}
                         approveDevice={approveDevice}
                         deleteDevice={deleteDevice}
                         logout={logout}/>
 
             <DisplayMap history={history}
-                        selectedDeviceId={selectedDeviceId}/>
+                        selectedDeviceId={selectedDeviceId}
+                        forceRecenter={forceRecenter}
+                        setForceRecenter={setForceRecenter}/>
         </div>
     );
 };

@@ -8,10 +8,12 @@ const DEFAULT_CENTER: [number, number] = [20, 0];
 const DEFAULT_ZOOM = 3;
 const DEFAULT_ZOOM_IN = 16;
 
-function MapUpdater({center, selectedId, history}: {
+function MapUpdater({center, selectedId, history, forceRecenter, setForceRecenter}: {
     center: [number, number],
     selectedId: string | null,
-    history: StoredLocation[]
+    history: StoredLocation[],
+    forceRecenter: boolean,
+    setForceRecenter: (forceRecenter: boolean) => void,
 }) {
     const map = useMap();
 
@@ -28,7 +30,7 @@ function MapUpdater({center, selectedId, history}: {
         const isHistoryFresh = history !== lastHistory.current;
         const isWorldCenter = center[0] === DEFAULT_CENTER[0] && center[1] === DEFAULT_CENTER[1];
 
-        if (isNewDevice && isHistoryFresh && !isWorldCenter) {
+        if ((forceRecenter && !isNewDevice) || (isNewDevice && isHistoryFresh && !isWorldCenter)) {
             map.getContainer().classList.add('hide-while-flying');
 
             map.flyTo(center, DEFAULT_ZOOM_IN, {
@@ -40,10 +42,11 @@ function MapUpdater({center, selectedId, history}: {
             });
 
             lastFlownId.current = selectedId;
+            setForceRecenter(false);
         }
 
         lastHistory.current = history;
-    }, [selectedId, center, map, history]);
+    }, [selectedId, center, map, history, forceRecenter, setForceRecenter]);
 
     return null;
 }
@@ -51,9 +54,11 @@ function MapUpdater({center, selectedId, history}: {
 interface OSMMapProps {
     history: StoredLocation[];
     selectedDeviceId: string | null;
+    forceRecenter: boolean,
+    setForceRecenter: (forceRecenter: boolean) => void,
 }
 
-export const OSMMap: React.FC<OSMMapProps> = ({history, selectedDeviceId}) => {
+export const OSMMap: React.FC<OSMMapProps> = ({history, selectedDeviceId, forceRecenter, setForceRecenter}) => {
     const polylinePositions: [number, number][] = history.flatMap(loc => {
         if (!loc.location) return [];
         return [[loc.location.lat, loc.location.lon] as [number, number]];
@@ -79,14 +84,20 @@ export const OSMMap: React.FC<OSMMapProps> = ({history, selectedDeviceId}) => {
                 preferCanvas={true}
                 zoomControl={false}
             >
+                <MapUpdater
+                    center={mapCenter}
+                    selectedId={selectedDeviceId}
+                    history={history}
+                    forceRecenter={forceRecenter}
+                    setForceRecenter={setForceRecenter}
+                />
+
                 <TileLayer
                     attribution="&copy; OpenStreetMap contributors"
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
                 <ZoomControl position="bottomright"/>
-
-                <MapUpdater center={mapCenter} selectedId={selectedDeviceId} history={history}/>
 
                 <Polyline
                     positions={polylinePositions}
