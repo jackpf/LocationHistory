@@ -3,8 +3,9 @@ import Map, {Layer, NavigationControl, Popup, Source, useMap} from 'react-map-gl
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {format, formatDistanceToNow} from 'date-fns';
 import type {StoredLocation} from "../gen/common.ts";
-import type {LngLatLike, MapGeoJSONFeature} from "maplibre-gl";
+import {type LngLatLike, type MapGeoJSONFeature} from "maplibre-gl";
 import {MAPTILER_API_KEY} from "../config/config.ts";
+import type {Point} from 'geojson';
 
 const lineLayerStyle = {
     id: 'route-line',
@@ -14,7 +15,7 @@ const lineLayerStyle = {
         'line-width': 3,
         'line-opacity': 0.3
     }
-};
+} as const;
 
 const pointLayerStyle = {
     id: 'history-points',
@@ -25,7 +26,7 @@ const pointLayerStyle = {
         'circle-stroke-width': 2,
         'circle-stroke-color': 'white'
     }
-};
+} as const;
 
 const MAP_STYLE = "https://api.maptiler.com/maps/streets-v2/style.json?key=" + MAPTILER_API_KEY
 const DEFAULT_CENTER: [number, number] = [40, 0];
@@ -168,19 +169,19 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId}) => {
                 <NavigationControl position="bottom-right"/>
 
                 {/* Line */}
-                <Source type="geojson" data={lineGeoJson}>
+                <Source type="geojson" data={lineGeoJson as any}>
                     <Layer {...lineLayerStyle} />
                 </Source>
 
                 {/* Points */}
-                <Source type="geojson" data={geoJsonData}>
+                <Source type="geojson" data={geoJsonData as any}>
                     <Layer {...pointLayerStyle} />
                 </Source>
 
                 {popupInfo && (
                     <Popup
-                        longitude={popupInfo.geometry.coordinates[0]}
-                        latitude={popupInfo.geometry.coordinates[1]}
+                        longitude={(popupInfo.geometry as Point).coordinates[0]}
+                        latitude={(popupInfo.geometry as Point).coordinates[1]}
                         anchor="bottom"
                         style={{color: 'black'}}
                         onClose={() => setPopupInfo(null)}
