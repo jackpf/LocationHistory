@@ -41,6 +41,7 @@ public class BeaconClient implements AutoCloseable {
 
     private BeaconServiceGrpc.BeaconServiceFutureStub createStub() {
         return beaconService
+                .withWaitForReady() // Wait for network to wake up
                 .withDeadlineAfter(timeoutMillis, TimeUnit.MILLISECONDS);
     }
 
