@@ -28,6 +28,10 @@ const pointLayerStyle = {
     }
 } as const;
 
+if (!MAPTILER_API_KEY) {
+    alert("MAPTILER_API_KEY must be set to use maptiler");
+}
+
 const MAP_STYLE = "https://api.maptiler.com/maps/streets-v2/style.json?key=" + MAPTILER_API_KEY
 const DEFAULT_CENTER: [number, number] = [40, 0];
 const DEFAULT_ZOOM = 2;
