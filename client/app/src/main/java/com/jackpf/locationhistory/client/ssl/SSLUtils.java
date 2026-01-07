@@ -19,7 +19,7 @@ public class SSLUtils {
             byte[] publicKey = md.digest(cert.getEncoded());
             return bytesToHex(publicKey);
         } catch (Exception e) {
-            return "";
+            throw new RuntimeException("Failed to generate SHA-256 fingerprint", e);
         }
     }
 }
