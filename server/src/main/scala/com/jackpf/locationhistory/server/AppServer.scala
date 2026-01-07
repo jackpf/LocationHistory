@@ -11,6 +11,7 @@ import java.nio.file.{Path, Paths}
 import scala.jdk.CollectionConverters.*
 
 class AppServer(
+    serviceName: String,
     port: Int,
     sslCertsPath: Option[Path],
     services: ServerServiceDefinition*
@@ -41,15 +42,15 @@ class AppServer(
   def start(): Server = {
     sslCertsPath match {
       case Some(path) =>
-        log.info("Using SSL")
+        log.info(s"${serviceName}: Using SSL")
         println(
           SSLUtils.sslFingerprint(path.resolve(serverCrtFile).toFile)
         )
       case None =>
-        log.warn("Not using SSL")
+        log.warn(s"${serviceName}: Not using SSL")
     }
 
-    log.info(s"Listening on port ${port}")
+    log.info(s"${serviceName}: Listening on port ${port}")
 
     addSslAuthMaybe(
       ServerBuilder

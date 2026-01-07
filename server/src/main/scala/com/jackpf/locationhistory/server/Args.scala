@@ -5,7 +5,8 @@ import com.jackpf.locationhistory.server.model.StorageType
 import java.nio.file.{Path, Paths}
 
 case class Args(
-    listenPort: Option[Int] = None,
+    beaconPort: Option[Int] = None,
+    adminPort: Option[Int] = None,
     adminPassword: Option[String] = None,
     dataDirectory: Option[String] = None,
     storageType: Option[StorageType] = None,
