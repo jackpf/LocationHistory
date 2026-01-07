@@ -48,13 +48,13 @@ function MapUpdater({center, selectedId, history}: {
     return null;
 }
 
-interface MainMapProps {
+interface OSMMapProps {
     history: StoredLocation[];
     lastUpdated: Date | null;
     selectedDeviceId: string | null;
 }
 
-export const MainMap: React.FC<MainMapProps> = ({history, lastUpdated, selectedDeviceId}) => {
+export const OSMMap: React.FC<OSMMapProps> = ({history, lastUpdated, selectedDeviceId}) => {
     const polylinePositions: [number, number][] = history.flatMap(loc => {
         if (!loc.location) return [];
         return [[loc.location.lat, loc.location.lon] as [number, number]];

@@ -1,9 +1,9 @@
 import './App.css';
 import {useAdminClient} from './hooks/use-admin-client.ts';
 import {Login} from "./components/Login.tsx";
-import {MainMap} from "./components/MainMap.tsx";
 import {DeviceList} from "./components/DeviceList.tsx";
 import {useLogin} from "./hooks/use-login.ts";
+import {MLMap} from "./components/MLMap.tsx";
 
 const Dashboard = () => {
     const REFRESH_INTERVAL = 10000;
@@ -35,7 +35,12 @@ const Dashboard = () => {
                         logout={logout}/>
 
             {/* Map Area */}
-            <MainMap
+            {/*<OSMMap*/}
+            {/*    history={history}*/}
+            {/*    lastUpdated={lastUpdated}*/}
+            {/*    selectedDeviceId={selectedDeviceId}*/}
+            {/*/>*/}
+            <MLMap
                 history={history}
                 lastUpdated={lastUpdated}
                 selectedDeviceId={selectedDeviceId}
