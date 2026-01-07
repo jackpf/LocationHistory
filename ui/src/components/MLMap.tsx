@@ -179,7 +179,6 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId}) => {
                         longitude={(popupInfo.geometry as Point).coordinates[0]}
                         latitude={(popupInfo.geometry as Point).coordinates[1]}
                         anchor="bottom"
-                        style={{color: 'black'}}
                         onClose={() => setPopupInfo(null)}
                     >
                         <div>
