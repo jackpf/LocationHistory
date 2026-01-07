@@ -22,7 +22,11 @@ import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.ssl.UntrustedCertException;
 import com.jackpf.locationhistory.client.util.Logger;
 
+import org.unifiedpush.android.connector.UnifiedPush;
+
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -72,6 +76,7 @@ public class SettingsFragment extends Fragment {
 
         binding.testButton.setOnClickListener(view -> handleTestClick());
         binding.saveButton.setOnClickListener(view -> handleSaveClick());
+        binding.pushRegisterButton.setOnClickListener(view -> handleUnifiedPushClick());
     }
 
     private void handleTestClick() {
@@ -99,9 +104,12 @@ public class SettingsFragment extends Fragment {
                         tempClient.close();
                     }),
                     e -> {
+                        log.i("LALALA");
                         if (UntrustedCertException.isCauseOf(e)) {
+                            log.i("LALALA isCause");
                             getActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint(), true));
                         } else {
+                            log.i("LALALA is NOT Cause");
                             getActivity().runOnUiThread(() ->
                                     Toast.makeText(getActivity(), getString(R.string.toast_connection_failed, e.getMessage()), Toast.LENGTH_SHORT).show()
                             );
@@ -127,6 +135,29 @@ public class SettingsFragment extends Fragment {
                 Toast.makeText(getContext(), getString(R.string.toast_saved), Toast.LENGTH_SHORT).show();
             } catch (NumberFormatException e) {
                 Toast.makeText(getContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void handleUnifiedPushClick() {
+        if (getActivity() instanceof MainActivity) {
+            List<String> distributors = UnifiedPush.getDistributors(requireContext());
+            if (!distributors.isEmpty()) {
+                log.d("Found distributors: %s", Arrays.toString(distributors.toArray()));
+                // TODO Select distributors
+                UnifiedPush.saveDistributor(requireContext(), distributors.get(0));
+
+                UnifiedPush.register(
+                        requireContext(),
+                        "default",
+                        "Location History",
+                        null
+                );
+
+                Toast.makeText(getContext(), "Registered with " + distributors.get(0), Toast.LENGTH_LONG).show();
+            } else {
+                // TODO Strings
+                Toast.makeText(getContext(), "No push distributors found", Toast.LENGTH_LONG).show();
             }
         }
     }
