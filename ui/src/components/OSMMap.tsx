@@ -46,7 +46,7 @@ function MapUpdater({center, selectedId, history, forceRecenter, setForceRecente
         }
 
         lastHistory.current = history;
-    }, [selectedId, center, map, history, forceRecenter, setForceRecenter]);
+    }, [selectedId, center, map, history, forceRecenter]);
 
     return null;
 }

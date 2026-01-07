@@ -55,8 +55,6 @@ function MapUpdater({center, selectedId, history, forceRecenter, setForceRecente
             return;
         }
 
-        console.log("FORCE_RECENTER: " + forceRecenter)
-
         const isNewDevice = selectedId !== lastFlownId.current;
         const isHistoryFresh = history !== lastHistory.current;
         const isWorldCenter = center[0] === DEFAULT_CENTER[0] && center[1] === DEFAULT_CENTER[1];
@@ -75,7 +73,7 @@ function MapUpdater({center, selectedId, history, forceRecenter, setForceRecente
         }
 
         lastHistory.current = history;
-    }, [selectedId, center, map, history, forceRecenter, setForceRecenter]);
+    }, [selectedId, center, map, history, forceRecenter]);
 
     return null;
 }
