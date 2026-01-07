@@ -2,13 +2,22 @@ package com.jackpf.locationhistory.client;
 
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
+import com.jackpf.locationhistory.client.ssl.DynamicTrustManager;
+import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import io.grpc.okhttp.OkHttpChannelBuilder;
 
 public class BeaconClientFactory {
     private static final Logger log = new Logger("BeaconClientFactory");
@@ -17,33 +26,56 @@ public class BeaconClientFactory {
 
     private static final int CLIENT_IDLE_TIMEOUT_MILLIS = 15_000;
 
-    public static BeaconClient createClient(ConfigRepository configRepo) throws IOException {
-        return createClient(configRepo, CLIENT_TIMEOUT_MILLIS);
+    private static OkHttpChannelBuilder secureChannel(
+            OkHttpChannelBuilder builder,
+            DynamicTrustManager trustManager,
+            String host
+    ) {
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
+
+            return builder
+                    .sslSocketFactory(sslContext.getSocketFactory())
+                    .overrideAuthority(host);
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            log.e(e, "Error creating secure channel");
+            throw new RuntimeException(e);
+        }
     }
 
-    public static BeaconClient createClient(ConfigRepository configRepo, int timeout) throws IOException {
+    public static BeaconClient createClient(ConfigRepository configRepo, TrustedCertStorage storage) throws IOException {
+        return createClient(configRepo, CLIENT_TIMEOUT_MILLIS, storage);
+    }
+
+    public static BeaconClient createClient(ConfigRepository configRepo, int timeout, TrustedCertStorage storage) throws IOException {
         return createClient(
                 configRepo.getServerHost(),
                 configRepo.getServerPort(),
-                timeout
+                timeout,
+                storage
         );
     }
 
-    public static BeaconClient createClient(String host, int port, int timeout) throws IOException {
+    public static BeaconClient createClient(String host, int port, int timeout, TrustedCertStorage storage) throws IOException {
         log.d("Connecting to server %s:%d", host, port);
 
         try {
-            ManagedChannel channel = ManagedChannelBuilder
+            OkHttpChannelBuilder builder = OkHttpChannelBuilder
                     .forAddress(host, port)
                     .idleTimeout(CLIENT_IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
-                    .keepAliveWithoutCalls(false)
-                    .usePlaintext()
-                    .build();
+                    .keepAliveWithoutCalls(false);
+            DynamicTrustManager dynamicTrustManager = new DynamicTrustManager(storage);
+            builder = secureChannel(builder, dynamicTrustManager, host);
+            ManagedChannel channel = builder.build();
 
-            return new BeaconClient(channel, timeout);
+            return new BeaconClient(channel, dynamicTrustManager, timeout);
         } catch (IllegalArgumentException e) {
             log.e("Invalid server details", e);
             throw new IOException("Invalid server details", e);
+        } catch (NoSuchAlgorithmException | KeyStoreException e) {
+            log.e(e, "Error creating dynamic trust manager");
+            throw new RuntimeException(e);
         }
     }
 }

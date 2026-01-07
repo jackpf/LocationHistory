@@ -21,6 +21,8 @@ import com.jackpf.locationhistory.client.R;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentStatusBinding;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
+import com.jackpf.locationhistory.client.ssl.SSLPrompt;
+import com.jackpf.locationhistory.client.ssl.UntrustedCertException;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.text.SimpleDateFormat;
@@ -33,6 +35,8 @@ public class StatusFragment extends Fragment {
     private FragmentStatusBinding binding;
     @Nullable
     private ConfigRepository configRepository;
+    @Nullable
+    private SSLPrompt sslPrompt;
 
     private final Logger log = new Logger(this);
 
@@ -57,6 +61,8 @@ public class StatusFragment extends Fragment {
 
         configRepository = new ConfigRepository(requireContext());
         configRepository.registerOnSharedPreferenceChangeListener(preferenceListener);
+
+        sslPrompt = new SSLPrompt(getActivity());
 
         updateUI();
 
@@ -111,7 +117,11 @@ public class StatusFragment extends Fragment {
 
                     @Override
                     public void onFailure(@NonNull Throwable t) {
-                        binding.statusTextView.setText(getString(R.string.disconnected));
+                        if (UntrustedCertException.isCauseOf(t)) {
+                            getActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(t).getFingerprint()));
+                        } else {
+                            binding.statusTextView.setText(getString(R.string.disconnected));
+                        }
                     }
                 },
                 ContextCompat.getMainExecutor(requireContext())

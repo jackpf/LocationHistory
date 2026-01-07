@@ -19,6 +19,7 @@ object TestServer {
       if (server == null) {
         server = new AppServer(
           TestPort,
+          sslCertsPath = None,
           Services(new AuthenticationManager(TestAdminPassword), deviceRepo, locationRepo)*
         ).start()
       }

@@ -1,8 +1,10 @@
 package com.jackpf.locationhistory.client;
 
+import android.Manifest;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
 import androidx.work.Data;
 import androidx.work.ListenableWorker;
@@ -19,6 +21,7 @@ import com.jackpf.locationhistory.client.model.DeviceState;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.service.DeviceStateService;
 import com.jackpf.locationhistory.client.service.LocationUpdateService;
+import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
@@ -119,7 +122,7 @@ public class BeaconWorker extends ListenableWorker {
         return CallbackToFutureAdapter.getFuture(completer -> {
             backgroundExecutor.execute(() -> {
                 try {
-                    beaconClient = BeaconClientFactory.createClient(configRepository);
+                    beaconClient = BeaconClientFactory.createClient(configRepository, new TrustedCertStorage(getApplicationContext()));
                 } catch (IOException e) {
                     completeNoConnection(completer, e);
                     return;
@@ -151,6 +154,7 @@ public class BeaconWorker extends ListenableWorker {
         });
     }
 
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     private void handleLocationUpdate(CallbackToFutureAdapter.Completer<Result> completer) {
         log.d("Updating location");
 

@@ -18,6 +18,7 @@ import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.permissions.PermissionsFlow;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
+import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
@@ -56,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         log.d("Refreshing beacon client");
         if (beaconClient != null && !beaconClient.isClosed()) beaconClient.close();
         try {
-            beaconClient = BeaconClientFactory.createClient(configRepo);
+            beaconClient = BeaconClientFactory.createClient(configRepo, new TrustedCertStorage(this));
         } catch (IOException e) {
             beaconClient = null;
         }

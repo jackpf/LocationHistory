@@ -48,6 +48,13 @@ object App {
         .text(
           "Storage type for data"
         )
+
+      opt[String]("ssl-certs-directory")
+        .valueName("<ssl-certs-directory>")
+        .action((x, c) => c.copy(sslCertsDir = Some(x)))
+        .text(
+          "Path to SSL certificates"
+        )
     }
 
   def main(args: Array[String]): Unit = {
@@ -76,6 +83,7 @@ object App {
 
     new AppServer(
       parsedArgs.listenPort.get,
+      parsedArgs.sslCertsPath,
       Services(authenticationManager, deviceRepo, locationRepo)*
     ).start().awaitTermination()
   }

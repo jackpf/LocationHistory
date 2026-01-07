@@ -12,6 +12,7 @@ import com.jackpf.locationhistory.RegisterDeviceResponse;
 import com.jackpf.locationhistory.SetLocationRequest;
 import com.jackpf.locationhistory.SetLocationResponse;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
+import com.jackpf.locationhistory.client.ssl.DynamicTrustManager;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,6 +22,7 @@ import io.grpc.ManagedChannel;
 
 public class BeaconClient implements AutoCloseable {
     private final ManagedChannel channel;
+    private final DynamicTrustManager dynamicTrustManager;
     private final BeaconServiceGrpc.BeaconServiceFutureStub beaconService;
     private final long timeoutMillis;
     private final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
@@ -28,11 +30,13 @@ public class BeaconClient implements AutoCloseable {
 
     public BeaconClient(
             ManagedChannel channel,
+            DynamicTrustManager dynamicTrustManager,
             long timeoutMillis) {
         beaconService = BeaconServiceGrpc
                 .newFutureStub(channel);
-        this.timeoutMillis = timeoutMillis;
         this.channel = channel;
+        this.dynamicTrustManager = dynamicTrustManager;
+        this.timeoutMillis = timeoutMillis;
     }
 
     private BeaconServiceGrpc.BeaconServiceFutureStub createStub() {
@@ -63,7 +67,7 @@ public class BeaconClient implements AutoCloseable {
     public ListenableFuture<RegisterDeviceResponse> registerDevice(String deviceId, String deviceName, String publicKey, GrpcFutureWrapper<RegisterDeviceResponse> callback) {
         callback.setTag("Register device");
 
-        RegisterDeviceRequest request = Requests.registerDeviceRequest(deviceId,deviceName, publicKey);
+        RegisterDeviceRequest request = Requests.registerDeviceRequest(deviceId, deviceName, publicKey);
         ListenableFuture<RegisterDeviceResponse> future = createStub().registerDevice(request);
         Futures.addCallback(future, callback, threadExecutor);
 
@@ -95,5 +99,6 @@ public class BeaconClient implements AutoCloseable {
     public void close() {
         threadExecutor.shutdown();
         channel.shutdown();
+        dynamicTrustManager.close();
     }
 }
