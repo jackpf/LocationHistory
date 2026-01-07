@@ -25,24 +25,29 @@ public class BeaconClient implements AutoCloseable {
     private final DynamicTrustManager dynamicTrustManager;
     private final BeaconServiceGrpc.BeaconServiceFutureStub beaconService;
     private final long timeoutMillis;
+    private final boolean waitForReady;
     private final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
 
 
     public BeaconClient(
             ManagedChannel channel,
             DynamicTrustManager dynamicTrustManager,
+            boolean waitForReady,
             long timeoutMillis) {
         beaconService = BeaconServiceGrpc
                 .newFutureStub(channel);
         this.channel = channel;
         this.dynamicTrustManager = dynamicTrustManager;
+        this.waitForReady = waitForReady;
         this.timeoutMillis = timeoutMillis;
     }
 
     private BeaconServiceGrpc.BeaconServiceFutureStub createStub() {
-        return beaconService
-                .withWaitForReady()
+        BeaconServiceGrpc.BeaconServiceFutureStub stub = beaconService
                 .withDeadlineAfter(timeoutMillis, TimeUnit.MILLISECONDS);
+
+        if (waitForReady) return stub.withWaitForReady();
+        else return stub;
     }
 
     public ListenableFuture<PingResponse> ping(GrpcFutureWrapper<PingResponse> callback) {

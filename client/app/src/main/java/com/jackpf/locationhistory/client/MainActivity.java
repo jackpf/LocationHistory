@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         log.d("Refreshing beacon client");
         if (beaconClient != null && !beaconClient.isClosed()) beaconClient.close();
         try {
-            beaconClient = BeaconClientFactory.createClient(configRepo, new TrustedCertStorage(this));
+            beaconClient = BeaconClientFactory.createClient(configRepo, false, new TrustedCertStorage(this));
         } catch (IOException e) {
             beaconClient = null;
         }
