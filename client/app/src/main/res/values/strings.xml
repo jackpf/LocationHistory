@@ -28,4 +28,9 @@
     <string name="toast_invalid_settings">Invalid settings: %s</string>
     <string name="toast_saved">Saved</string>
 
+    <string name="security_warning">Security Warning</string>
+    <string name="message_ssl_prompt">"Please verify this fingerprint against your server's logs.\nOnly click trust if they match.\n\nFingerprint:\n%s"</string>
+    <string name="trust_always">Trust Always</string>
+    <string name="cancel">Cancel</string>
+
 </resources>

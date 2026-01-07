@@ -4,6 +4,8 @@ import android.app.Activity;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.jackpf.locationhistory.client.R;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,14 +37,13 @@ public class SSLPrompt {
 
         if (isShowing.compareAndSet(false, true)) {
             new AlertDialog.Builder(activity)
-                    // TODO Make strings
-                    .setTitle("Security Warning")
-                    .setMessage("Please verify this fingerprint against your server's logs.\nOnly click trust if they match.\n\nFingerprint:\n" + fingerprint)
-                    .setPositiveButton("Trust Always", (dialog, which) -> {
+                    .setTitle(activity.getString(R.string.security_warning))
+                    .setMessage(activity.getString(R.string.security_warning, fingerprint))
+                    .setPositiveButton(activity.getString(R.string.trust_always), (dialog, which) -> {
                         isShowing.set(false);
                         storage.addFingerprint(fingerprint);
                     })
-                    .setNegativeButton("Cancel", (dialog, which) -> {
+                    .setNegativeButton(activity.getString(R.string.cancel), (dialog, which) -> {
                         deniedCache.put(fingerprint, System.currentTimeMillis());
                         isShowing.set(false);
                     })
