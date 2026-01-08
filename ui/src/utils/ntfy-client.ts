@@ -8,3 +8,5 @@ export const sendNtfyPushNotification = async (ntfyUrl: string) => {
     if (!response.ok) throw new Error('Failed to send ping: ' + response);
     return true;
 };
+
+export const NTFY_HANDLER_NAME = "UnifiedPush";

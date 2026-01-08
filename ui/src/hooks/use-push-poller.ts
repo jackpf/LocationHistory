@@ -1,5 +1,5 @@
 import {useEffect} from "react";
-import {sendNtfyPushNotification} from "../utils/ntfy-client.ts";
+import {NTFY_HANDLER_NAME, sendNtfyPushNotification} from "../utils/ntfy-client.ts";
 import type {StoredDevice} from "../gen/common.ts";
 
 export function usePushPoller(
@@ -25,7 +25,7 @@ export function usePushPoller(
                 const pushHandlerName = storedDevice.pushHandler.name
                 const pushHandlerUrl = storedDevice.pushHandler.url
 
-                if (pushHandlerName === "UnifiedPush") {
+                if (pushHandlerName === NTFY_HANDLER_NAME) {
                     console.log(`Sending notification to ${storedDevice.device.id} on ${pushHandlerUrl}`);
                     sendNtfyPushNotification(pushHandlerUrl)
                         .then(r => {
