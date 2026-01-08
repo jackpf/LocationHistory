@@ -90,9 +90,10 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                         <div
                             key={device.id}
                             onClick={() => {
+                                const autoClose = !selectedDeviceId;
                                 setSelectedDeviceId(device.id);
                                 setForceRecenter(true);
-                                setIsOpen(false);
+                                if (autoClose) setIsOpen(false);
                             }}
                             className={`device-item ${selectedDeviceId === device.id ? 'selected' : ''}`}
                         >
