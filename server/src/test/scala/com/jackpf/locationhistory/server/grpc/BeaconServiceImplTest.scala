@@ -89,7 +89,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         lazy val deviceId: String = "123"
 
         lazy val getResponse: Future[Option[StoredDevice]]
-        when(deviceRepo.get(DeviceId(deviceId))).thenReturn(getResponse): Unit
+        when(deviceRepo.get(DeviceId(deviceId))).thenReturn(getResponse)
 
         lazy val request: CheckDeviceRequest = CheckDeviceRequest(deviceId = deviceId)
         lazy val result: Future[CheckDeviceResponse] = beaconService.checkDevice(request)
@@ -126,7 +126,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         lazy val location: Option[Location] = Some(Location(lat = 0.1, lon = 0.2, accuracy = 0.3))
 
         lazy val getResponse: Future[Option[StoredDevice]]
-        when(deviceRepo.get(DeviceId(deviceId))).thenReturn(getResponse): Unit
+        when(deviceRepo.get(DeviceId(deviceId))).thenReturn(getResponse)
 
         lazy val storeDeviceLocationResponse: Future[Try[Unit]]
         if (location.isDefined) {
@@ -137,7 +137,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
                 model.Location.fromProto(location.get),
                 timestamp
               )
-          ).thenReturn(storeDeviceLocationResponse): Unit
+          ).thenReturn(storeDeviceLocationResponse)
         }
 
         lazy val request: SetLocationRequest =
@@ -216,6 +216,12 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         lazy val deviceId = "123"
         lazy val pushHandler: Option[PushHandler] = Some(PushHandler(name = "ph", url = "phUrl"))
 
+        lazy val getResponse: Future[Option[StoredDevice]] =
+          Future(
+            Some(MockModels.storedDevice(status = StoredDevice.DeviceStatus.Registered))
+          )
+        when(deviceRepo.get(DeviceId(deviceId))).thenReturn(getResponse)
+
         lazy val updateResponse: Future[Try[Unit]] = Future.successful(Success(()))
         when(
           deviceRepo.update(
@@ -250,6 +256,27 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         context.result must throwAGrpcException(
           Code.NOT_FOUND,
           "Device 123 does not exist"
+        ).await
+      }
+
+      "not register a not found device" >> in(new RegisterPushHandlerContext {
+        override lazy val getResponse: Future[Option[StoredDevice]] = Future(None)
+      }) { context =>
+        context.result must throwAGrpcException(
+          Code.NOT_FOUND,
+          "Device 123 does not exist"
+        ).await
+      }
+
+      "not register a non-registered device" >> in(new RegisterPushHandlerContext {
+        override lazy val getResponse: Future[Option[StoredDevice]] =
+          Future(
+            Some(MockModels.storedDevice(status = StoredDevice.DeviceStatus.Pending))
+          )
+      }) { context =>
+        context.result must throwAGrpcException(
+          Code.PERMISSION_DENIED,
+          "Device 123 is not registered"
         ).await
       }
     }

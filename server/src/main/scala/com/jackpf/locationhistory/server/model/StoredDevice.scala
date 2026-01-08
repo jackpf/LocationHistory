@@ -32,6 +32,8 @@ case class StoredDevice(
     status: StoredDevice.DeviceStatus,
     pushHandler: Option[PushHandler]
 ) {
+  def isRegistered: Boolean = status == StoredDevice.DeviceStatus.Registered
+
   def register(): StoredDevice = copy(status = StoredDevice.DeviceStatus.Registered)
 
   def withPushHandler(pushHandler: Option[PushHandler]): StoredDevice = copy(
