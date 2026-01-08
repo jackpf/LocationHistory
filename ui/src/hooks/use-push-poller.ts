@@ -12,25 +12,22 @@ export function usePushPoller(
     useEffect(() => {
         const poll = () => {
             if (!isVisible) {
-                console.log("Page not visible, skipping notification");
                 return;
             }
 
             if (!storedDevice) {
-                console.log("No selected device, skipping notification");
                 return;
             }
 
             if (storedDevice && storedDevice.device && storedDevice.pushHandler) {
+                const deviceId = storedDevice.device.id;
                 const pushHandlerName = storedDevice.pushHandler.name
                 const pushHandlerUrl = storedDevice.pushHandler.url
 
                 if (pushHandlerName === NTFY_HANDLER_NAME) {
-                    console.log(`Sending notification to ${storedDevice.device.id} on ${pushHandlerUrl}`);
                     sendNtfyPushNotification(pushHandlerUrl)
                         .then(r => {
-                            if (r) console.log("Push notification sent")
-                            else console.error("Push notification failed")
+                            if (r) console.log(`Sent notification to ${deviceId} on ${pushHandlerUrl}`);
                         });
                 } else {
                     console.error(`Invalid push handler ${pushHandlerName}`)
