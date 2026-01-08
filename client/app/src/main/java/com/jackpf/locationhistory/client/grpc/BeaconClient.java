@@ -57,6 +57,7 @@ public class BeaconClient implements AutoCloseable {
 
     public ListenableFuture<PingResponse> ping(GrpcFutureWrapper<PingResponse> callback) {
         callback.setTag("Ping");
+        callback.setLoggingEnabled(false); // Disable for pings - it's very spammy
 
         PingRequest request = Requests.pingRequest();
         ListenableFuture<PingResponse> future = createStub().ping(request);

@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 public class UnifiedPushStorage {
     private static final String PREFERENCES_KEY = "UnifiedPush";
     private static final String ENDPOINT_KEY = "endpoint";
+    private static final String ENABLED_KEY = "enabled";
     private final SharedPreferences prefs;
 
     public UnifiedPushStorage(Context context) {
@@ -26,5 +27,13 @@ public class UnifiedPushStorage {
 
     public void setEndpoint(String endpoint) {
         prefs.edit().putString(ENDPOINT_KEY, endpoint).apply();
+    }
+
+    public boolean isEnabled() {
+        return prefs.getBoolean(ENABLED_KEY, false);
+    }
+
+    public void setEnabled(boolean enabled) {
+        prefs.edit().putBoolean(ENABLED_KEY, enabled).apply();
     }
 }

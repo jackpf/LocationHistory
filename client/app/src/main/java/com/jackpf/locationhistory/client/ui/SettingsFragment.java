@@ -19,7 +19,9 @@ import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
+import com.jackpf.locationhistory.client.push.Ntfy;
 import com.jackpf.locationhistory.client.push.UnifiedPushService;
+import com.jackpf.locationhistory.client.push.UnifiedPushStorage;
 import com.jackpf.locationhistory.client.ssl.SSLPrompt;
 import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.ssl.UntrustedCertException;
@@ -37,6 +39,8 @@ public class SettingsFragment extends Fragment {
     private FragmentSettingsBinding binding;
     @Nullable
     private ConfigRepository configRepository;
+    @Nullable
+    private UnifiedPushStorage unifiedPushStorage;
 
     @Nullable
     private SSLPrompt sslPrompt;
@@ -48,7 +52,12 @@ public class SettingsFragment extends Fragment {
         super.onResume();
 
         configRepository = new ConfigRepository(requireContext());
+        unifiedPushStorage = new UnifiedPushStorage(requireContext());
         sslPrompt = new SSLPrompt(getActivity());
+
+        if (unifiedPushStorage.isEnabled()) {
+            binding.pushRegisterSwitch.setChecked(true);
+        }
 
         updateUI();
     }
@@ -79,7 +88,7 @@ public class SettingsFragment extends Fragment {
 
         binding.testButton.setOnClickListener(view -> handleTestClick());
         binding.saveButton.setOnClickListener(view -> handleSaveClick());
-        binding.pushRegisterButton.setOnClickListener(view -> handleUnifiedPushClick());
+        binding.pushRegisterSwitch.setOnCheckedChangeListener((view, isChecked) -> handleUnifiedPushCheck(isChecked));
     }
 
     private void handleTestClick() {
@@ -139,15 +148,21 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    private void handleUnifiedPushClick() {
+    private void handleUnifiedPushCheck(boolean isChecked) {
         if (getActivity() instanceof MainActivity) {
-            List<String> distributors = UnifiedPush.getDistributors(requireContext());
-            if (!distributors.isEmpty()) {
-                log.d("Found distributors: %s", Arrays.toString(distributors.toArray()));
-                // TODO Select distributor properly from list
-                UnifiedPushService.register(getContext(), distributors.get(0));
+            if (isChecked) {
+                List<String> distributors = UnifiedPush.getDistributors(requireContext());
+                if (!distributors.isEmpty()) {
+                    log.d("Found distributors: %s", Arrays.toString(distributors.toArray()));
+                    // TODO Select distributor properly from list
+                    UnifiedPushService.register(getContext(), distributors.get(0));
+                } else {
+                    log.d("No push distributors");
+                    Ntfy.promptInstall(requireContext());
+                    binding.pushRegisterSwitch.setChecked(false);
+                }
             } else {
-                Toast.makeText(getContext(), getString(R.string.no_push_distributors), Toast.LENGTH_LONG).show();
+                UnifiedPushService.unregister(requireContext());
             }
         }
     }
