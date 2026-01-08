@@ -34,6 +34,12 @@
     <string name="trust_always">Trust Always</string>
     <string name="cancel">Cancel</string>
 
-    <string name="no_push_distributors">No push distributors found</string>
+    <string name="toast_register_push_handler_success">Registered push handler</string>
+    <string name="toast_register_push_handler_failed">Registering push handler failed</string>
+    <string name="toast_register_push_handler_error">Registration error: %s</string>
+    <string name="toast_unregister_push_handler_success">Un-registered push handler</string>
+    <string name="toast_unregister_push_handler_failed">Un-registering push handler failed</string>
+    <string name="toast_unregister_push_handler_error">Un-registration error: %s</string>
+    <string name="toast_no_push_distributors">No push distributors found</string>
 
 </resources>

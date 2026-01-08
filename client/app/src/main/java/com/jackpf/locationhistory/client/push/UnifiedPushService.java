@@ -8,6 +8,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.RegisterPushHandlerResponse;
 import com.jackpf.locationhistory.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.BeaconWorkerFactory;
+import com.jackpf.locationhistory.client.R;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
@@ -55,17 +56,16 @@ public class UnifiedPushService extends PushService {
                     new GrpcFutureWrapper<>(
                             value -> {
                                 if (value.getSuccess()) {
-                                    // TODO Strings
                                     log.d("Registered push handler");
-                                    Feedback.toast(getApplicationContext(), "Registered push handler");
+                                    Feedback.toast(getApplicationContext(), R.string.toast_register_push_handler_success);
                                 } else {
                                     log.e("Registering push handler failed");
-                                    Feedback.toast(getApplicationContext(), "Registering push handler failed");
+                                    Feedback.toast(getApplicationContext(), R.string.toast_register_push_handler_failed);
                                 }
                             },
                             error -> {
                                 log.e(error, "Error registering push handler");
-                                Feedback.toast(getApplicationContext(), "Error registering push handler");
+                                Feedback.toast(getApplicationContext(), R.string.toast_register_push_handler_failed, error.getMessage());
                             }
                     )
             );
@@ -73,7 +73,7 @@ public class UnifiedPushService extends PushService {
             registerResult.addListener(beaconClient::close, getMainExecutor());
         } catch (IOException e) {
             log.e(e, "Failed to create beacon client for push handler registration");
-            Feedback.toast(getApplicationContext(), "Connection error");
+            Feedback.toast(getApplicationContext(), R.string.toast_connection_failed, e.getMessage());
         }
     }
 
@@ -112,15 +112,15 @@ public class UnifiedPushService extends PushService {
                                 if (value.getSuccess()) {
                                     // TODO Strings
                                     log.d("Un-registered push handler");
-                                    Feedback.toast(getApplicationContext(), "Un-registered push handler");
+                                    Feedback.toast(getApplicationContext(), R.string.toast_unregister_push_handler_success);
                                 } else {
                                     log.e("Un-registering push handler failed");
-                                    Feedback.toast(getApplicationContext(), "Un-registering push handler failed");
+                                    Feedback.toast(getApplicationContext(), R.string.toast_unregister_push_handler_failed);
                                 }
                             },
                             error -> {
                                 log.e(error, "Error un-registering push handler");
-                                Feedback.toast(getApplicationContext(), "Error un-registering push handler");
+                                Feedback.toast(getApplicationContext(), R.string.toast_unregister_push_handler_error, error.getMessage());
                             }
                     )
             );
@@ -128,7 +128,7 @@ public class UnifiedPushService extends PushService {
             registerResult.addListener(beaconClient::close, getMainExecutor());
         } catch (IOException e) {
             log.e(e, "Failed to create beacon client for push handler registration");
-            Feedback.toast(getApplicationContext(), "Connection error");
+            Feedback.toast(getApplicationContext(), R.string.toast_connection_failed, e.getMessage());
         }
     }
 
