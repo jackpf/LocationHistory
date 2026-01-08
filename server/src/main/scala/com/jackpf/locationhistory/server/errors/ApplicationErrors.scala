@@ -24,11 +24,6 @@ object ApplicationErrors {
     override val status: Status = Status.INVALID_ARGUMENT
   }
 
-  case class NoPushHandlerProvidedException(cause: Throwable = None.orNull)
-      extends ApplicationError("No push handler provided", cause) {
-    override val status: Status = Status.INVALID_ARGUMENT
-  }
-
   case class DeviceNotRegisteredException(
       deviceId: DeviceId.Type,
       cause: Throwable = None.orNull
