@@ -65,7 +65,7 @@ public class UnifiedPushService extends PushService {
                             },
                             error -> {
                                 log.e(error, "Error registering push handler");
-                                Feedback.toast(getApplicationContext(), R.string.toast_register_push_handler_failed, error.getMessage());
+                                Feedback.toast(getApplicationContext(), R.string.toast_register_push_handler_error, error.getMessage());
                             }
                     )
             );
