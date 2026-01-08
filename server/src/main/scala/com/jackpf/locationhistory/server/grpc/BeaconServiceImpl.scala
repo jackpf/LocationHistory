@@ -1,8 +1,8 @@
 package com.jackpf.locationhistory.server.grpc
 
-import com.jackpf.locationhistory.common.DeviceStatus
-import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
 import com.jackpf.locationhistory.beacon_service.*
+import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
+import com.jackpf.locationhistory.common.DeviceStatus
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
   DeviceNotRegisteredException,
@@ -10,7 +10,7 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   NoLocationProvidedException
 }
 import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
-import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location, StoredDevice}
+import com.jackpf.locationhistory.server.model.*
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.util.{LocationUtils, Logging}
 
@@ -36,7 +36,9 @@ class BeaconServiceImpl(
           case Failure(exception) =>
             Future.failed(exception.toGrpcError)
           case Success(_) =>
-            Future.successful(RegisterDeviceResponse(success = true))
+            Future.successful(
+              RegisterDeviceResponse(success = true, status = DeviceStatus.DEVICE_PENDING)
+            )
         }
       case None =>
         Future.failed(NoDeviceProvidedException().toGrpcError)
@@ -46,18 +48,13 @@ class BeaconServiceImpl(
   override def checkDevice(
       request: CheckDeviceRequest
   ): Future[CheckDeviceResponse] = {
-    request.device match {
-      case Some(device) =>
-        val status = deviceRepo.get(DeviceId(device.id)).map {
-          case Some(storedDevice) => storedDevice.status.toProto
-          case None               => DeviceStatus.DEVICE_UNKNOWN
-        }
+    val status = deviceRepo.get(DeviceId(request.deviceId)).map {
+      case Some(storedDevice) => storedDevice.status.toProto
+      case None               => DeviceStatus.DEVICE_UNKNOWN
+    }
 
-        status.map { s =>
-          CheckDeviceResponse(status = s)
-        }
-      case None =>
-        Future.failed(NoDeviceProvidedException().toGrpcError)
+    status.map { s =>
+      CheckDeviceResponse(status = s)
     }
   }
 
@@ -79,21 +76,16 @@ class BeaconServiceImpl(
   override def setLocation(
       request: SetLocationRequest
   ): Future[SetLocationResponse] = {
-    if (request.device.isEmpty)
-      Future.failed(
-        NoDeviceProvidedException().toGrpcError
-      )
-    else if (request.location.isEmpty)
+    if (request.location.isEmpty)
       Future.failed(NoLocationProvidedException().toGrpcError)
     else {
-      val device = request.device.get
-      val deviceId = DeviceId(device.id)
+      val deviceId = DeviceId(request.deviceId)
       val location = request.location.get
       val newLocation = Location.fromProto(location)
 
       deviceRepo.get(deviceId).flatMap {
         case Some(storedDevice) =>
-          if (storedDevice.status == StoredDevice.DeviceStatus.Registered) {
+          if (storedDevice.isRegistered) {
             {
               for {
                 isDuplicate <- hasPreviousDuplicateLocation(deviceId, newLocation)
@@ -120,6 +112,29 @@ class BeaconServiceImpl(
             DeviceNotFoundException(deviceId).toGrpcError
           )
       }
+    }
+  }
+
+  override def registerPushHandler(
+      request: RegisterPushHandlerRequest
+  ): Future[RegisterPushHandlerResponse] = {
+    val deviceId = DeviceId(request.deviceId)
+
+    deviceRepo.get(deviceId).flatMap {
+      case Some(storedDevice) if storedDevice.isRegistered =>
+        deviceRepo
+          .update(
+            deviceId,
+            storedDevice =>
+              storedDevice.withPushHandler(request.pushHandler.map(PushHandler.fromProto))
+          )
+          .flatMap {
+            case Failure(exception) => Future.failed(exception.toGrpcError)
+            case Success(value) => Future.successful(RegisterPushHandlerResponse(success = true))
+          }
+      case Some(_) => Future.failed(DeviceNotRegisteredException(deviceId).toGrpcError)
+      case None    =>
+        Future.failed(DeviceNotFoundException(deviceId).toGrpcError)
     }
   }
 }

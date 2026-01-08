@@ -17,12 +17,20 @@ object App {
     new scopt.OptionParser[Args](ApplicationName) {
       head(ApplicationName)
 
-      opt[Int]('p', "listen-port")
-        .valueName("<listen-port>")
-        .action((x, c) => c.copy(listenPort = Some(x)))
+      opt[Int]('b', "beacon-port")
+        .valueName("<beacon-port>")
+        .action((x, c) => c.copy(beaconPort = Some(x)))
         .withFallback(() => 8080)
         .text(
-          "Port to listen on"
+          "Beacon service port (for Android clients)"
+        )
+
+      opt[Int]('a', "admin-port")
+        .valueName("<admin-port>")
+        .action((x, c) => c.copy(adminPort = Some(x)))
+        .withFallback(() => 8081)
+        .text(
+          "Admin service port (for the web UI)"
         )
 
       opt[String]('x', "admin-password")
@@ -47,6 +55,13 @@ object App {
         .required()
         .text(
           "Storage type for data"
+        )
+
+      opt[String]("ssl-certs-directory")
+        .valueName("<ssl-certs-directory>")
+        .action((x, c) => c.copy(sslCertsDir = Some(x)))
+        .text(
+          "Path to SSL certificates"
         )
     }
 
@@ -74,9 +89,21 @@ object App {
       1.minute
     )
 
-    new AppServer(
-      parsedArgs.listenPort.get,
-      Services(authenticationManager, deviceRepo, locationRepo)*
-    ).start().awaitTermination()
+    val beaconServer = new AppServer(
+      "Admin service",
+      parsedArgs.adminPort.get,
+      sslCertsPath = None,
+      Services.adminServices(authenticationManager, deviceRepo, locationRepo)*
+    ).start()
+
+    val adminServer = new AppServer(
+      "Beacon service",
+      parsedArgs.beaconPort.get,
+      parsedArgs.sslCertsPath,
+      Services.beaconServices(deviceRepo, locationRepo)*
+    ).start()
+
+    beaconServer.awaitTermination()
+    adminServer.awaitTermination()
   }
 }

@@ -1,3 +1,52 @@
 <resources>
+
     <string name="app_name">Location History</string>
+
+    <string name="server_host">Server Host</string>
+    <string name="server_host_hint">10.0.2.2</string>
+    <string name="server_port">Server Port</string>
+    <string name="server_port_hint">8080</string>
+
+    <string name="test">Test</string>
+    <string name="save">Save</string>
+    <string name="unified_push">Unified Push</string>
+
+    <string name="status_key">Status:</string>
+    <string name="device_state_key">Device State:</string>
+    <string name="last_ping_key">Last Ping:</string>
+
+    <string name="connected">connected</string>
+    <string name="disconnected">disconnected</string>
+    <string name="unknown">unknown</string>
+    <string name="never">never</string>
+
+    <string name="invalid_response">invalid_response</string>
+
+    <string name="toast_permission_denied">Required permission denied - app won\'t function properly</string>
+    <string name="toast_connection_successful">Connection successful</string>
+    <string name="toast_invalid_response">Invalid response message: %s</string>
+    <string name="toast_connection_failed">Connection failed: %s</string>
+    <string name="toast_invalid_settings">Invalid settings: %s</string>
+    <string name="toast_saved">Saved</string>
+
+    <string name="security_warning">Security Warning</string>
+    <string name="message_ssl_prompt">"Please verify this fingerprint against your server's logs.\nOnly click trust if they match.\n\nFingerprint:\n%s"</string>
+    <string name="trust_always">Trust Always</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="enable_unified_push">Enable UnifiedPush</string>
+    <string name="unified_push_description">
+        With UnifiedPush, real-time location updates are requested remotely from the web UI.\n
+        This is optional and requires Ntfy (https://ntfy.sh/) to work.\n
+        Without UnifiedPush, the app will continue to send periodic location updates to your server.\n
+    </string>
+
+    <string name="toast_register_push_handler_success">Registered push handler</string>
+    <string name="toast_register_push_handler_failed">Registering push handler failed</string>
+    <string name="toast_register_push_handler_error">Registration error: %s</string>
+    <string name="toast_unregister_push_handler_success">Un-registered push handler</string>
+    <string name="toast_unregister_push_handler_failed">Un-registering push handler failed</string>
+    <string name="toast_unregister_push_handler_error">Un-registration error: %s</string>
+    <string name="toast_no_push_distributors">No push distributors found</string>
+
 </resources>

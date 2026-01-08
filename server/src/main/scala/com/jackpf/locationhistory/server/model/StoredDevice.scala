@@ -1,7 +1,9 @@
 package com.jackpf.locationhistory.server.model
 
-import com.jackpf.locationhistory.common.DeviceStatus as ProtoDeviceStatus
-import com.jackpf.locationhistory.common.StoredDevice as ProtoStoredDevice
+import com.jackpf.locationhistory.common.{
+  DeviceStatus as ProtoDeviceStatus,
+  StoredDevice as ProtoStoredDevice
+}
 
 object StoredDevice {
   enum DeviceStatus {
@@ -16,18 +18,31 @@ object StoredDevice {
 
   def fromDevice(
       device: Device,
-      status: DeviceStatus = DeviceStatus.Unknown
+      status: DeviceStatus = DeviceStatus.Unknown,
+      pushHandler: Option[PushHandler] = None
   ): StoredDevice = StoredDevice(
     device = device,
-    status = status
+    status = status,
+    pushHandler = pushHandler
   )
 }
 
-case class StoredDevice(device: Device, status: StoredDevice.DeviceStatus) {
+case class StoredDevice(
+    device: Device,
+    status: StoredDevice.DeviceStatus,
+    pushHandler: Option[PushHandler]
+) {
+  def isRegistered: Boolean = status == StoredDevice.DeviceStatus.Registered
+
   def register(): StoredDevice = copy(status = StoredDevice.DeviceStatus.Registered)
+
+  def withPushHandler(pushHandler: Option[PushHandler]): StoredDevice = copy(
+    pushHandler = pushHandler
+  )
 
   def toProto: ProtoStoredDevice = ProtoStoredDevice(
     device = Some(device.toProto),
-    status = status.toProto
+    status = status.toProto,
+    pushHandler = pushHandler.map(_.toProto)
   )
 }

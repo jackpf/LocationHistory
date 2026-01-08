@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from 'react';
-import {adminClient, grpcErrorMessage} from '../grpc/admin-client';
+import {adminClient, grpcErrorMessage} from '../utils/admin-client';
 import {StoredDevice, type StoredLocation} from '../gen/common';
 import type {ListDevicesResponse, ListLocationsResponse} from "../gen/admin-service.ts";
 
@@ -7,14 +7,7 @@ export function useAdminClient(refreshInterval: number) {
     const [devices, setDevices] = useState<StoredDevice[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const [history, setHistory] = useState<StoredLocation[]>([]);
-    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [error, setError] = useState<string | null>(null);
-
-    const lastUpdatedLocation = (locations: StoredLocation[]): Date | null => {
-        if (!locations || !locations.length) return null;
-
-        return new Date(locations[locations.length - 1].timestamp);
-    }
 
     const fetchDevices = useCallback(async () => {
         try {
@@ -31,11 +24,10 @@ export function useAdminClient(refreshInterval: number) {
     const fetchLocations = useCallback(async () => {
         try {
             const response: ListLocationsResponse = await adminClient.listLocations({
-                device: { id: selectedDeviceId }
+                deviceId: selectedDeviceId
             } as any);
             console.log("ListLocationsResponse", response);
             setHistory(response.locations);
-            setLastUpdated(lastUpdatedLocation(response.locations));
         } catch (e) {
             console.error(e);
             setError(grpcErrorMessage("Failed to fetch locations", e));
@@ -45,7 +37,7 @@ export function useAdminClient(refreshInterval: number) {
     const approveDevice = async (deviceId: string) => {
         try {
             await adminClient.approveDevice(
-                {device: {id: deviceId}} as any,
+                {deviceId: deviceId} as any,
             );
             // Refresh list immediately to show the checkmark/status change
             await fetchDevices();
@@ -58,7 +50,7 @@ export function useAdminClient(refreshInterval: number) {
     const deleteDevice = async (deviceId: string) => {
         try {
             await adminClient.deleteDevice(
-                {device: {id: deviceId}} as any,
+                {deviceId: deviceId} as any,
             );
             // Refresh list immediately to show the checkmark/status change
             await fetchDevices();
@@ -95,7 +87,6 @@ export function useAdminClient(refreshInterval: number) {
         devices,
         selectedDeviceId,
         history,
-        lastUpdated,
         error
     };
 }

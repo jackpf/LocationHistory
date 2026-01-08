@@ -18,8 +18,17 @@ object TestServer {
     synchronized {
       if (server == null) {
         server = new AppServer(
+          "Test server",
           TestPort,
-          Services(new AuthenticationManager(TestAdminPassword), deviceRepo, locationRepo)*
+          sslCertsPath = None,
+          (Services.adminServices(
+            new AuthenticationManager(TestAdminPassword),
+            deviceRepo,
+            locationRepo
+          ) ++ Services.beaconServices(
+            deviceRepo,
+            locationRepo
+          ))*
         ).start()
       }
     }

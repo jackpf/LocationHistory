@@ -4,7 +4,9 @@ import com.jackpf.locationhistory.CheckDeviceRequest;
 import com.jackpf.locationhistory.Device;
 import com.jackpf.locationhistory.Location;
 import com.jackpf.locationhistory.PingRequest;
+import com.jackpf.locationhistory.PushHandler;
 import com.jackpf.locationhistory.RegisterDeviceRequest;
+import com.jackpf.locationhistory.RegisterPushHandlerRequest;
 import com.jackpf.locationhistory.SetLocationRequest;
 
 public class Requests {
@@ -37,7 +39,7 @@ public class Requests {
     public static CheckDeviceRequest checkDeviceRequest(String deviceId) {
         return CheckDeviceRequest
                 .newBuilder()
-                .setDevice(device(deviceId, "", ""))
+                .setDeviceId(deviceId)
                 .build();
     }
 
@@ -50,7 +52,6 @@ public class Requests {
 
     public static SetLocationRequest setLocationRequest(
             String deviceId,
-            String publicKey,
             Double lat,
             Double lon,
             Double accuracy,
@@ -58,9 +59,30 @@ public class Requests {
     ) {
         return SetLocationRequest
                 .newBuilder()
-                .setDevice(device(deviceId, "", publicKey))
+                .setDeviceId(deviceId)
                 .setLocation(location(lat, lon, accuracy))
                 .setTimestamp(timestamp)
+                .build();
+    }
+
+    public static RegisterPushHandlerRequest registerPushHandler(String deviceId, String pushHandlerName, String pushHandlerUrl) {
+        return RegisterPushHandlerRequest
+                .newBuilder()
+                .setDeviceId(deviceId)
+                .setPushHandler(
+                        PushHandler.newBuilder()
+                                .setName(pushHandlerName)
+                                .setUrl(pushHandlerUrl)
+                                .build()
+                )
+                .build();
+    }
+
+    public static RegisterPushHandlerRequest unregisterPushHandler(String deviceId) {
+        return RegisterPushHandlerRequest
+                .newBuilder()
+                .setDeviceId(deviceId)
+                // Empty push handler
                 .build();
     }
 }

@@ -5,6 +5,7 @@ interface DeviceListProps {
     devices: StoredDevice[];
     selectedDeviceId: string | null;
     setSelectedDeviceId: (deviceId: string) => void;
+    setForceRecenter: (force: boolean) => void;
     approveDevice: (deviceId: string) => void;
     deleteDevice: (deviceId: string) => void;
     logout: () => void;
@@ -14,6 +15,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                                                           devices,
                                                           selectedDeviceId,
                                                           setSelectedDeviceId,
+                                                          setForceRecenter,
                                                           approveDevice,
                                                           deleteDevice,
                                                           logout
@@ -87,7 +89,12 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                     return (
                         <div
                             key={device.id}
-                            onClick={() => setSelectedDeviceId(device.id)}
+                            onClick={() => {
+                                const autoClose = !selectedDeviceId;
+                                setSelectedDeviceId(device.id);
+                                setForceRecenter(true);
+                                if (autoClose) setIsOpen(false);
+                            }}
                             className={`device-item ${selectedDeviceId === device.id ? 'selected' : ''}`}
                         >
                             <div
@@ -123,6 +130,11 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                                     <span className="detail-label">Status:</span>
                                     <span className="detail-value">{showDeviceStatus(storedDevice.status)}</span>
                                 </div>
+                                {storedDevice.pushHandler &&
+                                    <div className="detail-row">
+                                        <span className="detail-label">Push Handler:</span>
+                                        <span className="detail-value">{storedDevice.pushHandler.name}</span>
+                                    </div>}
                                 <div className="detail-row">
                                     <span className="detail-label"></span>
                                     <span

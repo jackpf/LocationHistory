@@ -1,5 +1,6 @@
 package com.jackpf.locationhistory.server
 
+import com.jackpf.locationhistory.admin_service.{ApproveDeviceRequest, ApproveDeviceResponse}
 import com.jackpf.locationhistory.beacon_service.*
 import com.jackpf.locationhistory.common.*
 import com.jackpf.locationhistory.server.testutil.{GrpcMatchers, IntegrationTest}
@@ -8,22 +9,11 @@ import io.grpc.Status.Code
 class DeviceTest extends IntegrationTest with GrpcMatchers {
   "With no devices" should {
     "check a non-existing device" >> in(new IntegrationContext {}) { context =>
-      val request =
-        CheckDeviceRequest(device = Some(Device(id = "123", publicKey = "xxx")))
+      val request = CheckDeviceRequest(deviceId = "123")
 
       val response = context.client.checkDevice(request)
 
       response === CheckDeviceResponse(status = DeviceStatus.DEVICE_UNKNOWN)
-    }
-
-    "fail on checking an empty device" >> in(new IntegrationContext {}) { context =>
-      val request =
-        CheckDeviceRequest(device = None)
-
-      context.client.checkDevice(request) must throwAGrpcRuntimeException(
-        Code.INVALID_ARGUMENT,
-        "No device provided"
-      )
     }
 
     "register a device" >> in(new IntegrationContext {}) { context =>
@@ -32,7 +22,7 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
 
       val result = context.client.registerDevice(request)
 
-      result === RegisterDeviceResponse(success = true)
+      result === RegisterDeviceResponse(success = true, status = DeviceStatus.DEVICE_PENDING)
     }
 
     "fail registering an empty device" >> in(new IntegrationContext {}) { context =>
@@ -42,6 +32,18 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
       context.client.registerDevice(request) must throwAGrpcRuntimeException(
         Code.INVALID_ARGUMENT,
         "No device provided"
+      )
+    }
+
+    "fail on registering a push handler" >> in(new IntegrationContext {}) { context =>
+      context.client.registerPushHandler(
+        RegisterPushHandlerRequest(
+          deviceId = "123",
+          pushHandler = Some(PushHandler(name = "ph", url = "phUrl"))
+        )
+      ) must throwAGrpcRuntimeException(
+        Code.NOT_FOUND,
+        "Device 123 does not exist"
       )
     }
   }
@@ -59,8 +61,7 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
     "check the device with status pending" >> in(
       new RegisteredDeviceContext {}
     ) { context =>
-      val request =
-        CheckDeviceRequest(device = Some(context.device))
+      val request = CheckDeviceRequest(deviceId = context.device.id)
 
       val response = context.client.checkDevice(request)
 
@@ -85,6 +86,38 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
         Code.ALREADY_EXISTS,
         "Device 123 is already registered"
       )
+    }
+
+    "not register a push handler on non-approved device" >> in(
+      new RegisteredDeviceContext {
+        override lazy val device = Device(id = "123", publicKey = "yyy")
+      }
+    ) { context =>
+      context.client.registerPushHandler(
+        RegisterPushHandlerRequest(
+          deviceId = context.device.id,
+          pushHandler = Some(PushHandler(name = "ph", url = "phUrl"))
+        )
+      ) must throwAGrpcRuntimeException(Code.PERMISSION_DENIED, "Device 123 is not registered")
+    }
+
+    "register a push handler on an approved device" >> in(
+      new RegisteredDeviceContext {
+        override lazy val device = Device(id = "123", publicKey = "yyy")
+      }
+    ) { context =>
+      context.adminClient.approveDevice(
+        ApproveDeviceRequest(deviceId = context.device.id)
+      ) === ApproveDeviceResponse(success = true)
+
+      val result = context.client.registerPushHandler(
+        RegisterPushHandlerRequest(
+          deviceId = context.device.id,
+          pushHandler = Some(PushHandler(name = "ph", url = "phUrl"))
+        )
+      )
+
+      result === RegisterPushHandlerResponse(success = true)
     }
   }
 }

@@ -9,9 +9,13 @@ RUN curl -Lo /bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-healt
 RUN mkdir -p /data
 
 COPY target/scala-3.7.0/server-assembly-0.1.0-SNAPSHOT.jar app.jar
-COPY entrypoint.sh entrypoint.sh
+COPY bin/entrypoint.sh entrypoint.sh
+
+RUN mkdir -p ./bin
+COPY bin/generate-ssl-cert.sh ./bin
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD /bin/grpc_health_probe -addr=:8080 || exit 1
+    CMD (/bin/grpc_health_probe -addr=:"${BEACON_PORT:-8080}" -tls -tls-ca-cert=/data/certs/server.crt -tls-server-name="${SERVER_NAME}" \
+    && /bin/grpc_health_probe -addr=:"${ADMIN_PORT:-8081}") || exit 1
 
 ENTRYPOINT ["/app/entrypoint.sh"]

@@ -87,6 +87,9 @@ jobs:
       - name: Build Shared
         run: make -C shared compile publish
 
+      - name: Lint
+        run: make -C client lint
+
       - name: Build
         run: make -C client build-debug
 

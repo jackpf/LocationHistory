@@ -5,8 +5,7 @@ import com.jackpf.locationhistory.admin_service.AdminServiceGrpc.AdminService
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
   InvalidDeviceStatus,
-  InvalidPassword,
-  NoDeviceProvidedException
+  InvalidPassword
 }
 import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
 import com.jackpf.locationhistory.server.model.DeviceId
@@ -40,60 +39,46 @@ class AdminServiceImpl(
   }
 
   override def deleteDevice(request: DeleteDeviceRequest): Future[DeleteDeviceResponse] = {
-    request.device match {
-      case Some(device) =>
-        for {
-          _ <- locationRepo.deleteForDevice(DeviceId(device.id))
-          deleteDevice <- deviceRepo.delete(DeviceId(device.id))
-        } yield {
-          DeleteDeviceResponse(success = deleteDevice.isSuccess)
-        }
-      case None =>
-        Future.failed(NoDeviceProvidedException().toGrpcError)
+    val deviceId = DeviceId(request.deviceId)
+    for {
+      _ <- locationRepo.deleteForDevice(deviceId)
+      deleteDevice <- deviceRepo.delete(deviceId)
+    } yield {
+      DeleteDeviceResponse(success = deleteDevice.isSuccess)
     }
   }
 
   override def approveDevice(
       request: ApproveDeviceRequest
   ): Future[ApproveDeviceResponse] = {
-    request.device match {
-      case Some(device) =>
-        deviceRepo.get(DeviceId(device.id)).flatMap {
-          case Some(storedDevice) =>
-            if (storedDevice.status == DeviceStatus.Pending) {
-              deviceRepo
-                .update(storedDevice.device.id, device => device.register())
-                .flatMap {
-                  case Failure(exception) => Future.failed(exception.toGrpcError)
-                  case Success(_) => Future.successful(ApproveDeviceResponse(success = true))
-                }
-            } else {
-              Future.failed(
-                InvalidDeviceStatus(
-                  storedDevice.device.id,
-                  actualState = storedDevice.status,
-                  expectedState = DeviceStatus.Pending
-                ).toGrpcError
-              )
+    deviceRepo.get(DeviceId(request.deviceId)).flatMap {
+      case Some(storedDevice) =>
+        if (storedDevice.status == DeviceStatus.Pending) {
+          deviceRepo
+            .update(storedDevice.device.id, device => device.register())
+            .flatMap {
+              case Failure(exception) => Future.failed(exception.toGrpcError)
+              case Success(_)         => Future.successful(ApproveDeviceResponse(success = true))
             }
-          case None =>
-            Future.failed(DeviceNotFoundException(DeviceId(device.id)).toGrpcError)
+        } else {
+          Future.failed(
+            InvalidDeviceStatus(
+              storedDevice.device.id,
+              actualState = storedDevice.status,
+              expectedState = DeviceStatus.Pending
+            ).toGrpcError
+          )
         }
       case None =>
-        Future.failed(NoDeviceProvidedException().toGrpcError)
+        Future.failed(DeviceNotFoundException(DeviceId(request.deviceId)).toGrpcError)
     }
   }
 
   override def listLocations(
       request: ListLocationsRequest
   ): Future[ListLocationsResponse] = {
-    request.device match {
-      case Some(device) =>
-        for {
-          locations <- locationRepo.getForDevice(DeviceId(device.id), limit = None)
-        } yield ListLocationsResponse(locations.map(_.toProto))
-      case None =>
-        Future.failed(NoDeviceProvidedException().toGrpcError)
-    }
+    for {
+      locations <- locationRepo.getForDevice(DeviceId(request.deviceId), limit = None)
+    } yield ListLocationsResponse(locations.map(_.toProto))
   }
 }

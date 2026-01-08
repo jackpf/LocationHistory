@@ -5,7 +5,7 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException
 }
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
-import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
+import com.jackpf.locationhistory.server.model.{Device, DeviceId, PushHandler, StoredDevice}
 import scalasql.SqliteDialect.*
 import scalasql.core.DbClient
 import scalasql.simple.SimpleTable
@@ -15,10 +15,26 @@ import com.jackpf.locationhistory.server.util.SQLiteMapper.*
 import scala.concurrent.{ExecutionContext, Future, blocking}
 import scala.util.{Failure, Try}
 
-private case class StoredDeviceRow(id: String, name: String, publicKey: String, status: String) {
+private case class StoredDeviceRow(
+    id: String,
+    name: String,
+    publicKey: String,
+    status: String,
+    pushHandlerName: String,
+    pushHandlerUrl: String
+) {
   def toStoredDevice: StoredDevice = StoredDevice(
     device = Device(id = DeviceId(id), name = name, publicKey = publicKey),
-    status = DeviceStatus.valueOf(status)
+    status = DeviceStatus.valueOf(status),
+    pushHandler =
+      if (pushHandlerName != null)
+        Some(
+          PushHandler(
+            name = pushHandlerName,
+            url = pushHandlerUrl
+          )
+        )
+      else None
   )
 }
 private object StoredDeviceTable extends SimpleTable[StoredDeviceRow]
@@ -33,7 +49,9 @@ class SQLiteDeviceRepo(db: DbClient.DataSource)(using executionContext: Executio
             id TEXT PRIMARY KEY,
             name TEXT,
             public_key TEXT,
-            status TEXT
+            status TEXT,
+            push_handler_name TEXT,
+            push_handler_url TEXT
           )"""
         )
       }
@@ -82,7 +100,9 @@ class SQLiteDeviceRepo(db: DbClient.DataSource)(using executionContext: Executio
                   .set(
                     _.name := updatedStoredDevice.device.name,
                     _.publicKey := updatedStoredDevice.device.publicKey,
-                    _.status := updatedStoredDevice.status.toString
+                    _.status := updatedStoredDevice.status.toString,
+                    _.pushHandlerName := updatedStoredDevice.pushHandler.map(_.name).orNull,
+                    _.pushHandlerUrl := updatedStoredDevice.pushHandler.map(_.url).orNull
                   )
               )
             }

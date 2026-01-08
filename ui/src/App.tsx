@@ -1,12 +1,51 @@
 import './App.css';
 import {useAdminClient} from './hooks/use-admin-client.ts';
 import {Login} from "./components/Login.tsx";
-import {MainMap} from "./components/MainMap.tsx";
 import {DeviceList} from "./components/DeviceList.tsx";
 import {useLogin} from "./hooks/use-login.ts";
+import {MLMap} from "./components/MLMap.tsx";
+import {MAP_TYPE} from "./config/config.ts";
+import {OSMMap} from "./components/OSMMap.tsx";
+import type {StoredLocation} from "./gen/common.ts";
+import {useState} from "react";
+import {usePushPoller} from "./hooks/use-push-poller.ts";
+import {usePageVisibility} from "./hooks/use-page-visibility.ts";
+
+const DisplayMap = ({history, selectedDeviceId, forceRecenter, setForceRecenter}: {
+    history: StoredLocation[],
+    selectedDeviceId: string | null,
+    forceRecenter: boolean,
+    setForceRecenter: (forceRecenter: boolean) => void,
+}) => {
+    switch (MAP_TYPE) {
+        case "maptiler":
+            return (
+                <MLMap
+                    history={history}
+                    selectedDeviceId={selectedDeviceId}
+                    forceRecenter={forceRecenter}
+                    setForceRecenter={setForceRecenter}
+                />
+            )
+        case "openstreetmaps":
+            return (
+                <OSMMap
+                    history={history}
+                    selectedDeviceId={selectedDeviceId}
+                    forceRecenter={forceRecenter}
+                    setForceRecenter={setForceRecenter}
+                />
+            )
+        default:
+            alert("Invalid map type " + MAP_TYPE + ", must be one of: [maptiler, openstreetmaps]");
+            return null;
+    }
+}
 
 const Dashboard = () => {
     const REFRESH_INTERVAL = 10000;
+
+    const isVisible = usePageVisibility();
 
     const {
         setSelectedDeviceId,
@@ -15,9 +54,13 @@ const Dashboard = () => {
         devices,
         selectedDeviceId,
         history,
-        lastUpdated,
         error
     } = useAdminClient(REFRESH_INTERVAL);
+
+    const storedDevice = devices.find(d => d.device && d.device.id === selectedDeviceId)
+    usePushPoller(storedDevice, isVisible, REFRESH_INTERVAL);
+
+    const [forceRecenter, setForceRecenter] = useState<boolean>(false);
 
     const {
         logout
@@ -27,19 +70,18 @@ const Dashboard = () => {
         <div className="app-container">
             {error && <div className="error-text">{error}</div>}
 
-            {/* Sidebar */}
-            <DeviceList devices={devices} selectedDeviceId={selectedDeviceId}
+            <DeviceList devices={devices}
+                        selectedDeviceId={selectedDeviceId}
                         setSelectedDeviceId={setSelectedDeviceId}
+                        setForceRecenter={setForceRecenter}
                         approveDevice={approveDevice}
                         deleteDevice={deleteDevice}
                         logout={logout}/>
 
-            {/* Map Area */}
-            <MainMap
-                history={history}
-                lastUpdated={lastUpdated}
-                selectedDeviceId={selectedDeviceId}
-            />
+            <DisplayMap history={history}
+                        selectedDeviceId={selectedDeviceId}
+                        forceRecenter={forceRecenter}
+                        setForceRecenter={setForceRecenter}/>
         </div>
     );
 };

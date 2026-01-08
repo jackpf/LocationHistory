@@ -10,8 +10,11 @@ services:
     volumes:
       - "${DATA_DIR}:/data"
     ports:
-      - ${SERVER_PORT}:8080
+      - ${BEACON_PORT}:8080
+      - ${ADMIN_PORT}:8081
     environment:
+      - SERVER_NAME=${SERVER_NAME}
+      - ALT_SERVER_NAMES=${ALT_SERVER_NAMES}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - STORAGE_TYPE=${STORAGE_TYPE}
   location-history-ui-proxy:
@@ -21,7 +24,7 @@ services:
     ports:
       - ${PROXY_PORT}:8080
     command:
-      - "--backend_addr=location-history-server:8080"
+      - "--backend_addr=location-history-server:8081"
       - "--run_tls_server=false"
       - "--allow_all_origins"
   location-history-ui:
@@ -31,4 +34,6 @@ services:
     ports:
       - ${UI_PORT}:80
     environment:
+      - MAP_TYPE=${MAP_TYPE}
+      - MAPTILER_API_KEY=${MAPTILER_API_KEY:-}
       - PROXY_URL=http://${SERVER_NAME}:${PROXY_PORT}

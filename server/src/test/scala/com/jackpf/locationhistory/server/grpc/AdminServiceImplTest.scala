@@ -15,6 +15,7 @@ import com.jackpf.locationhistory.common.{
   Device,
   DeviceStatus,
   Location,
+  PushHandler,
   StoredDevice,
   StoredLocation
 }
@@ -22,7 +23,12 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.DeviceNotFound
 import com.jackpf.locationhistory.server.model
 import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
-import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification, GrpcMatchers}
+import com.jackpf.locationhistory.server.testutil.{
+  DefaultScope,
+  DefaultSpecification,
+  GrpcMatchers,
+  MockModels
+}
 import io.grpc.Status.Code
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{mock, when}
@@ -78,13 +84,15 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       "get all devices" >> in(new ListDevicesContext {
         override lazy val getAllResponse: Future[Seq[model.StoredDevice]] = Future.successful(
           Seq(
-            model.StoredDevice(
-              device = model.Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
-              status = model.StoredDevice.DeviceStatus.Pending
+            MockModels.storedDevice(
+              device = MockModels.device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
+              status = model.StoredDevice.DeviceStatus.Pending,
+              pushHandler = None
             ),
-            model.StoredDevice(
-              device = model.Device(id = DeviceId("456"), name = "dev2", publicKey = "yyy"),
-              status = model.StoredDevice.DeviceStatus.Registered
+            MockModels.storedDevice(
+              device = MockModels.device(id = DeviceId("456"), name = "dev2", publicKey = "yyy"),
+              status = model.StoredDevice.DeviceStatus.Registered,
+              pushHandler = Some(MockModels.pushHandler(name = "ph", url = "phUrl"))
             )
           )
         )
@@ -94,11 +102,13 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
             Seq(
               StoredDevice(
                 device = Some(Device(id = "123", name = "dev1", publicKey = "xxx")),
-                status = DeviceStatus.DEVICE_PENDING
+                status = DeviceStatus.DEVICE_PENDING,
+                pushHandler = None
               ),
               StoredDevice(
                 device = Some(Device(id = "456", name = "dev2", publicKey = "yyy")),
-                status = DeviceStatus.DEVICE_REGISTERED
+                status = DeviceStatus.DEVICE_REGISTERED,
+                pushHandler = Some(PushHandler(name = "ph", url = "phUrl"))
               )
             )
           )
@@ -108,25 +118,21 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
 
     "approve device endpoint" >> {
       trait ApproveDeviceContext extends Context {
-        lazy val device: Option[Device] = Some(Device(id = "123", publicKey = "xxx"))
+        lazy val deviceId: String = "123"
 
         lazy val getResponse: Future[Option[model.StoredDevice]]
-        if (device.isDefined) {
-          when(deviceRepo.get(DeviceId(device.get.id))).thenReturn(getResponse): Unit
-        }
+        when(deviceRepo.get(DeviceId(deviceId))).thenReturn(getResponse)
 
         lazy val updateResponse: Future[Try[Unit]]
-        if (device.isDefined) {
-          when(
-            deviceRepo.update(
-              eqTo(DeviceId(device.get.id)),
-              any[model.StoredDevice => model.StoredDevice]()
-            )
+        when(
+          deviceRepo.update(
+            eqTo(DeviceId(deviceId)),
+            any[model.StoredDevice => model.StoredDevice]()
           )
-            .thenReturn(updateResponse): Unit
-        }
+        )
+          .thenReturn(updateResponse)
 
-        val request: ApproveDeviceRequest = ApproveDeviceRequest(device = device)
+        val request: ApproveDeviceRequest = ApproveDeviceRequest(deviceId = deviceId)
         val result: Future[ApproveDeviceResponse] = adminService.approveDevice(request)
       }
 
@@ -134,8 +140,8 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val getResponse: Future[Option[model.StoredDevice]] =
           Future.successful(
             Some(
-              model.StoredDevice(
-                device = model.Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
+              MockModels.storedDevice(
+                device = MockModels.device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
                 status = model.StoredDevice.DeviceStatus.Pending
               )
             )
@@ -143,14 +149,6 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val updateResponse: Future[Try[Unit]] = Future.successful(Success(()))
       }) { context =>
         context.result must beEqualTo(ApproveDeviceResponse(success = true)).await
-      }
-
-      "fail on missing device" >> in(new ApproveDeviceContext {
-        override lazy val device: Option[Device] = None
-        override lazy val getResponse: Future[Option[model.StoredDevice]] = null
-        override lazy val updateResponse: Future[Try[Unit]] = null
-      }) { context =>
-        context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No device provided").await
       }
 
       "fail on device not found" >> in(new ApproveDeviceContext {
@@ -163,8 +161,8 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       "fail if device in unknown state" >> in(new ApproveDeviceContext {
         override lazy val getResponse: Future[Option[model.StoredDevice]] = Future.successful(
           Some(
-            model.StoredDevice(
-              device = model.Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
+            MockModels.storedDevice(
+              device = MockModels.device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
               status = model.StoredDevice.DeviceStatus.Unknown
             )
           )
@@ -180,8 +178,8 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       "fail if device in registered state" >> in(new ApproveDeviceContext {
         override lazy val getResponse: Future[Option[model.StoredDevice]] = Future.successful(
           Some(
-            model.StoredDevice(
-              device = model.Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
+            MockModels.storedDevice(
+              device = MockModels.device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
               status = model.StoredDevice.DeviceStatus.Registered
             )
           )
@@ -197,8 +195,8 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       "propagate update errors" >> in(new ApproveDeviceContext {
         override lazy val getResponse: Future[Option[model.StoredDevice]] = Future.successful(
           Some(
-            model.StoredDevice(
-              device = model.Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
+            MockModels.storedDevice(
+              device = MockModels.device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
               status = model.StoredDevice.DeviceStatus.Pending
             )
           )
@@ -212,15 +210,12 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
 
     "list locations endpoint" >> {
       trait ListLocationsContext extends Context {
-        lazy val device: Option[Device] = Some(Device(id = "123", publicKey = "xxx"))
+        lazy val deviceId: String = "123"
 
         lazy val getResponse: Future[Vector[model.StoredLocation]]
-        if (device.isDefined) {
-          when(locationRepo.getForDevice(DeviceId(device.get.id), limit = None))
-            .thenReturn(getResponse): Unit
-        }
+        when(locationRepo.getForDevice(DeviceId(deviceId), limit = None)).thenReturn(getResponse)
 
-        val request: ListLocationsRequest = ListLocationsRequest(device = device)
+        val request: ListLocationsRequest = ListLocationsRequest(deviceId = deviceId)
         val result: Future[ListLocationsResponse] = adminService.listLocations(request)
       }
 
@@ -258,13 +253,6 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         )
       }) { context =>
         context.result must beEqualTo(ListLocationsResponse(locations = Seq.empty)).await
-      }
-
-      "fail on missing device" >> in(new ListLocationsContext {
-        override lazy val device: Option[Device] = None
-        override lazy val getResponse: Future[Vector[model.StoredLocation]] = null
-      }) { context =>
-        context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No device provided").await
       }
     }
   }
