@@ -86,14 +86,12 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
 
     "check device endpoint" >> {
       trait CheckDeviceContext extends Context {
-        lazy val device: Option[Device] = Some(Device(id = "123", publicKey = "xxx"))
+        lazy val deviceId: String = "123"
 
         lazy val getResponse: Future[Option[StoredDevice]]
-        if (device.isDefined) {
-          when(deviceRepo.get(DeviceId(device.get.id))).thenReturn(getResponse): Unit
-        }
+        when(deviceRepo.get(DeviceId(deviceId))).thenReturn(getResponse): Unit
 
-        lazy val request: CheckDeviceRequest = CheckDeviceRequest(device = device)
+        lazy val request: CheckDeviceRequest = CheckDeviceRequest(deviceId = deviceId)
         lazy val result: Future[CheckDeviceResponse] = beaconService.checkDevice(request)
       }
 
@@ -101,7 +99,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
           Some(
             MockModels.storedDevice(
-              device = model.Device.fromProto(device.get),
+              device = MockModels.device(id = DeviceId(deviceId)),
               status = StoredDevice.DeviceStatus.Registered
             )
           )
@@ -119,32 +117,23 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
           CheckDeviceResponse(status = DeviceStatus.DEVICE_UNKNOWN)
         ).await
       }
-
-      "fail on empty device" >> in(new CheckDeviceContext {
-        override lazy val device: Option[Device] = None
-        override lazy val getResponse: Future[Option[StoredDevice]] = null
-      }) { context =>
-        context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No device provided").await
-      }
     }
 
     "set location endpoint" >> {
       trait SetLocationContext extends Context {
         lazy val timestamp: Long = 123L
-        lazy val device: Option[Device] = Some(Device(id = "123", publicKey = "xxx"))
+        lazy val deviceId: String = "123"
         lazy val location: Option[Location] = Some(Location(lat = 0.1, lon = 0.2, accuracy = 0.3))
 
         lazy val getResponse: Future[Option[StoredDevice]]
-        if (device.isDefined) {
-          when(deviceRepo.get(DeviceId(device.get.id))).thenReturn(getResponse): Unit
-        }
+        when(deviceRepo.get(DeviceId(deviceId))).thenReturn(getResponse): Unit
 
         lazy val storeDeviceLocationResponse: Future[Try[Unit]]
-        if (device.isDefined && location.isDefined) {
+        if (location.isDefined) {
           when(
             locationRepo
               .storeDeviceLocation(
-                DeviceId(device.get.id),
+                DeviceId(deviceId),
                 model.Location.fromProto(location.get),
                 timestamp
               )
@@ -152,7 +141,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         }
 
         lazy val request: SetLocationRequest =
-          SetLocationRequest(timestamp = timestamp, device = device, location = location)
+          SetLocationRequest(timestamp = timestamp, deviceId = deviceId, location = location)
         lazy val result: Future[SetLocationResponse] = beaconService.setLocation(request)
       }
 
@@ -160,7 +149,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
           Some(
             MockModels.storedDevice(
-              device = model.Device.fromProto(device.get),
+              device = MockModels.device(id = DeviceId(deviceId)),
               status = StoredDevice.DeviceStatus.Registered
             )
           )
@@ -169,14 +158,6 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
           Future.successful(Success(()))
       }) { context =>
         context.result must beEqualTo(SetLocationResponse(success = true)).await
-      }
-
-      "fail on empty device" >> in(new SetLocationContext {
-        override lazy val device: Option[Device] = None
-        override lazy val getResponse: Future[Option[StoredDevice]] = null
-        override lazy val storeDeviceLocationResponse: Future[Try[Unit]] = null
-      }) { context =>
-        context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No device provided").await
       }
 
       "fail on empty location" >> in(new SetLocationContext {
@@ -191,7 +172,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
           Some(
             MockModels.storedDevice(
-              device = model.Device.fromProto(device.get),
+              device = MockModels.device(id = DeviceId(deviceId)),
               status = StoredDevice.DeviceStatus.Pending
             )
           )
@@ -218,7 +199,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
           Some(
             MockModels.storedDevice(
-              device = model.Device.fromProto(device.get),
+              device = MockModels.device(id = DeviceId(deviceId)),
               status = StoredDevice.DeviceStatus.Registered
             )
           )

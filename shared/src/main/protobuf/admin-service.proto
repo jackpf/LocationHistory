@@ -30,7 +30,7 @@ message ListDevicesResponse {
 }
 
 message DeleteDeviceRequest {
-  Device device = 1;
+  string deviceId = 1;
 }
 
 message DeleteDeviceResponse {
@@ -38,7 +38,7 @@ message DeleteDeviceResponse {
 }
 
 message ApproveDeviceRequest {
-  Device device = 1; // TODO make deviceId
+  string deviceId = 1;
 }
 
 message ApproveDeviceResponse {
@@ -46,7 +46,7 @@ message ApproveDeviceResponse {
 }
 
 message ListLocationsRequest {
-  Device device = 1;
+  string deviceId = 1;
 }
 
 message ListLocationsResponse {

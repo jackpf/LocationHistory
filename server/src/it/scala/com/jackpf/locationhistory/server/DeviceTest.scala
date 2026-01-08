@@ -8,22 +8,11 @@ import io.grpc.Status.Code
 class DeviceTest extends IntegrationTest with GrpcMatchers {
   "With no devices" should {
     "check a non-existing device" >> in(new IntegrationContext {}) { context =>
-      val request =
-        CheckDeviceRequest(device = Some(Device(id = "123", publicKey = "xxx")))
+      val request = CheckDeviceRequest(deviceId = "123")
 
       val response = context.client.checkDevice(request)
 
       response === CheckDeviceResponse(status = DeviceStatus.DEVICE_UNKNOWN)
-    }
-
-    "fail on checking an empty device" >> in(new IntegrationContext {}) { context =>
-      val request =
-        CheckDeviceRequest(device = None)
-
-      context.client.checkDevice(request) must throwAGrpcRuntimeException(
-        Code.INVALID_ARGUMENT,
-        "No device provided"
-      )
     }
 
     "register a device" >> in(new IntegrationContext {}) { context =>
@@ -71,8 +60,7 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
     "check the device with status pending" >> in(
       new RegisteredDeviceContext {}
     ) { context =>
-      val request =
-        CheckDeviceRequest(device = Some(context.device))
+      val request = CheckDeviceRequest(deviceId = context.device.id)
 
       val response = context.client.checkDevice(request)
 
