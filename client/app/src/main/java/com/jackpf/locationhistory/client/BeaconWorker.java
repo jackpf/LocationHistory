@@ -1,6 +1,7 @@
 package com.jackpf.locationhistory.client;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -136,8 +137,9 @@ public class BeaconWorker extends ListenableWorker {
                     return;
                 }
 
-                Futures.addCallback(deviceStateService.onDeviceStateReady(deviceState), new FutureCallback<>() {
+                Futures.addCallback(deviceStateService.onDeviceStateReady(deviceState), new FutureCallback<DeviceState>() {
                     @Override
+                    @SuppressLint("MissingPermission")
                     public void onSuccess(DeviceState state) {
                         if (state.isReady()) handleLocationUpdate(completer);
                         else completeDeviceNotReady(completer);
@@ -165,7 +167,7 @@ public class BeaconWorker extends ListenableWorker {
                 Futures.addCallback(locationUpdateService.setLocation(
                         deviceState,
                         locationData
-                ), new FutureCallback<>() {
+                ), new FutureCallback<SetLocationResponse>() {
                     @Override
                     public void onSuccess(SetLocationResponse response) {
                         if (response.getSuccess()) {
