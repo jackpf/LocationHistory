@@ -9,6 +9,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import com.jackpf.locationhistory.PingResponse;
 import com.jackpf.locationhistory.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.MainActivity;
@@ -94,26 +96,26 @@ public class SettingsFragment extends Fragment {
                     new TrustedCertStorage(getActivity())
             );
 
-            tempClient.ping(new GrpcFutureWrapper<>(
+            ListenableFuture<PingResponse> pingResponse = tempClient.ping(new GrpcFutureWrapper<>(
                     response -> getActivity().runOnUiThread(() -> {
                         if (BeaconClient.isPongResponse(response)) {
                             Toast.makeText(getActivity(), getString(R.string.toast_connection_successful), Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(getActivity(), getString(R.string.toast_invalid_response, response.getMessage()), Toast.LENGTH_SHORT).show();
                         }
-                        tempClient.close();
                     }),
                     e -> {
                         if (UntrustedCertException.isCauseOf(e)) {
-                            getActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint(), true));
+                            requireActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint(), true));
                         } else {
-                            getActivity().runOnUiThread(() ->
+                            requireActivity().runOnUiThread(() ->
                                     Toast.makeText(getActivity(), getString(R.string.toast_connection_failed, e.getMessage()), Toast.LENGTH_SHORT).show()
                             );
                         }
-                        tempClient.close();
                     }
             ));
+
+            pingResponse.addListener(tempClient::close, requireActivity().getMainExecutor());
         } catch (NumberFormatException | IOException e) {
             Toast.makeText(getContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
         }
@@ -150,11 +152,8 @@ public class SettingsFragment extends Fragment {
                         "Location History",
                         null
                 );
-
-                Toast.makeText(getContext(), "Registered with " + distributors.get(0), Toast.LENGTH_LONG).show();
             } else {
-                // TODO Strings
-                Toast.makeText(getContext(), "No push distributors found", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), getString(R.string.no_push_distributors), Toast.LENGTH_LONG).show();
             }
         }
     }

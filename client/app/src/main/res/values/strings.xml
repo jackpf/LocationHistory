@@ -34,4 +34,6 @@
     <string name="trust_always">Trust Always</string>
     <string name="cancel">Cancel</string>
 
+    <string name="no_push_distributors">No push distributors found</string>
+
 </resources>
