@@ -56,31 +56,26 @@ class AdminServiceImpl(
   override def approveDevice(
       request: ApproveDeviceRequest
   ): Future[ApproveDeviceResponse] = {
-    request.device match {
-      case Some(device) =>
-        deviceRepo.get(DeviceId(device.id)).flatMap {
-          case Some(storedDevice) =>
-            if (storedDevice.status == DeviceStatus.Pending) {
-              deviceRepo
-                .update(storedDevice.device.id, device => device.register())
-                .flatMap {
-                  case Failure(exception) => Future.failed(exception.toGrpcError)
-                  case Success(_) => Future.successful(ApproveDeviceResponse(success = true))
-                }
-            } else {
-              Future.failed(
-                InvalidDeviceStatus(
-                  storedDevice.device.id,
-                  actualState = storedDevice.status,
-                  expectedState = DeviceStatus.Pending
-                ).toGrpcError
-              )
+    deviceRepo.get(DeviceId(request.deviceId)).flatMap {
+      case Some(storedDevice) =>
+        if (storedDevice.status == DeviceStatus.Pending) {
+          deviceRepo
+            .update(storedDevice.device.id, device => device.register())
+            .flatMap {
+              case Failure(exception) => Future.failed(exception.toGrpcError)
+              case Success(_)         => Future.successful(ApproveDeviceResponse(success = true))
             }
-          case None =>
-            Future.failed(DeviceNotFoundException(DeviceId(device.id)).toGrpcError)
+        } else {
+          Future.failed(
+            InvalidDeviceStatus(
+              storedDevice.device.id,
+              actualState = storedDevice.status,
+              expectedState = DeviceStatus.Pending
+            ).toGrpcError
+          )
         }
       case None =>
-        Future.failed(NoDeviceProvidedException().toGrpcError)
+        Future.failed(DeviceNotFoundException(DeviceId(request.deviceId)).toGrpcError)
     }
   }
 

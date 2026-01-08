@@ -48,33 +48,23 @@ class BeaconServiceImpl(
   override def checkDevice(
       request: CheckDeviceRequest
   ): Future[CheckDeviceResponse] = {
-    request.device match {
-      case Some(device) =>
-        val status = deviceRepo.get(DeviceId(device.id)).map {
-          case Some(storedDevice) => storedDevice.status.toProto
-          case None               => DeviceStatus.DEVICE_UNKNOWN
-        }
+    val status = deviceRepo.get(DeviceId(request.deviceId)).map {
+      case Some(storedDevice) => storedDevice.status.toProto
+      case None               => DeviceStatus.DEVICE_UNKNOWN
+    }
 
-        status.map { s =>
-          CheckDeviceResponse(status = s)
-        }
-      case None =>
-        Future.failed(NoDeviceProvidedException().toGrpcError)
+    status.map { s =>
+      CheckDeviceResponse(status = s)
     }
   }
 
   override def setLocation(
       request: SetLocationRequest
   ): Future[SetLocationResponse] = {
-    if (request.device.isEmpty)
-      Future.failed(
-        NoDeviceProvidedException().toGrpcError
-      )
-    else if (request.location.isEmpty)
+    if (request.location.isEmpty)
       Future.failed(NoLocationProvidedException().toGrpcError)
     else {
-      val device = request.device.get
-      val deviceId = DeviceId(device.id)
+      val deviceId = DeviceId(request.deviceId)
       val location = request.location.get
 
       deviceRepo.get(deviceId).flatMap {

@@ -23,7 +23,7 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
       client.registerDevice(registerDeviceRequest)
     registerDeviceResult.success === true
 
-    val approveDeviceRequest = ApproveDeviceRequest(device = Some(device))
+    val approveDeviceRequest = ApproveDeviceRequest(deviceId = device.id)
     val approveDeviceResponse: ApproveDeviceResponse =
       adminClient.approveDevice(approveDeviceRequest)
     approveDeviceResponse.success === true
@@ -38,7 +38,7 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
       val request =
         SetLocationRequest(
           timestamp = timestamp,
-          device = Some(context.device),
+          deviceId = context.device.id,
           location = Some(location)
         )
 
