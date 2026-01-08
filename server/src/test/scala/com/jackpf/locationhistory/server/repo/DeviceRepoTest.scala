@@ -5,7 +5,7 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException
 }
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
-import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
+import com.jackpf.locationhistory.server.model.{Device, DeviceId, PushHandler, StoredDevice}
 import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification, MockModels}
 import org.specs2.collection.IsEmpty
 import org.specs2.concurrent.ExecutionEnv
@@ -25,7 +25,8 @@ abstract class DeviceRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecific
   trait NoDevicesContext extends Context
 
   trait OneDeviceContext extends Context {
-    lazy val device: Device = Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx")
+    lazy val device: Device =
+      MockModels.device(id = DeviceId("123"), name = "dev1", publicKey = "xxx")
     val registerResult: Future[Try[Unit]] =
       deviceRepo.register(device)
   }
@@ -74,19 +75,21 @@ abstract class DeviceRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecific
     }
 
     "update a single device" >> in(new OneDeviceContext {}) { context =>
+      val pushHandler: PushHandler = MockModels.pushHandler()
       context.registerResult must beSuccessfulTry.await
 
       for {
         storedDevice <- context.deviceRepo.get(context.device.id)
         updateDeviceResponse <- context.deviceRepo.update(
           storedDevice.get.device.id,
-          device => device.register()
+          device => device.register().withPushHandler(Some(pushHandler))
         )
         updatedDevice <- context.deviceRepo.get(context.device.id)
       } yield {
         updateDeviceResponse must beSuccessfulTry
         storedDevice.get.status === DeviceStatus.Pending
         updatedDevice.get.status === DeviceStatus.Registered
+        updatedDevice.get.pushHandler === Some(pushHandler)
       }
     }
 

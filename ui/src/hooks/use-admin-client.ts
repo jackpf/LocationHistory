@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from 'react';
-import {adminClient, grpcErrorMessage} from '../grpc/admin-client';
+import {adminClient, grpcErrorMessage} from '../utils/admin-client';
 import {StoredDevice, type StoredLocation} from '../gen/common';
 import type {ListDevicesResponse, ListLocationsResponse} from "../gen/admin-service.ts";
 

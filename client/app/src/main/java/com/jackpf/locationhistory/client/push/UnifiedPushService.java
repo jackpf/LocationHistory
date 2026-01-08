@@ -21,6 +21,7 @@ import java.io.IOException;
 
 public class UnifiedPushService extends PushService {
     private static final String NAME = "UnifiedPush";
+    private static final String BEACON_MESSAGE = "TRIGGER_BEACON";
 
     private final Logger log = new Logger(this);
 
@@ -75,10 +76,9 @@ public class UnifiedPushService extends PushService {
     @Override
     public void onMessage(@NonNull PushMessage pushMessage, @NonNull String instance) {
         String message = new String(pushMessage.getContent());
-
         log.i("UnifiedPush: onMessage: %s", message);
 
-        if ("beacon".equals(message)) {
+        if (BEACON_MESSAGE.equals(message)) {
             log.d("Triggering on-demand beacon");
             BeaconWorkerFactory.runOnce(getApplicationContext());
         }

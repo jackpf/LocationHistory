@@ -100,7 +100,9 @@ class SQLiteDeviceRepo(db: DbClient.DataSource)(using executionContext: Executio
                   .set(
                     _.name := updatedStoredDevice.device.name,
                     _.publicKey := updatedStoredDevice.device.publicKey,
-                    _.status := updatedStoredDevice.status.toString
+                    _.status := updatedStoredDevice.status.toString,
+                    _.pushHandlerName := updatedStoredDevice.pushHandler.map(_.name).orNull,
+                    _.pushHandlerUrl := updatedStoredDevice.pushHandler.map(_.url).orNull
                   )
               )
             }
