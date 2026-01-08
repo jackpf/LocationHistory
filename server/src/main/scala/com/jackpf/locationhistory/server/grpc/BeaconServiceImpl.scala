@@ -1,8 +1,8 @@
 package com.jackpf.locationhistory.server.grpc
 
-import com.jackpf.locationhistory.common.DeviceStatus
-import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
 import com.jackpf.locationhistory.beacon_service.*
+import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
+import com.jackpf.locationhistory.common.DeviceStatus
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
   DeviceNotRegisteredException,
@@ -10,7 +10,7 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   NoLocationProvidedException
 }
 import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
-import com.jackpf.locationhistory.server.model.{Device, DeviceId, Location, StoredDevice}
+import com.jackpf.locationhistory.server.model.*
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.util.Logging
 
@@ -99,5 +99,19 @@ class BeaconServiceImpl(
           )
       }
     }
+  }
+
+  override def registerPushHandler(
+      request: RegisterPushHandlerRequest
+  ): Future[RegisterPushHandlerResponse] = {
+    deviceRepo
+      .update(
+        DeviceId(request.deviceId),
+        storedDevice => storedDevice.withPushHandler(request.pushHandler.map(PushHandler.fromProto))
+      )
+      .flatMap {
+        case Failure(exception) => Future.failed(exception.toGrpcError)
+        case Success(value)     => Future.successful(RegisterPushHandlerResponse(success = true))
+      }
   }
 }

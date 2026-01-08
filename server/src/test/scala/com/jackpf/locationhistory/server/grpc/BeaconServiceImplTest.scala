@@ -2,18 +2,24 @@ package com.jackpf.locationhistory.server.grpc
 
 import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
 import com.jackpf.locationhistory.beacon_service.*
-import com.jackpf.locationhistory.common.{Device, DeviceStatus, Location}
+import com.jackpf.locationhistory.common.{Device, DeviceStatus, Location, PushHandler}
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.DeviceNotFoundException
 import com.jackpf.locationhistory.server.model
 import com.jackpf.locationhistory.server.model.{DeviceId, StoredDevice}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
-import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification, GrpcMatchers}
+import com.jackpf.locationhistory.server.testutil.{
+  DefaultScope,
+  DefaultSpecification,
+  GrpcMatchers,
+  MockModels
+}
 import io.grpc.Status.Code
 import org.mockito.Mockito.{mock, when}
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 
 class BeaconServiceImplTest(implicit ee: ExecutionEnv)
     extends DefaultSpecification
@@ -94,7 +100,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
       "get a device" >> in(new CheckDeviceContext {
         override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
           Some(
-            StoredDevice(
+            MockModels.storedDevice(
               device = model.Device.fromProto(device.get),
               status = StoredDevice.DeviceStatus.Registered
             )
@@ -153,7 +159,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
       "set a device location" >> in(new SetLocationContext {
         override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
           Some(
-            StoredDevice(
+            MockModels.storedDevice(
               device = model.Device.fromProto(device.get),
               status = StoredDevice.DeviceStatus.Registered
             )
@@ -184,7 +190,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
       "fail on unregistered device" >> in(new SetLocationContext {
         override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
           Some(
-            StoredDevice(
+            MockModels.storedDevice(
               device = model.Device.fromProto(device.get),
               status = StoredDevice.DeviceStatus.Pending
             )
@@ -211,7 +217,7 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
       "propagate errors" >> in(new SetLocationContext {
         override lazy val getResponse: Future[Option[StoredDevice]] = Future.successful(
           Some(
-            StoredDevice(
+            MockModels.storedDevice(
               device = model.Device.fromProto(device.get),
               status = StoredDevice.DeviceStatus.Registered
             )
@@ -221,6 +227,49 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
           Future.successful(Failure(DeviceNotFoundException(DeviceId("123"))))
       }) { context =>
         context.result must throwAGrpcException(Code.NOT_FOUND, "Device 123 does not exist").await
+      }
+    }
+
+    "register push handler endpoint" >> {
+      trait RegisterPushHandlerContext extends Context {
+        lazy val deviceId = "123"
+        lazy val pushHandler: Option[PushHandler] = Some(PushHandler(name = "ph", url = "phUrl"))
+
+        lazy val updateResponse: Future[Try[Unit]] = Future.successful(Success(()))
+        when(
+          deviceRepo.update(
+            eqTo(DeviceId(deviceId)),
+            any[model.StoredDevice => model.StoredDevice]()
+          )
+        )
+          .thenReturn(updateResponse)
+
+        lazy val request: RegisterPushHandlerRequest = RegisterPushHandlerRequest(
+          deviceId = deviceId,
+          pushHandler = pushHandler
+        )
+        lazy val result: Future[RegisterPushHandlerResponse] =
+          beaconService.registerPushHandler(request)
+      }
+
+      "register a push handler" >> in(new RegisterPushHandlerContext {}) { context =>
+        context.result must beEqualTo(RegisterPushHandlerResponse(success = true)).await
+      }
+
+      "un-register a push handler if not provided" >> in(new RegisterPushHandlerContext {
+        override lazy val pushHandler: Option[PushHandler] = None
+      }) { context =>
+        context.result must beEqualTo(RegisterPushHandlerResponse(success = true)).await
+      }
+
+      "not register a push handler with failure" >> in(new RegisterPushHandlerContext {
+        override lazy val updateResponse: Future[Try[Unit]] =
+          Future.successful(Failure((DeviceNotFoundException(DeviceId(deviceId)))))
+      }) { context =>
+        context.result must throwAGrpcException(
+          Code.NOT_FOUND,
+          "Device 123 does not exist"
+        ).await
       }
     }
   }

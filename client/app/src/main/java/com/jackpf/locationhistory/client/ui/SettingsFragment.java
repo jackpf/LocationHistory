@@ -9,6 +9,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import com.jackpf.locationhistory.PingResponse;
 import com.jackpf.locationhistory.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.MainActivity;
@@ -17,12 +19,19 @@ import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
+import com.jackpf.locationhistory.client.push.Ntfy;
+import com.jackpf.locationhistory.client.push.UnifiedPushService;
+import com.jackpf.locationhistory.client.push.UnifiedPushStorage;
 import com.jackpf.locationhistory.client.ssl.SSLPrompt;
 import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.ssl.UntrustedCertException;
 import com.jackpf.locationhistory.client.util.Logger;
 
+import org.unifiedpush.android.connector.UnifiedPush;
+
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -30,6 +39,8 @@ public class SettingsFragment extends Fragment {
     private FragmentSettingsBinding binding;
     @Nullable
     private ConfigRepository configRepository;
+    @Nullable
+    private UnifiedPushStorage unifiedPushStorage;
 
     @Nullable
     private SSLPrompt sslPrompt;
@@ -41,7 +52,12 @@ public class SettingsFragment extends Fragment {
         super.onResume();
 
         configRepository = new ConfigRepository(requireContext());
+        unifiedPushStorage = new UnifiedPushStorage(requireContext());
         sslPrompt = new SSLPrompt(getActivity());
+
+        if (unifiedPushStorage.isEnabled()) {
+            binding.pushRegisterSwitch.setChecked(true);
+        }
 
         updateUI();
     }
@@ -72,6 +88,7 @@ public class SettingsFragment extends Fragment {
 
         binding.testButton.setOnClickListener(view -> handleTestClick());
         binding.saveButton.setOnClickListener(view -> handleSaveClick());
+        binding.pushRegisterSwitch.setOnCheckedChangeListener((view, isChecked) -> handleUnifiedPushCheck(isChecked));
     }
 
     private void handleTestClick() {
@@ -89,29 +106,28 @@ public class SettingsFragment extends Fragment {
                     new TrustedCertStorage(getActivity())
             );
 
-            tempClient.ping(new GrpcFutureWrapper<>(
+            ListenableFuture<PingResponse> pingResponse = tempClient.ping(new GrpcFutureWrapper<>(
                     response -> getActivity().runOnUiThread(() -> {
-                        String responseMessage = response.getMessage();
-                        if ("pong".equals(responseMessage)) {
+                        if (BeaconClient.isPongResponse(response)) {
                             Toast.makeText(getActivity(), getString(R.string.toast_connection_successful), Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(getActivity(), getString(R.string.toast_invalid_response, responseMessage), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(), getString(R.string.toast_invalid_response, response.getMessage()), Toast.LENGTH_SHORT).show();
                         }
-                        tempClient.close();
                     }),
                     e -> {
                         if (UntrustedCertException.isCauseOf(e)) {
-                            getActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint(), true));
+                            requireActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint(), true));
                         } else {
-                            getActivity().runOnUiThread(() ->
+                            requireActivity().runOnUiThread(() ->
                                     Toast.makeText(getActivity(), getString(R.string.toast_connection_failed, e.getMessage()), Toast.LENGTH_SHORT).show()
                             );
                         }
-                        tempClient.close();
                     }
             ));
+
+            pingResponse.addListener(tempClient::close, requireActivity().getMainExecutor());
         } catch (NumberFormatException | IOException e) {
-            Toast.makeText(getContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -123,11 +139,30 @@ public class SettingsFragment extends Fragment {
 
                 MainActivity activity = (MainActivity) getActivity();
                 activity.refreshBeaconClient();
-                BeaconWorkerFactory.runOnce(getContext());
+                BeaconWorkerFactory.runOnce(requireContext());
 
-                Toast.makeText(getContext(), getString(R.string.toast_saved), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.toast_saved), Toast.LENGTH_SHORT).show();
             } catch (NumberFormatException e) {
-                Toast.makeText(getContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void handleUnifiedPushCheck(boolean isChecked) {
+        if (getActivity() instanceof MainActivity) {
+            if (isChecked) {
+                List<String> distributors = UnifiedPush.getDistributors(requireContext());
+                if (!distributors.isEmpty()) {
+                    log.d("Found distributors: %s", Arrays.toString(distributors.toArray()));
+                    // TODO Select distributor properly from list
+                    UnifiedPushService.register(requireContext(), distributors.get(0));
+                } else {
+                    log.d("No push distributors");
+                    Ntfy.promptInstall(requireContext());
+                    binding.pushRegisterSwitch.setChecked(false);
+                }
+            } else {
+                UnifiedPushService.unregister(requireContext());
             }
         }
     }

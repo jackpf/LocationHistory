@@ -1,5 +1,7 @@
 package com.jackpf.locationhistory.client.grpc.util;
 
+import androidx.annotation.NonNull;
+
 import com.google.common.util.concurrent.FutureCallback;
 import com.jackpf.locationhistory.client.util.Logger;
 
@@ -13,6 +15,8 @@ public class GrpcFutureWrapper<T> implements FutureCallback<T> {
     private final Consumer<StatusRuntimeException> errorCallback;
     @Setter
     private String tag;
+    @Setter
+    private boolean loggingEnabled;
 
     private final Logger log = new Logger(this);
 
@@ -29,13 +33,17 @@ public class GrpcFutureWrapper<T> implements FutureCallback<T> {
 
     @Override
     public void onSuccess(T value) {
-        log.d("%s response: %s", tag, value != null ? value.toString() : "null");
+        if (loggingEnabled) {
+            log.d("%s response: %s", tag, value != null ? value.toString() : "null");
+        }
         valueCallback.accept(value);
     }
 
     @Override
-    public void onFailure(Throwable t) {
-        log.e(t, "%s error", tag);
+    public void onFailure(@NonNull Throwable t) {
+        if (loggingEnabled) {
+            log.e(t, "%s error", tag);
+        }
         if (t instanceof StatusRuntimeException) {
             errorCallback.accept((StatusRuntimeException) t);
         } else {

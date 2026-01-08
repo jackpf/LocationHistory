@@ -129,6 +129,11 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                                     <span className="detail-label">Status:</span>
                                     <span className="detail-value">{showDeviceStatus(storedDevice.status)}</span>
                                 </div>
+                                {storedDevice.pushHandler &&
+                                    <div className="detail-row">
+                                        <span className="detail-label">Push Handler:</span>
+                                        <span className="detail-value">{storedDevice.pushHandler.name}</span>
+                                    </div>}
                                 <div className="detail-row">
                                     <span className="detail-label"></span>
                                     <span

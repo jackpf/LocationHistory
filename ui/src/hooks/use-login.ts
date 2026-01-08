@@ -1,5 +1,5 @@
 import {useCallback, useState} from 'react';
-import {adminClient, grpcErrorMessage} from '../grpc/admin-client';
+import {adminClient, grpcErrorMessage} from '../utils/admin-client';
 import type {LoginResponse} from "../gen/admin-service.ts";
 
 export const setTokenInStorage = (token: string | null) => {

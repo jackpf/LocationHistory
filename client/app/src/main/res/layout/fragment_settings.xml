@@ -41,4 +41,19 @@
         android:layout_height="wrap_content"
         android:text="@string/save" />
 
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/pushRegisterSwitch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:text="@string/enable_unified_push" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/unified_push_description"
+        android:textSize="14sp"
+        android:textStyle="italic" />
+
 </LinearLayout>

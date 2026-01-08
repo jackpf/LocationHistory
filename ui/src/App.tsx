@@ -8,6 +8,8 @@ import {MAP_TYPE} from "./config/config.ts";
 import {OSMMap} from "./components/OSMMap.tsx";
 import type {StoredLocation} from "./gen/common.ts";
 import {useState} from "react";
+import {usePushPoller} from "./hooks/use-push-poller.ts";
+import {usePageVisibility} from "./hooks/use-page-visibility.ts";
 
 const DisplayMap = ({history, selectedDeviceId, forceRecenter, setForceRecenter}: {
     history: StoredLocation[],
@@ -43,6 +45,8 @@ const DisplayMap = ({history, selectedDeviceId, forceRecenter, setForceRecenter}
 const Dashboard = () => {
     const REFRESH_INTERVAL = 10000;
 
+    const isVisible = usePageVisibility();
+
     const {
         setSelectedDeviceId,
         approveDevice,
@@ -52,6 +56,9 @@ const Dashboard = () => {
         history,
         error
     } = useAdminClient(REFRESH_INTERVAL);
+
+    const storedDevice = devices.find(d => d.device && d.device.id === selectedDeviceId)
+    usePushPoller(storedDevice, isVisible, REFRESH_INTERVAL);
 
     const [forceRecenter, setForceRecenter] = useState<boolean>(false);
 

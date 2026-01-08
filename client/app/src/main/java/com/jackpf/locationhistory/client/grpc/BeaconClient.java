@@ -9,6 +9,8 @@ import com.jackpf.locationhistory.PingRequest;
 import com.jackpf.locationhistory.PingResponse;
 import com.jackpf.locationhistory.RegisterDeviceRequest;
 import com.jackpf.locationhistory.RegisterDeviceResponse;
+import com.jackpf.locationhistory.RegisterPushHandlerRequest;
+import com.jackpf.locationhistory.RegisterPushHandlerResponse;
 import com.jackpf.locationhistory.SetLocationRequest;
 import com.jackpf.locationhistory.SetLocationResponse;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
@@ -27,7 +29,6 @@ public class BeaconClient implements AutoCloseable {
     private final long timeoutMillis;
     private final boolean waitForReady;
     private final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
-
 
     public BeaconClient(
             ManagedChannel channel,
@@ -50,8 +51,13 @@ public class BeaconClient implements AutoCloseable {
         else return stub;
     }
 
+    public static boolean isPongResponse(PingResponse response) {
+        return "pong".equals(response.getMessage());
+    }
+
     public ListenableFuture<PingResponse> ping(GrpcFutureWrapper<PingResponse> callback) {
         callback.setTag("Ping");
+        callback.setLoggingEnabled(false); // Disable for pings - it's very spammy
 
         PingRequest request = Requests.pingRequest();
         ListenableFuture<PingResponse> future = createStub().ping(request);
@@ -92,6 +98,34 @@ public class BeaconClient implements AutoCloseable {
                 beaconRequest.getTimestamp()
         );
         ListenableFuture<SetLocationResponse> future = createStub().setLocation(request);
+        Futures.addCallback(future, callback, threadExecutor);
+
+        return future;
+    }
+
+    public ListenableFuture<RegisterPushHandlerResponse> registerPushHandler(
+            String deviceId,
+            String pushHandlerName,
+            String pushHandlerUrl,
+            GrpcFutureWrapper<RegisterPushHandlerResponse> callback
+    ) {
+        callback.setTag("Register push handler");
+
+        RegisterPushHandlerRequest request = Requests.registerPushHandler(deviceId, pushHandlerName, pushHandlerUrl);
+        ListenableFuture<RegisterPushHandlerResponse> future = createStub().registerPushHandler(request);
+        Futures.addCallback(future, callback, threadExecutor);
+
+        return future;
+    }
+
+    public ListenableFuture<RegisterPushHandlerResponse> unregisterPushHandler(
+            String deviceId,
+            GrpcFutureWrapper<RegisterPushHandlerResponse> callback
+    ) {
+        callback.setTag("Un-register push handler");
+
+        RegisterPushHandlerRequest request = Requests.unregisterPushHandler(deviceId);
+        ListenableFuture<RegisterPushHandlerResponse> future = createStub().registerPushHandler(request);
         Futures.addCallback(future, callback, threadExecutor);
 
         return future;

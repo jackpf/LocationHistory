@@ -20,6 +20,7 @@ import com.jackpf.locationhistory.client.MainActivity;
 import com.jackpf.locationhistory.client.R;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentStatusBinding;
+import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.ssl.SSLPrompt;
 import com.jackpf.locationhistory.client.ssl.UntrustedCertException;
@@ -108,7 +109,7 @@ public class StatusFragment extends Fragment {
                 new FutureCallback<>() {
                     @Override
                     public void onSuccess(PingResponse result) {
-                        if (result.getMessage().equals("pong")) {
+                        if (BeaconClient.isPongResponse(result)) {
                             binding.statusTextView.setText(getString(R.string.connected));
                         } else {
                             binding.statusTextView.setText(getString(R.string.invalid_response));
@@ -118,7 +119,7 @@ public class StatusFragment extends Fragment {
                     @Override
                     public void onFailure(@NonNull Throwable t) {
                         if (UntrustedCertException.isCauseOf(t)) {
-                            getActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(t).getFingerprint(), false));
+                            requireActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(t).getFingerprint(), false));
                         } else {
                             binding.statusTextView.setText(getString(R.string.disconnected));
                         }

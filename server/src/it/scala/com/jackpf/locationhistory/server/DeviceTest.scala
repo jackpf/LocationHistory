@@ -44,6 +44,18 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
         "No device provided"
       )
     }
+
+    "fail on registering a push handler" >> in(new IntegrationContext {}) { context =>
+      context.client.registerPushHandler(
+        RegisterPushHandlerRequest(
+          deviceId = "123",
+          pushHandler = Some(PushHandler(name = "ph", url = "phUrl"))
+        )
+      ) must throwAGrpcRuntimeException(
+        Code.NOT_FOUND,
+        "Device 123 does not exist"
+      )
+    }
   }
 
   trait RegisteredDeviceContext extends IntegrationContext {
@@ -85,6 +97,21 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
         Code.ALREADY_EXISTS,
         "Device 123 is already registered"
       )
+    }
+
+    "register a push handler" >> in(
+      new RegisteredDeviceContext {
+        override lazy val device = Device(id = "123", publicKey = "yyy")
+      }
+    ) { context =>
+      val result = context.client.registerPushHandler(
+        RegisterPushHandlerRequest(
+          deviceId = context.device.id,
+          pushHandler = Some(PushHandler(name = "ph", url = "phUrl"))
+        )
+      )
+
+      result === RegisterPushHandlerResponse(success = true)
     }
   }
 }

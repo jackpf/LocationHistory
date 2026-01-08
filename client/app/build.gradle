@@ -64,6 +64,8 @@ dependencies {
     implementation libs.concurrent
     implementation libs.fragment
     implementation libs.appcompat
+    implementation libs.unifiedpush
+    implementation libs.material
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
