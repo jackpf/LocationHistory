@@ -5,8 +5,7 @@ import com.jackpf.locationhistory.admin_service.AdminServiceGrpc.AdminService
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
   InvalidDeviceStatus,
-  InvalidPassword,
-  NoDeviceProvidedException
+  InvalidPassword
 }
 import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
 import com.jackpf.locationhistory.server.model.DeviceId
@@ -40,16 +39,12 @@ class AdminServiceImpl(
   }
 
   override def deleteDevice(request: DeleteDeviceRequest): Future[DeleteDeviceResponse] = {
-    request.device match {
-      case Some(device) =>
-        for {
-          _ <- locationRepo.deleteForDevice(DeviceId(device.id))
-          deleteDevice <- deviceRepo.delete(DeviceId(device.id))
-        } yield {
-          DeleteDeviceResponse(success = deleteDevice.isSuccess)
-        }
-      case None =>
-        Future.failed(NoDeviceProvidedException().toGrpcError)
+    val deviceId = DeviceId(request.deviceId)
+    for {
+      _ <- locationRepo.deleteForDevice(deviceId)
+      deleteDevice <- deviceRepo.delete(deviceId)
+    } yield {
+      DeleteDeviceResponse(success = deleteDevice.isSuccess)
     }
   }
 
@@ -82,13 +77,8 @@ class AdminServiceImpl(
   override def listLocations(
       request: ListLocationsRequest
   ): Future[ListLocationsResponse] = {
-    request.device match {
-      case Some(device) =>
-        for {
-          locations <- locationRepo.getForDevice(DeviceId(device.id))
-        } yield ListLocationsResponse(locations.map(_.toProto))
-      case None =>
-        Future.failed(NoDeviceProvidedException().toGrpcError)
-    }
+    for {
+      locations <- locationRepo.getForDevice(DeviceId(request.deviceId))
+    } yield ListLocationsResponse(locations.map(_.toProto))
   }
 }

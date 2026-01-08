@@ -24,7 +24,7 @@ export function useAdminClient(refreshInterval: number) {
     const fetchLocations = useCallback(async () => {
         try {
             const response: ListLocationsResponse = await adminClient.listLocations({
-                device: { id: selectedDeviceId }
+                deviceId: selectedDeviceId
             } as any);
             console.log("ListLocationsResponse", response);
             setHistory(response.locations);
@@ -37,7 +37,7 @@ export function useAdminClient(refreshInterval: number) {
     const approveDevice = async (deviceId: string) => {
         try {
             await adminClient.approveDevice(
-                {device: {id: deviceId}} as any,
+                {deviceId: deviceId} as any,
             );
             // Refresh list immediately to show the checkmark/status change
             await fetchDevices();
@@ -50,7 +50,7 @@ export function useAdminClient(refreshInterval: number) {
     const deleteDevice = async (deviceId: string) => {
         try {
             await adminClient.deleteDevice(
-                {device: {id: deviceId}} as any,
+                {deviceId: deviceId} as any,
             );
             // Refresh list immediately to show the checkmark/status change
             await fetchDevices();

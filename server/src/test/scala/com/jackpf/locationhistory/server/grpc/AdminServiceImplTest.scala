@@ -210,14 +210,12 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
 
     "list locations endpoint" >> {
       trait ListLocationsContext extends Context {
-        lazy val device: Option[Device] = Some(Device(id = "123", publicKey = "xxx"))
+        lazy val deviceId: String = "123"
 
         lazy val getResponse: Future[Vector[model.StoredLocation]]
-        if (device.isDefined) {
-          when(locationRepo.getForDevice(DeviceId(device.get.id))).thenReturn(getResponse)
-        }
+        when(locationRepo.getForDevice(DeviceId(deviceId))).thenReturn(getResponse)
 
-        val request: ListLocationsRequest = ListLocationsRequest(device = device)
+        val request: ListLocationsRequest = ListLocationsRequest(deviceId = deviceId)
         val result: Future[ListLocationsResponse] = adminService.listLocations(request)
       }
 
@@ -247,13 +245,6 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         )
       }) { context =>
         context.result must beEqualTo(ListLocationsResponse(locations = Seq.empty)).await
-      }
-
-      "fail on missing device" >> in(new ListLocationsContext {
-        override lazy val device: Option[Device] = None
-        override lazy val getResponse: Future[Vector[model.StoredLocation]] = null
-      }) { context =>
-        context.result must throwAGrpcException(Code.INVALID_ARGUMENT, "No device provided").await
       }
     }
   }
