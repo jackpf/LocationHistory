@@ -110,7 +110,6 @@ public class UnifiedPushService extends PushService {
                     new GrpcFutureWrapper<>(
                             value -> {
                                 if (value.getSuccess()) {
-                                    // TODO Strings
                                     log.d("Un-registered push handler");
                                     Feedback.toast(getApplicationContext(), R.string.toast_unregister_push_handler_success);
                                 } else {
