@@ -9,7 +9,7 @@ fi
 OUT_DIR="${1}"
 
 if [ -z "${SERVER_NAME}" ]; then
-  echo "$$SERVER_NAME must be set"
+  echo "\$SERVER_NAME must be set"
   exit 2
 fi
 
