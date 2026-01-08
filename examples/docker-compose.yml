@@ -14,6 +14,7 @@ services:
       - ${ADMIN_PORT}:8081
     environment:
       - SERVER_NAME=${SERVER_NAME}
+      - ALT_SERVER_NAMES=${ALT_SERVER_NAMES}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - STORAGE_TYPE=${STORAGE_TYPE}
   location-history-ui-proxy:
