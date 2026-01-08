@@ -2,6 +2,8 @@ package com.jackpf.locationhistory.client.push;
 
 import android.content.Context;
 
+import androidx.core.content.ContextCompat;
+
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.RegisterPushHandlerResponse;
 import com.jackpf.locationhistory.client.BeaconClientFactory;
@@ -64,7 +66,7 @@ public class PushRegistration {
                     )
             );
 
-            registerResult.addListener(beaconClient::close, context.getMainExecutor());
+            registerResult.addListener(beaconClient::close, ContextCompat.getMainExecutor(context));
         } catch (IOException e) {
             log.e(e, "Failed to create beacon client for push handler registration");
             Feedback.toast(context, R.string.toast_connection_failed, e.getMessage());
@@ -98,7 +100,7 @@ public class PushRegistration {
                     )
             );
 
-            registerResult.addListener(beaconClient::close, context.getMainExecutor());
+            registerResult.addListener(beaconClient::close, ContextCompat.getMainExecutor(context));
         } catch (IOException e) {
             log.e(e, "Failed to create beacon client for push handler registration");
             Feedback.toast(context, R.string.toast_connection_failed, e.getMessage());

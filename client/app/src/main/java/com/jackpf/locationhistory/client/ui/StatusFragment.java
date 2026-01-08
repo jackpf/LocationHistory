@@ -106,7 +106,7 @@ public class StatusFragment extends Fragment {
 
         Futures.addCallback(
                 testConnectionFuture,
-                new FutureCallback<>() {
+                new FutureCallback<PingResponse>() {
                     @Override
                     public void onSuccess(PingResponse result) {
                         if (BeaconClient.isPongResponse(result)) {

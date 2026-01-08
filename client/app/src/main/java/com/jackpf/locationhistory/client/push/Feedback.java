@@ -26,12 +26,14 @@ public class Feedback {
         NotificationManager notificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID,
-                NAME,
-                NotificationManager.IMPORTANCE_HIGH
-        );
-        notificationManager.createNotificationChannel(channel);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    NAME,
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            notificationManager.createNotificationChannel(channel);
+        }
 
         Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_menu_mylocation)
