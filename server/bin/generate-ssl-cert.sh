@@ -26,8 +26,12 @@ for ENTRY in "${ADDR[@]}"; do
     fi
 
     if [[ "$ENTRY" =~ : ]]; then # IPv6
+        if [[ "$ENTRY" =~ [^0-9a-fA-F:] ]]; then
+            echo "Detected IPv6 with invalid characters"
+            exit 3
+        fi
         PREFIX="IP"
-    elif [[ "$ENTRY" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then # IPv4
+    elif [[ "$ENTRY" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then # IPv4
         PREFIX="IP"
     else # Hostname
         PREFIX="DNS"
