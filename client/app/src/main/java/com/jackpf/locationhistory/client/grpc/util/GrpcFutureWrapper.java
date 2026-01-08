@@ -33,14 +33,17 @@ public class GrpcFutureWrapper<T> implements FutureCallback<T> {
 
     @Override
     public void onSuccess(T value) {
-        if (loggingEnabled)
+        if (loggingEnabled) {
             log.d("%s response: %s", tag, value != null ? value.toString() : "null");
+        }
         valueCallback.accept(value);
     }
 
     @Override
     public void onFailure(@NonNull Throwable t) {
-        if (loggingEnabled) log.e(t, "%s error", tag);
+        if (loggingEnabled) {
+            log.e(t, "%s error", tag);
+        }
         if (t instanceof StatusRuntimeException) {
             errorCallback.accept((StatusRuntimeException) t);
         } else {

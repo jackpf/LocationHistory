@@ -127,7 +127,7 @@ public class SettingsFragment extends Fragment {
 
             pingResponse.addListener(tempClient::close, requireActivity().getMainExecutor());
         } catch (NumberFormatException | IOException e) {
-            Toast.makeText(getContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -139,11 +139,11 @@ public class SettingsFragment extends Fragment {
 
                 MainActivity activity = (MainActivity) getActivity();
                 activity.refreshBeaconClient();
-                BeaconWorkerFactory.runOnce(getContext());
+                BeaconWorkerFactory.runOnce(requireContext());
 
-                Toast.makeText(getContext(), getString(R.string.toast_saved), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.toast_saved), Toast.LENGTH_SHORT).show();
             } catch (NumberFormatException e) {
-                Toast.makeText(getContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -155,7 +155,7 @@ public class SettingsFragment extends Fragment {
                 if (!distributors.isEmpty()) {
                     log.d("Found distributors: %s", Arrays.toString(distributors.toArray()));
                     // TODO Select distributor properly from list
-                    UnifiedPushService.register(getContext(), distributors.get(0));
+                    UnifiedPushService.register(requireContext(), distributors.get(0));
                 } else {
                     log.d("No push distributors");
                     Ntfy.promptInstall(requireContext());
