@@ -69,7 +69,7 @@ class BeaconServiceImpl(
 
       deviceRepo.get(deviceId).flatMap {
         case Some(storedDevice) =>
-          if (storedDevice.status == StoredDevice.DeviceStatus.Registered) {
+          if (storedDevice.isRegistered) {
             locationRepo
               .storeDeviceLocation(
                 deviceId,
@@ -94,14 +94,23 @@ class BeaconServiceImpl(
   override def registerPushHandler(
       request: RegisterPushHandlerRequest
   ): Future[RegisterPushHandlerResponse] = {
-    deviceRepo
-      .update(
-        DeviceId(request.deviceId),
-        storedDevice => storedDevice.withPushHandler(request.pushHandler.map(PushHandler.fromProto))
-      )
-      .flatMap {
-        case Failure(exception) => Future.failed(exception.toGrpcError)
-        case Success(value)     => Future.successful(RegisterPushHandlerResponse(success = true))
-      }
+    val deviceId = DeviceId(request.deviceId)
+
+    deviceRepo.get(deviceId).flatMap {
+      case Some(storedDevice) if storedDevice.isRegistered =>
+        deviceRepo
+          .update(
+            deviceId,
+            storedDevice =>
+              storedDevice.withPushHandler(request.pushHandler.map(PushHandler.fromProto))
+          )
+          .flatMap {
+            case Failure(exception) => Future.failed(exception.toGrpcError)
+            case Success(value) => Future.successful(RegisterPushHandlerResponse(success = true))
+          }
+      case Some(_) => Future.failed(DeviceNotRegisteredException(deviceId).toGrpcError)
+      case None    =>
+        Future.failed(DeviceNotFoundException(deviceId).toGrpcError)
+    }
   }
 }
