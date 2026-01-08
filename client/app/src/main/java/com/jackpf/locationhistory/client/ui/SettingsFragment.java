@@ -19,6 +19,7 @@ import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
+import com.jackpf.locationhistory.client.push.UnifiedPushService;
 import com.jackpf.locationhistory.client.ssl.SSLPrompt;
 import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.ssl.UntrustedCertException;
@@ -143,15 +144,8 @@ public class SettingsFragment extends Fragment {
             List<String> distributors = UnifiedPush.getDistributors(requireContext());
             if (!distributors.isEmpty()) {
                 log.d("Found distributors: %s", Arrays.toString(distributors.toArray()));
-                // TODO Select distributors
-                UnifiedPush.saveDistributor(requireContext(), distributors.get(0));
-
-                UnifiedPush.register(
-                        requireContext(),
-                        "default",
-                        "Location History",
-                        null
-                );
+                // TODO Select distributor properly from list
+                UnifiedPushService.register(getContext(), distributors.get(0));
             } else {
                 Toast.makeText(getContext(), getString(R.string.no_push_distributors), Toast.LENGTH_LONG).show();
             }

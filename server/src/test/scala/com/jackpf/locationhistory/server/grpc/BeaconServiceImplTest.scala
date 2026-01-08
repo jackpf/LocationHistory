@@ -256,13 +256,10 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         context.result must beEqualTo(RegisterPushHandlerResponse(success = true)).await
       }
 
-      "not register a push handler if not provided" >> in(new RegisterPushHandlerContext {
+      "un-register a push handler if not provided" >> in(new RegisterPushHandlerContext {
         override lazy val pushHandler: Option[PushHandler] = None
       }) { context =>
-        context.result must throwAGrpcException(
-          Code.INVALID_ARGUMENT,
-          "No push handler provided"
-        ).await
+        context.result must beEqualTo(RegisterPushHandlerResponse(success = true)).await
       }
 
       "not register a push handler with failure" >> in(new RegisterPushHandlerContext {

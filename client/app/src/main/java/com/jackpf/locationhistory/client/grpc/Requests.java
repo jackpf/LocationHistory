@@ -78,4 +78,12 @@ public class Requests {
                 )
                 .build();
     }
+
+    public static RegisterPushHandlerRequest unregisterPushHandler(String deviceId) {
+        return RegisterPushHandlerRequest
+                .newBuilder()
+                .setDeviceId(deviceId)
+                // Empty push handler
+                .build();
+    }
 }

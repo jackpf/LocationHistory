@@ -117,6 +117,19 @@ public class BeaconClient implements AutoCloseable {
         return future;
     }
 
+    public ListenableFuture<RegisterPushHandlerResponse> unregisterPushHandler(
+            String deviceId,
+            GrpcFutureWrapper<RegisterPushHandlerResponse> callback
+    ) {
+        callback.setTag("Un-register push handler");
+
+        RegisterPushHandlerRequest request = Requests.unregisterPushHandler(deviceId);
+        ListenableFuture<RegisterPushHandlerResponse> future = createStub().registerPushHandler(request);
+        Futures.addCallback(future, callback, threadExecutor);
+
+        return future;
+    }
+
     public boolean isClosed() {
         return channel.isShutdown() || channel.isTerminated();
     }

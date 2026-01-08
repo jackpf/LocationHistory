@@ -1,5 +1,7 @@
 package com.jackpf.locationhistory.client.push;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -14,6 +16,7 @@ import com.jackpf.locationhistory.client.util.Logger;
 
 import org.unifiedpush.android.connector.FailedReason;
 import org.unifiedpush.android.connector.PushService;
+import org.unifiedpush.android.connector.UnifiedPush;
 import org.unifiedpush.android.connector.data.PushEndpoint;
 import org.unifiedpush.android.connector.data.PushMessage;
 
@@ -87,12 +90,54 @@ public class UnifiedPushService extends PushService {
     @Override
     public void onRegistrationFailed(@NonNull FailedReason failedReason, @NonNull String instance) {
         log.e("UnifiedPush: onRegistrationFailed: %s", failedReason.toString());
-        // TODO
     }
 
     @Override
     public void onUnregistered(@NonNull String instance) {
         log.i("UnifiedPush: onUnregistered");
-        // TODO
+
+        UnifiedPushStorage storage = new UnifiedPushStorage(getApplicationContext());
+        storage.setEndpoint(null);
+
+        ConfigRepository configRepository = new ConfigRepository(getApplicationContext());
+
+        try {
+            BeaconClient beaconClient = createBeaconClient(configRepository);
+
+            ListenableFuture<RegisterPushHandlerResponse> registerResult = beaconClient.unregisterPushHandler(
+                    configRepository.getDeviceId(),
+                    new GrpcFutureWrapper<>(
+                            value -> {
+                                if (value.getSuccess()) {
+                                    // TODO Strings
+                                    log.d("Un-registered push handler");
+                                    Feedback.toast(getApplicationContext(), "Un-registered push handler");
+                                } else {
+                                    log.e("Un-registering push handler failed");
+                                    Feedback.toast(getApplicationContext(), "Un-registering push handler failed");
+                                }
+                            },
+                            error -> {
+                                log.e(error, "Error un-registering push handler");
+                                Feedback.toast(getApplicationContext(), "Error un-registering push handler");
+                            }
+                    )
+            );
+
+            registerResult.addListener(beaconClient::close, getMainExecutor());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void register(Context context, String distributor) {
+        UnifiedPush.saveDistributor(context, distributor);
+
+        UnifiedPush.register(
+                context,
+                "default",
+                "",
+                null
+        );
     }
 }
