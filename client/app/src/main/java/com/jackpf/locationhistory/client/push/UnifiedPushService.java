@@ -72,7 +72,8 @@ public class UnifiedPushService extends PushService {
 
             registerResult.addListener(beaconClient::close, getMainExecutor());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.e(e, "Failed to create beacon client for push handler registration");
+            Feedback.toast(getApplicationContext(), "Connection error");
         }
     }
 
@@ -126,7 +127,8 @@ public class UnifiedPushService extends PushService {
 
             registerResult.addListener(beaconClient::close, getMainExecutor());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.e(e, "Failed to create beacon client for push handler registration");
+            Feedback.toast(getApplicationContext(), "Connection error");
         }
     }
 
