@@ -30,7 +30,6 @@ public class BeaconClient implements AutoCloseable {
     private final boolean waitForReady;
     private final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
 
-
     public BeaconClient(
             ManagedChannel channel,
             DynamicTrustManager dynamicTrustManager,
@@ -50,6 +49,10 @@ public class BeaconClient implements AutoCloseable {
 
         if (waitForReady) return stub.withWaitForReady();
         else return stub;
+    }
+
+    public static boolean isPongResponse(PingResponse response) {
+        return "pong".equals(response.getMessage());
     }
 
     public ListenableFuture<PingResponse> ping(GrpcFutureWrapper<PingResponse> callback) {

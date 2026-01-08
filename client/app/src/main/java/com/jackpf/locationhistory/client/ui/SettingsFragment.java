@@ -96,21 +96,17 @@ public class SettingsFragment extends Fragment {
 
             tempClient.ping(new GrpcFutureWrapper<>(
                     response -> getActivity().runOnUiThread(() -> {
-                        String responseMessage = response.getMessage();
-                        if ("pong".equals(responseMessage)) {
+                        if (BeaconClient.isPongResponse(response)) {
                             Toast.makeText(getActivity(), getString(R.string.toast_connection_successful), Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(getActivity(), getString(R.string.toast_invalid_response, responseMessage), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(), getString(R.string.toast_invalid_response, response.getMessage()), Toast.LENGTH_SHORT).show();
                         }
                         tempClient.close();
                     }),
                     e -> {
-                        log.i("LALALA");
                         if (UntrustedCertException.isCauseOf(e)) {
-                            log.i("LALALA isCause");
                             getActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint(), true));
                         } else {
-                            log.i("LALALA is NOT Cause");
                             getActivity().runOnUiThread(() ->
                                     Toast.makeText(getActivity(), getString(R.string.toast_connection_failed, e.getMessage()), Toast.LENGTH_SHORT).show()
                             );
