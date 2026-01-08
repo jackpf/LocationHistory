@@ -103,7 +103,7 @@ public class SettingsFragment extends Fragment {
                     binding.serverHostInput.getText().toString(),
                     Integer.parseInt(binding.serverPortInput.getText().toString()),
                     false,
-                    1500, // Smaller timeout for pings
+                    3000, // Smaller timeout for pings
                     new TrustedCertStorage(getActivity())
             );
 
