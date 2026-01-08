@@ -14,6 +14,9 @@ public class Feedback {
     private static final String CHANNEL_ID = "UnifiedPush";
     private static final String NAME = "Location History";
 
+    private Feedback() {
+    }
+
     public static void createNotification(
             Context context,
             int id,
