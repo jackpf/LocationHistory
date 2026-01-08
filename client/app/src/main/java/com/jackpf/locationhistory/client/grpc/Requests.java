@@ -39,7 +39,7 @@ public class Requests {
     public static CheckDeviceRequest checkDeviceRequest(String deviceId) {
         return CheckDeviceRequest
                 .newBuilder()
-                .setDevice(device(deviceId, "", ""))
+                .setDeviceId(deviceId)
                 .build();
     }
 
@@ -52,7 +52,6 @@ public class Requests {
 
     public static SetLocationRequest setLocationRequest(
             String deviceId,
-            String publicKey,
             Double lat,
             Double lon,
             Double accuracy,
@@ -60,7 +59,7 @@ public class Requests {
     ) {
         return SetLocationRequest
                 .newBuilder()
-                .setDevice(device(deviceId, "", publicKey))
+                .setDeviceId(deviceId)
                 .setLocation(location(lat, lon, accuracy))
                 .setTimestamp(timestamp)
                 .build();

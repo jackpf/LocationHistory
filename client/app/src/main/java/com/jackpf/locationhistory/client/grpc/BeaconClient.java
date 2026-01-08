@@ -86,12 +86,11 @@ public class BeaconClient implements AutoCloseable {
         return future;
     }
 
-    public ListenableFuture<SetLocationResponse> sendLocation(String deviceId, String publicKey, BeaconRequest beaconRequest, GrpcFutureWrapper<SetLocationResponse> callback) {
+    public ListenableFuture<SetLocationResponse> sendLocation(String deviceId, BeaconRequest beaconRequest, GrpcFutureWrapper<SetLocationResponse> callback) {
         callback.setTag("Set location");
 
         SetLocationRequest request = Requests.setLocationRequest(
                 deviceId,
-                publicKey,
                 beaconRequest.getLat(),
                 beaconRequest.getLon(),
                 (double) beaconRequest.getAccuracy(),

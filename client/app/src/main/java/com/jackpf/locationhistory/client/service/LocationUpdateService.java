@@ -28,7 +28,6 @@ public class LocationUpdateService {
     public ListenableFuture<SetLocationResponse> setLocation(DeviceState deviceState, LocationProvider.LocationData locationData) {
         ListenableFuture<SetLocationResponse> setLocation = beaconClient.sendLocation(
                 deviceState.getDeviceId(),
-                deviceState.getPublicKey(),
                 BeaconRequest.fromLocation(locationData.getLocation()),
                 GrpcFutureWrapper.empty()
         );
