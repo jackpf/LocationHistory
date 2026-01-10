@@ -3,6 +3,7 @@ package com.jackpf.locationhistory.server.testutil
 import com.jackpf.locationhistory.server.AppServer
 import com.jackpf.locationhistory.server.grpc.{AuthenticationManager, Services}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
+import com.jackpf.locationhistory.server.service.NotificationService
 import io.grpc.Server
 
 import java.util.concurrent.TimeUnit
@@ -14,7 +15,11 @@ object TestServer {
 
   var server: Server = uninitialized
 
-  def start(deviceRepo: DeviceRepo, locationRepo: LocationRepo): Unit =
+  def start(
+      deviceRepo: DeviceRepo,
+      locationRepo: LocationRepo,
+      notificationService: NotificationService
+  ): Unit =
     synchronized {
       if (server == null) {
         server = new AppServer(
@@ -24,7 +29,8 @@ object TestServer {
           (Services.adminServices(
             new AuthenticationManager(TestAdminPassword),
             deviceRepo,
-            locationRepo
+            locationRepo,
+            notificationService
           ) ++ Services.beaconServices(
             deviceRepo,
             locationRepo

@@ -9,18 +9,16 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   NoPushHandler
 }
 import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
-import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
+import com.jackpf.locationhistory.server.model.{DeviceId, StoredDevice}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.service.NotificationService
 import com.jackpf.locationhistory.server.service.NotificationService.Notification
 import com.jackpf.locationhistory.server.util.Logging
-
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
-
 import com.jackpf.locationhistory.server.util.ParamExtractor.*
 import com.jackpf.locationhistory.server.util.ResponseMapper.*
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class AdminServiceImpl(
     authenticationManager: AuthenticationManager,
@@ -50,24 +48,20 @@ class AdminServiceImpl(
     for {
       _ <- locationRepo.deleteForDevice(deviceId)
       deleteDevice <- deviceRepo.delete(deviceId)
-    } yield {
-      DeleteDeviceResponse(success = deleteDevice.isSuccess)
-    }
-  }
+    } yield deleteDevice
+  }.toResponse(_ => DeleteDeviceResponse(success = true))
 
   override def approveDevice(
       request: ApproveDeviceRequest
   ): Future[ApproveDeviceResponse] = {
-    deviceRepo.get(DeviceId(request.deviceId)).flatMap {
-      case Some(storedDevice) =>
-        if (storedDevice.status == DeviceStatus.Pending) {
-          deviceRepo
-            .update(storedDevice.device.id, device => device.register())
-            .flatMap {
-              case Failure(exception) => Future.failed(exception.toGrpcError)
-              case Success(_)         => Future.successful(ApproveDeviceResponse(success = true))
-            }
-        } else {
+    val deviceId = DeviceId(request.deviceId)
+
+    for {
+      storedDevice <- deviceRepo.get(deviceId).toFutureOr(DeviceNotFoundException(deviceId))
+      response <- storedDevice.status match {
+        case StoredDevice.DeviceStatus.Pending =>
+          deviceRepo.update(storedDevice.device.id, device => device.register())
+        case _ =>
           Future.failed(
             InvalidDeviceStatus(
               storedDevice.device.id,
@@ -75,11 +69,9 @@ class AdminServiceImpl(
               expectedState = DeviceStatus.Pending
             ).toGrpcError
           )
-        }
-      case None =>
-        Future.failed(DeviceNotFoundException(DeviceId(request.deviceId)).toGrpcError)
-    }
-  }
+      }
+    } yield response
+  }.toResponse(_ => ApproveDeviceResponse(success = true))
 
   override def listLocations(
       request: ListLocationsRequest
@@ -94,17 +86,15 @@ class AdminServiceImpl(
   ): Future[SendNotificationResponse] = {
     val deviceId = DeviceId(request.deviceId)
 
-    {
-      for {
-        storedDevice <- deviceRepo.get(deviceId).toFutureOr(DeviceNotFoundException(deviceId))
-        pushHandler <- storedDevice.pushHandler.toFutureOr(NoPushHandler(deviceId))
-        notification <- Notification
-          .fromProto(request.notificationType)
-          .toFutureOr(
-            new IllegalArgumentException(s"Invalid notification type: ${request.notificationType}")
-          )
-        response <- notificationService.sendNotification(pushHandler.url, notification)
-      } yield response
-    }.toResponse(_ => SendNotificationResponse(success = true))
-  }
+    for {
+      storedDevice <- deviceRepo.get(deviceId).toFutureOr(DeviceNotFoundException(deviceId))
+      pushHandler <- storedDevice.pushHandler.toFutureOr(NoPushHandler(deviceId))
+      notification <- Notification
+        .fromProto(request.notificationType)
+        .toFutureOr(
+          new IllegalArgumentException(s"Invalid notification type: ${request.notificationType}")
+        )
+      response <- notificationService.sendNotification(pushHandler.url, notification)
+    } yield response
+  }.toResponse(_ => SendNotificationResponse(success = true))
 }

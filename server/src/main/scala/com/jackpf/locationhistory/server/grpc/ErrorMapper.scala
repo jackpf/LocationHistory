@@ -1,7 +1,7 @@
 package com.jackpf.locationhistory.server.grpc
 
 import com.jackpf.locationhistory.server.errors.ApplicationError
-import io.grpc.Status
+import io.grpc.{Status, StatusException, StatusRuntimeException}
 
 object ErrorMapper {
   private def applicationErrorToStatus(
@@ -18,6 +18,9 @@ object ErrorMapper {
         Status.INTERNAL.withDescription(other.getMessage).withCause(other)
     }
 
-    def toGrpcError: Throwable = toGrpcStatus.asException()
+    def toGrpcError: Throwable = if (
+      throwable.isInstanceOf[StatusException] || throwable.isInstanceOf[StatusRuntimeException]
+    ) throwable
+    else toGrpcStatus.asException()
   }
 }

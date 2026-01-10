@@ -8,9 +8,11 @@ import com.jackpf.locationhistory.server.repo.{
   InMemoryLocationRepo,
   LocationRepo
 }
+import com.jackpf.locationhistory.server.service.NotificationService
 import com.jackpf.locationhistory.server.testutil.IntegrationTest.{resetState, startServer}
 import io.grpc.stub.MetadataUtils
 import io.grpc.{ManagedChannel, ManagedChannelBuilder, Metadata}
+import org.mockito.Mockito.mock
 import org.specs2.specification.After
 
 import java.util.concurrent.TimeUnit
@@ -21,6 +23,8 @@ import scala.concurrent.{Await, Future}
 object IntegrationTest {
   val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
   val locationRepo: LocationRepo = new InMemoryLocationRepo
+  // TODO Use wiremock
+  val notificationService: NotificationService = mock(classOf[NotificationService])
 
   def startServer(): Unit = {
     Await.result(
@@ -30,7 +34,7 @@ object IntegrationTest {
       Duration.Inf
     ): Unit
 
-    TestServer.start(deviceRepo, locationRepo)
+    TestServer.start(deviceRepo, locationRepo, notificationService)
   }
 
   def resetState(): Unit = {
