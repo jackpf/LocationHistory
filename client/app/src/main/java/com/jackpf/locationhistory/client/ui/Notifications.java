@@ -10,6 +10,8 @@ import android.net.Uri;
 
 import androidx.core.app.NotificationCompat;
 
+import com.jackpf.locationhistory.client.R;
+
 public class Notifications {
     private static final String NOTIFICATIONS_CHANNEL = "notifications";
     private static final String ALARM_CHANNEL = "alarms";
@@ -65,8 +67,8 @@ public class Notifications {
     public void triggerAlarm() {
         Notification notification = new NotificationCompat.Builder(context, ALARM_CHANNEL)
                 .setSmallIcon(android.R.drawable.ic_menu_mylocation)
-                .setContentTitle("Alarm Triggered")
-                .setContentText("Alarm triggered via Location History.")
+                .setContentTitle(context.getString(R.string.notification_alarm_title))
+                .setContentText(context.getString(R.string.notification_alarm_description))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setAutoCancel(true)
