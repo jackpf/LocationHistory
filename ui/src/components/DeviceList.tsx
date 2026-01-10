@@ -38,7 +38,8 @@ export const DeviceList: React.FC<DeviceListProps> = ({
     };
 
     const handleRing = async (storedDevice: StoredDevice) => {
-        if (!storedDevice.device || !storedDevice.pushHandler) return;
+        const device = storedDevice.device;
+        if (!device || !storedDevice.pushHandler) return;
 
         const pushHandlerName = storedDevice.pushHandler.name;
         const pushHandlerUrl = storedDevice.pushHandler.url;
@@ -48,7 +49,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
 
             sendUnifiedPushNotification(pushHandlerUrl, TRIGGER_ALARM_MESSAGE)
                 .then(r => {
-                    if (r) console.log(`Sent alarm to ${storedDevice.device.id} on ${pushHandlerUrl}`);
+                    if (r) console.log(`Sent alarm to ${device.id} on ${pushHandlerUrl}`);
                 });
         } else {
             console.error(`Invalid push handler ${pushHandlerName}`)
@@ -68,7 +69,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                 return <span><span style={{color: 'gray'}}>●</span> Unknown</span>;
         }
     }
-    
+
     const showApproveDeviceIfPending = (deviceId: string, deviceStatus: DeviceStatus) => {
         if (deviceStatus === DeviceStatus.DEVICE_PENDING) {
             return <button
