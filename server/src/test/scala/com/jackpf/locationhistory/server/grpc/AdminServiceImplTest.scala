@@ -285,9 +285,65 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         context.result must beEqualTo(SendNotificationResponse(success = true)).await
       }
 
-      // TODO device not found
-      // TODO empty push handler
-      // TODO propagate errors
+      "not send a notification if device not found" >> in(new SendNotificationContext {
+        override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
+        override lazy val expectedNotificationUrl: String = null
+        override lazy val expectedNotification: Notification = null
+        override lazy val getResponse: Future[Option[model.StoredDevice]] = Future.successful(None)
+        override lazy val notificationResponse: Future[Try[Unit]] = null
+      }) { context =>
+        context.result must throwAGrpcException(Code.NOT_FOUND, "Device 123 does not exist").await
+      }
+
+      "not send a notification if push handler is empty" >> in(new SendNotificationContext {
+        override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
+        override lazy val expectedNotificationUrl: String = null
+        override lazy val expectedNotification: Notification = null
+        override lazy val getResponse: Future[Option[model.StoredDevice]] = Future.successful(
+          Some(MockModels.storedDevice(pushHandler = None))
+        )
+        override lazy val notificationResponse: Future[Try[Unit]] = null
+      }) { context =>
+        context.result must throwAGrpcException(
+          Code.INVALID_ARGUMENT,
+          "Device 123 has no registered push handler"
+        ).await
+      }
+
+      "not send a notification if push handler is not registered" >> in(
+        new SendNotificationContext {
+          override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
+          override lazy val expectedNotificationUrl: String = null
+          override lazy val expectedNotification: Notification = null
+          override lazy val getResponse: Future[Option[model.StoredDevice]] = Future.successful(
+            Some(
+              MockModels.storedDevice(
+                pushHandler = Some(MockModels.pushHandler()),
+                status = model.StoredDevice.DeviceStatus.Pending
+              )
+            )
+          )
+          override lazy val notificationResponse: Future[Try[Unit]] = null
+        }
+      ) { context =>
+        context.result must throwAGrpcException(
+          Code.INVALID_ARGUMENT,
+          "Device 123 not found"
+        ).await
+      }.pendingUntilFixed("TODO")
+
+      "propagate errors" >> in(new SendNotificationContext {
+        override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
+        override lazy val expectedNotificationUrl: String = MockModels.pushHandler().url
+        override lazy val expectedNotification: Notification = Notification.TRIGGER_BEACON
+        override lazy val getResponse: Future[Option[model.StoredDevice]] = Future.successful(
+          Some(MockModels.storedDevice(pushHandler = Some(MockModels.pushHandler())))
+        )
+        override lazy val notificationResponse: Future[Try[Unit]] =
+          Future.successful(Failure(new Error("Test error")))
+      }) { context =>
+        context.result must throwAGrpcException(Code.INTERNAL, "Test error").await
+      }
     }
   }
 }
