@@ -94,17 +94,17 @@ object App {
     )
 
     val beaconServer = new AppServer(
-      "Admin service",
-      parsedArgs.adminPort.get,
-      sslCertsPath = None,
-      Services.adminServices(authenticationManager, deviceRepo, locationRepo, notificationService)*
-    ).start()
-
-    val adminServer = new AppServer(
       "Beacon service",
       parsedArgs.beaconPort.get,
       parsedArgs.sslCertsPath,
       Services.beaconServices(deviceRepo, locationRepo)*
+    ).start()
+
+    val adminServer = new AppServer(
+      "Admin service",
+      parsedArgs.adminPort.get,
+      sslCertsPath = None,
+      Services.adminServices(authenticationManager, deviceRepo, locationRepo, notificationService)*
     ).start()
 
     sys.addShutdownHook { () =>
