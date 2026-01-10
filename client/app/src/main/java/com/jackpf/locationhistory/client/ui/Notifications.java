@@ -48,7 +48,6 @@ public class Notifications {
     }
 
     public void createNotification(
-            Context context,
             int id,
             String title,
             String text
