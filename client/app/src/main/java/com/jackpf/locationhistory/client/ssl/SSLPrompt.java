@@ -6,15 +6,15 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.jackpf.locationhistory.client.R;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SSLPrompt {
     private final Activity activity;
     private final TrustedCertStorage storage;
     private final static AtomicBoolean isShowing = new AtomicBoolean(false);
-    private final Map<String, Long> promptCache = new HashMap<>();
+    private final static Map<String, Long> promptCache = new ConcurrentHashMap<>();
 
     private final long PROMPT_COOLDOWN_MS = 30_000;
 
