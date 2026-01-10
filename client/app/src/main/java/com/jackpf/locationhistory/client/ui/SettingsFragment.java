@@ -116,7 +116,7 @@ public class SettingsFragment extends Fragment {
                     }),
                     e -> {
                         if (UntrustedCertException.isCauseOf(e)) {
-                            requireActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint(), true));
+                            sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint(), true);
                         } else {
                             requireActivity().runOnUiThread(() ->
                                     Toasts.show(getActivity(), R.string.toast_connection_failed, e.getMessage())

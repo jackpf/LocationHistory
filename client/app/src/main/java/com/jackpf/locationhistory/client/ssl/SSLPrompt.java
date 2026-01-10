@@ -13,8 +13,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class SSLPrompt {
     private final Activity activity;
     private final TrustedCertStorage storage;
-    private final AtomicBoolean isShowing = new AtomicBoolean(false);
-    private final Map<String, Long> deniedCache = new HashMap<>();
+    private final static AtomicBoolean isShowing = new AtomicBoolean(false);
+    private final Map<String, Long> promptCache = new HashMap<>();
 
     private final long PROMPT_COOLDOWN_MS = 30_000;
 
@@ -23,32 +23,40 @@ public class SSLPrompt {
         this.storage = new TrustedCertStorage(activity);
     }
 
+    private void closePrompt(String fingerprint, boolean accept) {
+        promptCache.put(fingerprint, System.currentTimeMillis());
+        if (accept) {
+            storage.addFingerprint(fingerprint);
+        }
+        isShowing.set(false);
+    }
+
     public void show(String fingerprint, boolean force) {
         if (activity.isFinishing() || activity.isDestroyed()) {
             return;
         }
 
-        if (!force && deniedCache.containsKey(fingerprint)) {
-            long lastDenied = deniedCache.get(fingerprint);
+        if (!force && promptCache.containsKey(fingerprint)) {
+            long lastDenied = promptCache.get(fingerprint);
             if (System.currentTimeMillis() - lastDenied < PROMPT_COOLDOWN_MS) {
                 return;
             }
         }
 
         if (isShowing.compareAndSet(false, true)) {
-            new AlertDialog.Builder(activity)
-                    .setTitle(activity.getString(R.string.security_warning))
-                    .setMessage(activity.getString(R.string.message_ssl_prompt, fingerprint))
-                    .setPositiveButton(activity.getString(R.string.trust_always), (dialog, which) -> {
-                        isShowing.set(false);
-                        storage.addFingerprint(fingerprint);
-                    })
-                    .setNegativeButton(activity.getString(R.string.cancel), (dialog, which) -> {
-                        deniedCache.put(fingerprint, System.currentTimeMillis());
-                        isShowing.set(false);
-                    })
-                    .setOnDismissListener((dialog) -> isShowing.set(false))
-                    .show();
+            activity.runOnUiThread(() ->
+                    new AlertDialog.Builder(activity)
+                            .setTitle(activity.getString(R.string.security_warning))
+                            .setMessage(activity.getString(R.string.message_ssl_prompt, fingerprint))
+                            .setPositiveButton(activity.getString(R.string.trust_always), (dialog, which) -> {
+                                closePrompt(fingerprint, true);
+                            })
+                            .setNegativeButton(activity.getString(R.string.cancel), (dialog, which) -> {
+                                closePrompt(fingerprint, false);
+                            })
+                            .setOnDismissListener((dialog) -> isShowing.set(false))
+                            .show()
+            );
         }
     }
 }
