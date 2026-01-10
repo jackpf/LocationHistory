@@ -80,7 +80,8 @@ object App {
 
     val deviceRepo: DeviceRepo = repoFactory.deviceRepo(parsedArgs.storageType.get)
     val locationRepo: LocationRepo = repoFactory.locationRepo(parsedArgs.storageType.get)
-    val notificationService: NotificationService = new NotificationService(DefaultFutureBackend())
+    val sttpBackend = DefaultFutureBackend()
+    val notificationService: NotificationService = new NotificationService(sttpBackend)
 
     Await.result(
       Future.sequence(
@@ -105,6 +106,12 @@ object App {
       parsedArgs.sslCertsPath,
       Services.beaconServices(deviceRepo, locationRepo)*
     ).start()
+
+    sys.addShutdownHook { () =>
+      beaconServer.shutdown()
+      adminServer.shutdown()
+      sttpBackend.close()
+    }
 
     beaconServer.awaitTermination()
     adminServer.awaitTermination()
