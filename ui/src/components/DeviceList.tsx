@@ -137,12 +137,14 @@ export const DeviceList: React.FC<DeviceListProps> = ({
 
                                 {openMenuId === device.id && (
                                     <div className="device-menu-dropdown">
-                                        <button
-                                            className="device-ring-btn"
-                                            onClick={() => handleRing(storedDevice)}
-                                        >
-                                            Play Sound
-                                        </button>
+                                        {storedDevice.pushHandler &&
+                                            <button
+                                                className="device-ring-btn"
+                                                onClick={() => handleRing(storedDevice)}
+                                            >
+                                                Play Sound
+                                            </button>
+                                        }
                                         <button
                                             className="device-delete-btn"
                                             onClick={() => handleDelete(device.id)}
