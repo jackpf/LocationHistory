@@ -53,10 +53,14 @@ object ApplicationErrors {
   case class DeviceAlreadyRegisteredException(
       deviceId: DeviceId.Type,
       cause: Throwable = None.orNull
-  ) extends ApplicationError(
-        s"Device ${deviceId} is already registered",
-        cause
-      ) {
+  ) extends ApplicationError(s"Device ${deviceId} is already registered", cause) {
     override val status: Status = Status.ALREADY_EXISTS
+  }
+
+  case class NoPushHandler(
+      deviceId: DeviceId.Type,
+      cause: Throwable = None.orNull
+  ) extends ApplicationError(s"Device ${deviceId} has no registered push handler", cause) {
+    override val status: Status = Status.INVALID_ARGUMENT
   }
 }

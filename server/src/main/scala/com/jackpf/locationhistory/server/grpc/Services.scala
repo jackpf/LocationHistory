@@ -4,6 +4,7 @@ import com.jackpf.locationhistory.admin_service.AdminServiceGrpc
 import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc
 import com.jackpf.locationhistory.server.grpc.interceptors.AuthenticationInterceptor
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
+import com.jackpf.locationhistory.server.service.NotificationService
 import io.grpc.{ServerInterceptors, ServerServiceDefinition}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -12,11 +13,12 @@ object Services {
   def adminServices(
       authenticationManager: AuthenticationManager,
       deviceRepo: DeviceRepo,
-      locationRepo: LocationRepo
+      locationRepo: LocationRepo,
+      notificationService: NotificationService
   ): Seq[ServerServiceDefinition] = Seq(
     ServerInterceptors.intercept(
       AdminServiceGrpc.bindService(
-        new AdminServiceImpl(authenticationManager, deviceRepo, locationRepo),
+        new AdminServiceImpl(authenticationManager, deviceRepo, locationRepo, notificationService),
         global
       ),
       new AuthenticationInterceptor(

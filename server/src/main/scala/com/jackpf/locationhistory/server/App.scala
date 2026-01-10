@@ -4,7 +4,9 @@ import com.jackpf.locationhistory.server.db.DataSourceFactory
 import com.jackpf.locationhistory.server.grpc.{AuthenticationManager, Services}
 import com.jackpf.locationhistory.server.model.StorageType
 import com.jackpf.locationhistory.server.repo.*
+import com.jackpf.locationhistory.server.service.NotificationService
 import scopt.OptionParser
+import sttp.client4.DefaultFutureBackend
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -78,6 +80,7 @@ object App {
 
     val deviceRepo: DeviceRepo = repoFactory.deviceRepo(parsedArgs.storageType.get)
     val locationRepo: LocationRepo = repoFactory.locationRepo(parsedArgs.storageType.get)
+    val notificationService: NotificationService = new NotificationService(DefaultFutureBackend())
 
     Await.result(
       Future.sequence(
@@ -93,7 +96,7 @@ object App {
       "Admin service",
       parsedArgs.adminPort.get,
       sslCertsPath = None,
-      Services.adminServices(authenticationManager, deviceRepo, locationRepo)*
+      Services.adminServices(authenticationManager, deviceRepo, locationRepo, notificationService)*
     ).start()
 
     val adminServer = new AppServer(

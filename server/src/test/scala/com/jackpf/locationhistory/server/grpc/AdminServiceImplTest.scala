@@ -23,6 +23,7 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.DeviceNotFound
 import com.jackpf.locationhistory.server.model
 import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
+import com.jackpf.locationhistory.server.service.NotificationService
 import com.jackpf.locationhistory.server.testutil.{
   DefaultScope,
   DefaultSpecification,
@@ -44,8 +45,9 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
     val authenticationManager: AuthenticationManager = mock(classOf[AuthenticationManager])
     val deviceRepo: DeviceRepo = mock(classOf[DeviceRepo])
     val locationRepo: LocationRepo = mock(classOf[LocationRepo])
+    val notificationService: NotificationService = mock(classOf[NotificationService])
     val adminService: AdminService =
-      new AdminServiceImpl(authenticationManager, deviceRepo, locationRepo)
+      new AdminServiceImpl(authenticationManager, deviceRepo, locationRepo, notificationService)
   }
 
   "Admin service" should {
@@ -247,5 +249,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         context.result must beEqualTo(ListLocationsResponse(locations = Seq.empty)).await
       }
     }
+
+    // TODO Notification endpoint
   }
 }

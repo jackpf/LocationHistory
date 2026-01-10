@@ -13,6 +13,7 @@ lazy val versions = new {
   val mockito = "5.21.0"
   val sqlite = "3.51.1.0"
   val scalasql = "0.2.3"
+  val sttp = "4.0.13"
 }
 
 lazy val IntegrationTest = config("it") extend Test
@@ -32,7 +33,8 @@ lazy val root = (project in file("."))
       "ch.qos.logback" % "logback-classic" % versions.logback,
       "org.slf4j" % "slf4j-api" % versions.slf4j,
       "org.xerial" % "sqlite-jdbc" % versions.sqlite,
-      "com.lihaoyi" %% "scalasql-namedtuples" % versions.scalasql
+      "com.lihaoyi" %% "scalasql-namedtuples" % versions.scalasql,
+      "com.softwaremill.sttp.client4" %% "core" % versions.sttp,
     ),
     // Test Dependencies
     libraryDependencies ++= Seq(

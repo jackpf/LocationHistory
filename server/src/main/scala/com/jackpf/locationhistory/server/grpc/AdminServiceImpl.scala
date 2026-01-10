@@ -5,21 +5,28 @@ import com.jackpf.locationhistory.admin_service.AdminServiceGrpc.AdminService
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
   InvalidDeviceStatus,
-  InvalidPassword
+  InvalidPassword,
+  NoPushHandler
 }
 import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
 import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
+import com.jackpf.locationhistory.server.service.NotificationService
+import com.jackpf.locationhistory.server.service.NotificationService.Notification
 import com.jackpf.locationhistory.server.util.Logging
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
+import com.jackpf.locationhistory.server.util.ParamExtractor.*
+import com.jackpf.locationhistory.server.util.ResponseMapper.*
+
 class AdminServiceImpl(
     authenticationManager: AuthenticationManager,
     deviceRepo: DeviceRepo,
-    locationRepo: LocationRepo
+    locationRepo: LocationRepo,
+    notificationService: NotificationService
 )(using ec: ExecutionContext)
     extends AdminService
     with Logging {
@@ -80,5 +87,24 @@ class AdminServiceImpl(
     for {
       locations <- locationRepo.getForDevice(DeviceId(request.deviceId))
     } yield ListLocationsResponse(locations.map(_.toProto))
+  }
+
+  override def sendNotification(
+      request: SendNotificationRequest
+  ): Future[SendNotificationResponse] = {
+    val deviceId = DeviceId(request.deviceId)
+
+    {
+      for {
+        storedDevice <- deviceRepo.get(deviceId).toFutureOr(DeviceNotFoundException(deviceId))
+        pushHandler <- storedDevice.pushHandler.toFutureOr(NoPushHandler(deviceId))
+        notification <- Notification
+          .fromProto(request.notificationType)
+          .toFutureOr(
+            new IllegalArgumentException(s"Invalid notification type: ${request.notificationType}")
+          )
+        response <- notificationService.sendNotification(pushHandler.url, notification)
+      } yield response
+    }.toResponse(_ => SendNotificationResponse(success = true))
   }
 }
