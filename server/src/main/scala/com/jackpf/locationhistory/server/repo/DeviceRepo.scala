@@ -25,11 +25,22 @@ trait DeviceRepo {
 
   /* Helpers */
 
+  def getWithStatus(
+      id: DeviceId.Type,
+      status: StoredDevice.DeviceStatus
+  )(using ec: ExecutionContext): Future[Option[StoredDevice]] =
+    get(id).map {
+      case Some(foundDevice) if foundDevice.status == status => Some(foundDevice)
+      case _                                                 => None
+    }
+
+  def getPendingDevice(
+      id: DeviceId.Type
+  )(using ec: ExecutionContext): Future[Option[StoredDevice]] =
+    getWithStatus(id, StoredDevice.DeviceStatus.Pending)
+
   def getRegisteredDevice(
       id: DeviceId.Type
   )(using ec: ExecutionContext): Future[Option[StoredDevice]] =
-    get(id).map {
-      case Some(foundDevice) if foundDevice.isRegistered => Some(foundDevice)
-      case _                                             => None
-    }
+    getWithStatus(id, StoredDevice.DeviceStatus.Registered)
 }
