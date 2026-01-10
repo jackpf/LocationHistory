@@ -5,6 +5,7 @@ import {
     TRIGGER_ALARM_MESSAGE,
     UNIFIED_PUSH_HANDLER
 } from "../utils/unified-push-client.ts";
+import {toast} from "sonner";
 
 interface DeviceListProps {
     devices: StoredDevice[];
@@ -43,6 +44,8 @@ export const DeviceList: React.FC<DeviceListProps> = ({
         const pushHandlerUrl = storedDevice.pushHandler.url;
 
         if (pushHandlerName === UNIFIED_PUSH_HANDLER) {
+            toast("Sending alarm notification...");
+
             sendUnifiedPushNotification(pushHandlerUrl, TRIGGER_ALARM_MESSAGE)
                 .then(r => {
                     if (r) console.log(`Sent alarm to ${storedDevice.device.id} on ${pushHandlerUrl}`);
