@@ -2,14 +2,7 @@ package com.jackpf.locationhistory.server.grpc
 
 import com.jackpf.locationhistory.admin_service.*
 import com.jackpf.locationhistory.admin_service.AdminServiceGrpc.AdminService
-import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
-  DeviceNotFoundException,
-  InvalidDeviceStatus,
-  InvalidNotificationType,
-  InvalidPassword,
-  NoPushHandler
-}
-import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
+import com.jackpf.locationhistory.server.errors.ApplicationErrors.*
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import com.jackpf.locationhistory.server.model.{DeviceId, StoredDevice}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
@@ -20,6 +13,7 @@ import com.jackpf.locationhistory.server.util.ParamExtractor.*
 import com.jackpf.locationhistory.server.util.ResponseMapper.*
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class AdminServiceImpl(
     authenticationManager: AuthenticationManager,
@@ -30,11 +24,13 @@ class AdminServiceImpl(
     extends AdminService
     with Logging {
   override def login(request: LoginRequest): Future[LoginResponse] = {
-    // TODO Replace with proper tokens
-    if (authenticationManager.isValidPassword(request.password))
-      Future.successful(LoginResponse(token = request.password))
-    else Future.failed(InvalidPassword().toGrpcError)
-  }
+    Future {
+      // TODO Replace with proper tokens
+      if (authenticationManager.isValidPassword(request.password))
+        Success(())
+      else Failure(InvalidPassword())
+    }
+  }.toResponse(_ => LoginResponse(token = request.password))
 
   override def listDevices(
       request: ListDevicesRequest
@@ -68,7 +64,7 @@ class AdminServiceImpl(
               storedDevice.device.id,
               actualState = storedDevice.status,
               expectedState = DeviceStatus.Pending
-            ).toGrpcError
+            )
           )
       }
     } yield response

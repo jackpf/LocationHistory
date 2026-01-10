@@ -107,10 +107,10 @@ object App {
       Services.adminServices(authenticationManager, deviceRepo, locationRepo, notificationService)*
     ).start()
 
-    sys.addShutdownHook { () =>
+    sys.addShutdownHook {
       beaconServer.shutdown()
       adminServer.shutdown()
-      sttpBackend.close()
+      sttpBackend.close(): Unit
     }
 
     beaconServer.awaitTermination()

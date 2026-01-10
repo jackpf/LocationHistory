@@ -36,7 +36,7 @@ class NotificationService(backend: Backend[Future]) {
       request = quickRequest
         .header("content-type", "text/plain")
         .body(notification.message)
-        .post(Uri(url))
+        .post(uri)
       response <- backend.send(request).map { response =>
         if (response.isSuccess) Success(())
         else Failure(new IOException(s"Request failed: ${response.body}"))
