@@ -54,7 +54,9 @@ public class SSLPrompt {
                             .setNegativeButton(activity.getString(R.string.cancel), (dialog, which) -> {
                                 closePrompt(fingerprint, false);
                             })
-                            .setOnDismissListener((dialog) -> isShowing.set(false))
+                            .setOnDismissListener((dialog) -> {
+                                closePrompt(fingerprint, false);
+                            })
                             .show()
             );
         }
