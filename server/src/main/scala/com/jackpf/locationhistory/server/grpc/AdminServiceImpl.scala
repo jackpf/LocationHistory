@@ -5,6 +5,7 @@ import com.jackpf.locationhistory.admin_service.AdminServiceGrpc.AdminService
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
   InvalidDeviceStatus,
+  InvalidNotificationType,
   InvalidPassword,
   NoPushHandler
 }
@@ -91,9 +92,7 @@ class AdminServiceImpl(
       pushHandler <- storedDevice.pushHandler.toFutureOr(NoPushHandler(deviceId))
       notification <- Notification
         .fromProto(request.notificationType)
-        .toFutureOr(
-          new IllegalArgumentException(s"Invalid notification type: ${request.notificationType}")
-        )
+        .toFutureOr(InvalidNotificationType(request.notificationType))
       response <- notificationService.sendNotification(pushHandler.url, notification)
     } yield response
   }.toResponse(_ => SendNotificationResponse(success = true))

@@ -1,5 +1,6 @@
 package com.jackpf.locationhistory.server.errors
 
+import com.jackpf.locationhistory.admin_service.NotificationType
 import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
 import io.grpc.Status
@@ -61,6 +62,13 @@ object ApplicationErrors {
       deviceId: DeviceId.Type,
       cause: Throwable = None.orNull
   ) extends ApplicationError(s"Device ${deviceId} has no registered push handler", cause) {
+    override val status: Status = Status.INVALID_ARGUMENT
+  }
+
+  case class InvalidNotificationType(
+      notificationType: NotificationType,
+      cause: Throwable = None.orNull
+  ) extends ApplicationError(s"Invalid notification type: ${notificationType}", cause) {
     override val status: Status = Status.INVALID_ARGUMENT
   }
 }
