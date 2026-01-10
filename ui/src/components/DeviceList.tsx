@@ -68,7 +68,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                 return <span><span style={{color: 'gray'}}>●</span> Unknown</span>;
         }
     }
-
+    
     const showApproveDeviceIfPending = (deviceId: string, deviceStatus: DeviceStatus) => {
         if (deviceStatus === DeviceStatus.DEVICE_PENDING) {
             return <button
