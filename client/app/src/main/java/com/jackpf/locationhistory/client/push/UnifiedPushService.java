@@ -8,6 +8,8 @@ import androidx.annotation.NonNull;
 
 import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.R;
+import com.jackpf.locationhistory.client.ui.Notifications;
+import com.jackpf.locationhistory.client.ui.Toasts;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import org.unifiedpush.android.connector.FailedReason;
@@ -19,6 +21,7 @@ import org.unifiedpush.android.connector.data.PushMessage;
 public class UnifiedPushService extends PushService {
     private static final String NAME = "UnifiedPush";
     private static final String BEACON_MESSAGE = "TRIGGER_BEACON";
+    private static final String ALARM_MESSAGE = "TRIGGER_ALARM";
 
     private final Logger log = new Logger(this);
 
@@ -37,6 +40,9 @@ public class UnifiedPushService extends PushService {
         if (BEACON_MESSAGE.equals(message)) {
             log.d("Triggering on-demand beacon");
             BeaconWorkerFactory.runOnce(getApplicationContext());
+        } else if (ALARM_MESSAGE.equals(message)) {
+            log.d("Triggering on-demand alarm");
+            new Notifications(getApplicationContext()).triggerAlarm();
         }
     }
 
@@ -44,7 +50,7 @@ public class UnifiedPushService extends PushService {
     public void onRegistrationFailed(@NonNull FailedReason failedReason, @NonNull String instance) {
         log.e("UnifiedPush: onRegistrationFailed: %s", failedReason.toString());
 
-        Feedback.toast(getApplicationContext(), R.string.toast_register_push_handler_error, failedReason.toString());
+        Toasts.show(getApplicationContext(), R.string.toast_register_push_handler_error, failedReason.toString());
     }
 
     @Override
@@ -70,7 +76,7 @@ public class UnifiedPushService extends PushService {
                 context,
                 INSTANCE_DEFAULT
         );
-        
+
         new PushRegistration(context).unregister();
     }
 }

@@ -12,6 +12,7 @@ import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
+import com.jackpf.locationhistory.client.ui.Toasts;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
@@ -53,15 +54,15 @@ public class PushRegistration {
                                 if (value.getSuccess()) {
                                     storage.setEnabled(true);
                                     log.d("Registered push handler");
-                                    Feedback.toast(context, R.string.toast_register_push_handler_success);
+                                    Toasts.show(context, R.string.toast_register_push_handler_success);
                                 } else {
                                     log.e("Registering push handler failed");
-                                    Feedback.toast(context, R.string.toast_register_push_handler_failed);
+                                    Toasts.show(context, R.string.toast_register_push_handler_failed);
                                 }
                             },
                             error -> {
                                 log.e(error, "Error registering push handler");
-                                Feedback.toast(context, R.string.toast_register_push_handler_error, error.getMessage());
+                                Toasts.show(context, R.string.toast_register_push_handler_error, error.getMessage());
                             }
                     )
             );
@@ -69,7 +70,7 @@ public class PushRegistration {
             registerResult.addListener(beaconClient::close, ContextCompat.getMainExecutor(context));
         } catch (IOException e) {
             log.e(e, "Failed to create beacon client for push handler registration");
-            Feedback.toast(context, R.string.toast_connection_failed, e.getMessage());
+            Toasts.show(context, R.string.toast_connection_failed, e.getMessage());
         }
     }
 
@@ -87,15 +88,15 @@ public class PushRegistration {
                                 if (value.getSuccess()) {
                                     storage.setEnabled(false);
                                     log.d("Un-registered push handler");
-                                    Feedback.toast(context, R.string.toast_unregister_push_handler_success);
+                                    Toasts.show(context, R.string.toast_unregister_push_handler_success);
                                 } else {
                                     log.e("Un-registering push handler failed");
-                                    Feedback.toast(context, R.string.toast_unregister_push_handler_failed);
+                                    Toasts.show(context, R.string.toast_unregister_push_handler_failed);
                                 }
                             },
                             error -> {
                                 log.e(error, "Error un-registering push handler");
-                                Feedback.toast(context, R.string.toast_unregister_push_handler_error, error.getMessage());
+                                Toasts.show(context, R.string.toast_unregister_push_handler_error, error.getMessage());
                             }
                     )
             );
@@ -103,7 +104,7 @@ public class PushRegistration {
             registerResult.addListener(beaconClient::close, ContextCompat.getMainExecutor(context));
         } catch (IOException e) {
             log.e(e, "Failed to create beacon client for push handler registration");
-            Feedback.toast(context, R.string.toast_connection_failed, e.getMessage());
+            Toasts.show(context, R.string.toast_connection_failed, e.getMessage());
         }
     }
 }
