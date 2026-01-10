@@ -12,8 +12,11 @@ import scala.util.{Failure, Success, Try}
 
 object NotificationService {
   object Notification {
-    def fromProto(proto: NotificationType): Option[Notification] =
-      values.find(_.toString == proto.name)
+    def fromProto(proto: NotificationType): Option[Notification] = proto match {
+      case NotificationType.REQUEST_BEACON  => Some(Notification.TRIGGER_BEACON)
+      case NotificationType.REQUEST_ALARM   => Some(Notification.TRIGGER_ALARM)
+      case NotificationType.Unrecognized(_) => None
+    }
   }
 
   enum Notification {
