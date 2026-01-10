@@ -41,6 +41,7 @@
                 <action android:name="org.unifiedpush.android.connector.NEW_ENDPOINT" />
                 <action android:name="org.unifiedpush.android.connector.UNREGISTERED" />
                 <action android:name="org.unifiedpush.android.connector.REGISTRATION_FAILED" />
+                <action android:name="com.jackpf.locationhistory.client.MANUAL_UNREGISTER" />
             </intent-filter>
         </service>
     </application>

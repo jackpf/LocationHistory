@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -110,9 +109,9 @@ public class SettingsFragment extends Fragment {
             ListenableFuture<PingResponse> pingResponse = tempClient.ping(new GrpcFutureWrapper<>(
                     response -> getActivity().runOnUiThread(() -> {
                         if (BeaconClient.isPongResponse(response)) {
-                            Toast.makeText(getActivity(), getString(R.string.toast_connection_successful), Toast.LENGTH_SHORT).show();
+                            Toasts.show(getActivity(), R.string.toast_connection_successful);
                         } else {
-                            Toast.makeText(getActivity(), getString(R.string.toast_invalid_response, response.getMessage()), Toast.LENGTH_SHORT).show();
+                            Toasts.show(getActivity(), R.string.toast_invalid_response, response.getMessage());
                         }
                     }),
                     e -> {
@@ -120,7 +119,7 @@ public class SettingsFragment extends Fragment {
                             requireActivity().runOnUiThread(() -> sslPrompt.show(UntrustedCertException.getCauseFrom(e).getFingerprint(), true));
                         } else {
                             requireActivity().runOnUiThread(() ->
-                                    Toast.makeText(getActivity(), getString(R.string.toast_connection_failed, e.getMessage()), Toast.LENGTH_SHORT).show()
+                                    Toasts.show(getActivity(), R.string.toast_connection_failed, e.getMessage())
                             );
                         }
                     }
@@ -128,7 +127,7 @@ public class SettingsFragment extends Fragment {
 
             pingResponse.addListener(tempClient::close, ContextCompat.getMainExecutor(requireContext()));
         } catch (NumberFormatException | IOException e) {
-            Toast.makeText(requireContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
+            Toasts.show(requireContext(), R.string.toast_invalid_settings, e.getMessage());
         }
     }
 
@@ -142,9 +141,9 @@ public class SettingsFragment extends Fragment {
                 activity.refreshBeaconClient();
                 BeaconWorkerFactory.runOnce(requireContext());
 
-                Toast.makeText(requireContext(), getString(R.string.toast_saved), Toast.LENGTH_SHORT).show();
+                Toasts.show(requireContext(), R.string.toast_saved);
             } catch (NumberFormatException e) {
-                Toast.makeText(requireContext(), getString(R.string.toast_invalid_settings, e.getMessage()), Toast.LENGTH_SHORT).show();
+                Toasts.show(requireContext(), R.string.toast_invalid_settings, e.getMessage());
             }
         }
     }

@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,6 +18,7 @@ import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.permissions.PermissionsFlow;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
+import com.jackpf.locationhistory.client.ui.Toasts;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
@@ -38,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
         permissionsFlow.require(new String[]{Manifest.permission.ACCESS_FINE_LOCATION});
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             permissionsFlow.thenRequire(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION});
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionsFlow.thenRequire(new String[]{Manifest.permission.POST_NOTIFICATIONS});
         }
         if (!permissionsManager.hasBackgroundPermission()) {
             permissionsFlow.requireSetting(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
@@ -109,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(code, permissions, grantResult);
         permissionsFlow.onRequestPermissionsResult(code, permissions, grantResult, deniedPermission -> {
             log.w("Permissions %s was denied", deniedPermission);
-            Toast.makeText(this, getString(R.string.toast_permission_denied), android.widget.Toast.LENGTH_LONG).show();
+            Toasts.show(this, R.string.toast_permission_denied);
             return false;
         });
     }

@@ -10,6 +10,7 @@ import type {StoredLocation} from "./gen/common.ts";
 import {useState} from "react";
 import {usePushPoller} from "./hooks/use-push-poller.ts";
 import {usePageVisibility} from "./hooks/use-page-visibility.ts";
+import {Toaster} from "sonner";
 
 const DisplayMap = ({history, selectedDeviceId, forceRecenter, setForceRecenter}: {
     history: StoredLocation[],
@@ -69,6 +70,22 @@ const Dashboard = () => {
     return (
         <div className="app-container">
             {error && <div className="error-text">{error}</div>}
+
+            <Toaster
+                position="top-center"
+                toastOptions={{
+                    style: {
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        color: '#fff',
+                        borderRadius: '25px',
+                        border: 'none',
+                        fontSize: '14px',
+                        padding: '10px 20px',
+                        textAlign: 'center',
+                        minWidth: 'fit-content'
+                    },
+                }}
+            />
 
             <DeviceList devices={devices}
                         selectedDeviceId={selectedDeviceId}

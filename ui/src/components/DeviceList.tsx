@@ -1,5 +1,11 @@
 import React, {useState} from 'react';
 import {type Device, DeviceStatus, type StoredDevice} from "../gen/common.ts";
+import {
+    sendUnifiedPushNotification,
+    TRIGGER_ALARM_MESSAGE,
+    UNIFIED_PUSH_HANDLER
+} from "../utils/unified-push-client.ts";
+import {toast} from "sonner";
 
 interface DeviceListProps {
     devices: StoredDevice[];
@@ -28,6 +34,27 @@ export const DeviceList: React.FC<DeviceListProps> = ({
         if (window.confirm("Are you sure you want to delete this device?")) {
             await deleteDevice(deviceId);
         }
+        setOpenMenuId(null);
+    };
+
+    const handleRing = async (storedDevice: StoredDevice) => {
+        const device = storedDevice.device;
+        if (!device || !storedDevice.pushHandler) return;
+
+        const pushHandlerName = storedDevice.pushHandler.name;
+        const pushHandlerUrl = storedDevice.pushHandler.url;
+
+        if (pushHandlerName === UNIFIED_PUSH_HANDLER) {
+            toast("Sending alarm notification...");
+
+            sendUnifiedPushNotification(pushHandlerUrl, TRIGGER_ALARM_MESSAGE)
+                .then(r => {
+                    if (r) console.log(`Sent alarm to ${device.id} on ${pushHandlerUrl}`);
+                });
+        } else {
+            console.error(`Invalid push handler ${pushHandlerName}`)
+        }
+
         setOpenMenuId(null);
     };
 
@@ -110,6 +137,14 @@ export const DeviceList: React.FC<DeviceListProps> = ({
 
                                 {openMenuId === device.id && (
                                     <div className="device-menu-dropdown">
+                                        {storedDevice.pushHandler &&
+                                            <button
+                                                className="device-ring-btn"
+                                                onClick={() => handleRing(storedDevice)}
+                                            >
+                                                Play Sound
+                                            </button>
+                                        }
                                         <button
                                             className="device-delete-btn"
                                             onClick={() => handleDelete(device.id)}
