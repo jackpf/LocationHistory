@@ -23,10 +23,7 @@ object NotificationService {
   enum Notification {
     case TRIGGER_BEACON, TRIGGER_ALARM
 
-    def message: String = this match {
-      case Notification.TRIGGER_BEACON => "TRIGGER_BEACON"
-      case Notification.TRIGGER_ALARM  => "TRIGGER_ALARM"
-    }
+    def message: String = toString
   }
 }
 
