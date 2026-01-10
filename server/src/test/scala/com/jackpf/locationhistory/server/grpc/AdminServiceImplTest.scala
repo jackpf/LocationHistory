@@ -9,7 +9,10 @@ import com.jackpf.locationhistory.admin_service.{
   ListLocationsRequest,
   ListLocationsResponse,
   LoginRequest,
-  LoginResponse
+  LoginResponse,
+  NotificationType,
+  SendNotificationRequest,
+  SendNotificationResponse
 }
 import com.jackpf.locationhistory.common.{
   Device,
@@ -24,6 +27,7 @@ import com.jackpf.locationhistory.server.model
 import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.service.NotificationService
+import com.jackpf.locationhistory.server.service.NotificationService.Notification
 import com.jackpf.locationhistory.server.testutil.{
   DefaultScope,
   DefaultSpecification,
@@ -250,6 +254,40 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       }
     }
 
-    // TODO Notification endpoint
+    "send notification endpoint" >> {
+      trait SendNotificationContext extends Context {
+        lazy val deviceId: String = "123"
+        lazy val notificationType: NotificationType
+        lazy val expectedNotificationUrl: String
+        lazy val expectedNotification: Notification
+
+        lazy val getResponse: Future[Option[model.StoredDevice]]
+        when(deviceRepo.get(DeviceId(deviceId))).thenReturn(getResponse)
+
+        lazy val notificationResponse: Future[Try[Unit]]
+        when(notificationService.sendNotification(expectedNotificationUrl, expectedNotification))
+          .thenReturn(notificationResponse)
+
+        val request: SendNotificationRequest =
+          SendNotificationRequest(deviceId = deviceId, notificationType = notificationType)
+        val result: Future[SendNotificationResponse] = adminService.sendNotification(request)
+      }
+
+      "send a notification" >> in(new SendNotificationContext {
+        override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
+        override lazy val expectedNotificationUrl: String = MockModels.pushHandler().url
+        override lazy val expectedNotification: Notification = Notification.TRIGGER_BEACON
+        override lazy val getResponse: Future[Option[model.StoredDevice]] = Future.successful(
+          Some(MockModels.storedDevice(pushHandler = Some(MockModels.pushHandler())))
+        )
+        override lazy val notificationResponse: Future[Try[Unit]] = Future.successful(Success(()))
+      }) { context =>
+        context.result must beEqualTo(SendNotificationResponse(success = true)).await
+      }
+
+      // TODO device not found
+      // TODO empty push handler
+      // TODO propagate errors
+    }
   }
 }
