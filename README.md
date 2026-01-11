@@ -71,7 +71,7 @@ how to customise the environment.
 ```bash
 # Note that you'll need to run each of these commands in individual shells
 # Run the server
-RUN_ARGS='--admin-password=password --storage-type=in_memory' make -C server  run
+RUN_ARGS='--admin-password=password --storage-type=in_memory' make -C server run
 # Run the UI proxy
 make -C ui run-proxy
 # Run the UI
