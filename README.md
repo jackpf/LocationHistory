@@ -2,7 +2,7 @@
 
 Build status:
 
-![Build Status](https://github.com/jackpf/kraken-scheduler/actions/workflows/master-build.yml/badge.svg)
+![Build Status](https://github.com/jackpf/LocationHistory/actions/workflows/main-build.yml/badge.svg)
 
 > **Private, self-hosted, and secure location tracking.**
 
