@@ -12,8 +12,9 @@ It allows you to track your device's location,
 store the data on your own server,
 and visualize your history without sharing your data with third parties.
 
-Designed with privacy as the core feature,
-LocationHistory ensures that your movement data remains yours.
+- Designed with privacy as the core feature, LocationHistory ensures that your movement data remains your own.
+- Completely [FOSS](https://en.wikipedia.org/wiki/Free_and_open-source_software) - only uses open source libraries.
+- (Of course) completely free of external tracking or adverts.
 
 | ![Web UI](./docs/img/ui-screenshot.png) | ![Android Client](./docs/img/android-screenshot.png) |
 |:---------------------------------------:|:----------------------------------------------------:|
