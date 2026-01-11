@@ -27,20 +27,22 @@ jobs:
       publish: true
     secrets: inherit
 
-  # TODO: Create GitHub Release and attach APK
-#  create-release:
-#    needs: client
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: write
-#    steps:
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: app-release
-#          path: ./artifacts
-#
-#      - name: Create Release
-#        uses: softprops/action-gh-release@v1
-#        with:
-#          files: ./artifacts/*.apk
-#          generate_release_notes: true
+  create-release:
+    needs:
+      - build-server
+      - build-client
+      - build-ui
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-release
+          path: ./artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./artifacts/*.apk
+          generate_release_notes: true

@@ -3,7 +3,8 @@
 Build status:
 
 ![Build Status](https://github.com/jackpf/LocationHistory/actions/workflows/main-build.yml/badge.svg)
-[![Docker Hub](https://img.shields.io/docker/pulls/jackpfarrelly/location-history-server?style=flat-square)](https://hub.docker.com/r/jackpfarrelly/location-history-server)
+![Latest Version](https://img.shields.io/github/v/release/jackpf/LocationHistory)
+[![Docker Hub](https://img.shields.io/docker/pulls/jackpfarrelly/location-history-server)](https://hub.docker.com/r/jackpfarrelly/location-history-server)
 
 > **Private, self-hosted, and secure location tracking.**
 
