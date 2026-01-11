@@ -1,5 +1,6 @@
 package com.jackpf.locationhistory.server.repo
 
+import com.jackpf.locationhistory.server.errors.ApplicationErrors.LocationNotFoundException
 import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.model.DeviceId.Type
 import com.jackpf.locationhistory.server.model.{Location, StoredLocation}
@@ -8,7 +9,7 @@ import scalasql.simple.SimpleTable
 import scalasql.SqliteDialect.*
 
 import scala.concurrent.{ExecutionContext, Future, blocking}
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 private case class StoredLocationRow(
     id: Long,
@@ -92,6 +93,44 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
         ).toVector
           .reverse // Reverse -> ascending order
           .map(_.toStoredLocation)
+      }
+    }
+  }
+
+  override def update(
+      deviceId: Type,
+      id: Long,
+      updateAction: StoredLocation => StoredLocation
+  ): Future[Try[Unit]] = Future {
+    db.transaction { implicit db =>
+      /* This is not strictly race-condition-resistant
+       * We can add a `version` field to StoredLocationRow if needed */
+      val existingRowMaybe =
+        blocking {
+          db.run(
+            StoredLocationTable.select.filter(l => l.id === id && l.deviceId === deviceId.toString)
+          ).headOption
+        }
+      existingRowMaybe match {
+        case Some(existingRow) =>
+          val updatedStoredDevice = updateAction(existingRow.toStoredLocation)
+
+          Try {
+            blocking {
+              db.run(
+                StoredLocationTable
+                  .update(l => l.id === id && l.deviceId === deviceId.toString) // TODO Make pred
+                  .set(
+                    _.lat := updatedStoredDevice.location.lat,
+                    _.lon := updatedStoredDevice.location.lon,
+                    _.accuracy := updatedStoredDevice.location.accuracy,
+                    _.timestamp := updatedStoredDevice.timestamp
+                  )
+              )
+            }
+            ()
+          }
+        case None => Failure(LocationNotFoundException(deviceId, id))
       }
     }
   }

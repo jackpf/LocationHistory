@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.repo
 
-import com.jackpf.locationhistory.server.model.{DeviceId, Location, StoredLocation}
+import com.jackpf.locationhistory.server.model.{DeviceId, Location}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try

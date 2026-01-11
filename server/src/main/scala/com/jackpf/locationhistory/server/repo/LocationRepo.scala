@@ -2,7 +2,7 @@ package com.jackpf.locationhistory.server.repo
 
 import com.jackpf.locationhistory.server.model.{DeviceId, Location, StoredLocation}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.Try
 
 trait LocationRepo {

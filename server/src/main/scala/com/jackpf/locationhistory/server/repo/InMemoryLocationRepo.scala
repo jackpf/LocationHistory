@@ -1,12 +1,16 @@
 package com.jackpf.locationhistory.server.repo
 
+import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
+  DeviceNotFoundException,
+  LocationNotFoundException
+}
 import com.jackpf.locationhistory.server.model.DeviceId.Type
 import com.jackpf.locationhistory.server.model.{DeviceId, Location, StoredLocation}
 
 import java.util.concurrent.atomic.AtomicLong
 import scala.collection.concurrent
 import scala.concurrent.Future
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 object InMemoryLocationRepo {
   val DefaultMaxItemsPerDevice: Long = 1_000_000
@@ -53,6 +57,33 @@ class InMemoryLocationRepo(maxItemsPerDevice: Long = DefaultMaxItemsPerDevice)
         case None => v
       }
     }
+
+  override def update(
+      deviceId: Type,
+      id: Long,
+      updateAction: StoredLocation => StoredLocation
+  ): Future[Try[Unit]] = Future.successful {
+    Try {
+      val result = storedLocations.updateWith(deviceId) {
+        case Some(locations) =>
+          val updateIndex = locations.lastIndexWhere(_.id == id)
+
+          if (updateIndex != -1) {
+            val toUpdate = locations(updateIndex)
+            val updated = updateAction(toUpdate)
+            Some(locations.updated(updateIndex, updated))
+          } else {
+            throw LocationNotFoundException(deviceId, id)
+          }
+        case None => None
+      }
+
+      result match {
+        case Some(_) => Success(())
+        case None    => Failure(DeviceNotFoundException(deviceId))
+      }
+    }.flatten
+  }
 
   override def deleteForDevice(deviceId: Type): Future[Unit] = Future.successful {
     storedLocations.remove(deviceId)
