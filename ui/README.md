@@ -1,73 +1,37 @@
-# React + TypeScript + Vite
+# LocationHistory UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The web-based visualization dashboard for your location data.
 
-Currently, two official plugins are available:
+## Features
+* **Interactive Maps:** powered by [MapLibre](https://maplibre.org/) / [MapTiler](https://www.maptiler.com/) / [OpenStreetMap](https://www.openstreetmap.org/) / [Leaflet](https://leafletjs.com/).
+* **Timeline View:** view your location history for multiple devices.
+* **Device Management:** view status of connected trackers.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🛠 Tech Stack
+* **Language:** TypeScript
+* **Framework:** React
+* **Bundler:** Vite
+* **Styling:** Tailwind CSS / CSS Modules
 
-## React Compiler
+## 🚀 Development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Local build
 
-## Expanding the ESLint configuration
+The UI consists of 2 components: the React app and a gRPC proxy,
+since browsers do not natively support gRPC communication.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Both need to be running for the UI to work properly & communicate with the backend.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### The proxy
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+make run-proxy # run locally
+make package-proxy # package docker container
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### The UI
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+make run # run locally
+make package # package docker container
 ```
