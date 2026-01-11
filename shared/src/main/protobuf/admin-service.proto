@@ -28,7 +28,7 @@ message ListDevicesRequest {
 
 message StoredDeviceWithMetadata {
     StoredDevice stored_device = 1;
-    StoredLocation last_location = 2;
+    optional StoredLocation last_location = 2;
 }
 
 message ListDevicesResponse {
