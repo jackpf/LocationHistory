@@ -1,6 +1,6 @@
 APP_NAME = jackpfarrelly/location-history-server
 VERSION ?= 0.1.0-SNAPSHOT
-SBT ?= sbt "set version := \"$(VERSION)\""
+SBT ?= sbt
 RUN_ARGS ?=
 DOCKER ?= docker
 DOCKER_BUILD_PLATFORMS = linux/amd64,linux/arm64
