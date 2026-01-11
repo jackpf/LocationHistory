@@ -2,7 +2,6 @@ package com.jackpf.locationhistory.server.repo
 
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.LocationNotFoundException
 import com.jackpf.locationhistory.server.model.DeviceId
-import com.jackpf.locationhistory.server.model.DeviceId.Type
 import com.jackpf.locationhistory.server.model.{Location, StoredLocation}
 import scalasql.core.DbClient
 import scalasql.simple.SimpleTable
@@ -99,7 +98,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
   }
 
   override def update(
-      deviceId: Type,
+      deviceId: DeviceId.Type,
       id: Long,
       updateAction: StoredLocation => StoredLocation
   ): Future[Try[Unit]] = Future {
@@ -136,7 +135,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
     }
   }
 
-  override def deleteForDevice(deviceId: Type): Future[Unit] = Future {
+  override def deleteForDevice(deviceId: DeviceId.Type): Future[Unit] = Future {
     db.transaction { implicit db =>
       blocking {
         db.run(StoredLocationTable.delete(_.deviceId === deviceId.toString))
@@ -177,9 +176,9 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
           WHERE rn = 1
         """)
 
-          result.map { row =>
-            DeviceId(row.deviceId) -> Some(row.toStoredLocation)
-          }.toMap
+          val locationsMap =
+            result.map(row => DeviceId(row.deviceId) -> Some(row.toStoredLocation)).toMap
+          devices.map(device => device -> locationsMap.get(device).flatten).toMap
         }
       }
     }
