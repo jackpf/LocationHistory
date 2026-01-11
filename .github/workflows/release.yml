@@ -6,14 +6,14 @@ on:
 
 jobs:
   build-server:
-    uses: ./build-server.yml
+    uses: ./.github/workflows/build-server.yml
     with:
       version: ${{ github.ref_name }}
       publish: true
     secrets: inherit
 
   build-client:
-    uses: ./build-client.yml
+    uses: ./.github/workflows/build-client.yml
     with:
       version: ${{ github.ref_name }}
       build_type: "release"
@@ -21,7 +21,7 @@ jobs:
     secrets: inherit
 
   build-ui:
-    uses: ./build-ui.yml
+    uses: ./.github/workflows/build-ui.yml
     with:
       version: ${{ github.ref_name }}
       publish: true

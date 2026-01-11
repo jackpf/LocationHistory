@@ -30,7 +30,7 @@ jobs:
   server:
     needs: changes
     if: ${{ needs.changes.outputs.server == 'true' }}
-    uses: ./.github/workflows/reusable-server.yml
+    uses: ./.github/workflows/build-server.yml
     with:
       version: "latest-dev"
       publish: true
@@ -39,7 +39,7 @@ jobs:
   client:
     needs: changes
     if: ${{ needs.changes.outputs.client == 'true' }}
-    uses: ./.github/workflows/reusable-client.yml
+    uses: ./.github/workflows/build-client.yml
     with:
       version: "1.0.0-DEV"
       build_type: "debug"
@@ -49,7 +49,7 @@ jobs:
   ui:
     needs: changes
     if: ${{ needs.changes.outputs.ui == 'true' }}
-    uses: ./.github/workflows/reusable-ui.yml
+    uses: ./.github/workflows/build-ui.yml
     with:
       version: "latest-dev"
       publish: true

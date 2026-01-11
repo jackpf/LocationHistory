@@ -30,7 +30,7 @@ jobs:
   build-server:
     needs: changes
     if: ${{ needs.changes.outputs.server == 'true' }}
-    uses: ./build-server.yml
+    uses: ./.github/workflows/build-server.yml
     with:
       version: "pr-${{ github.event.number }}"
       publish: false
@@ -39,7 +39,7 @@ jobs:
   build-client:
     needs: changes
     if: ${{ needs.changes.outputs.client == 'true' }}
-    uses: ./build-client.yml
+    uses: ./.github/workflows/build-client.yml
     with:
       version: "1.0.0-PR${{ github.event.number }}"
       build_type: "debug"
@@ -50,7 +50,7 @@ jobs:
     ui-pr:
     needs: changes
     if: ${{ needs.changes.outputs.ui == 'true' }}
-    uses: ./build-ui.yml
+    uses: ./.github/workflows/build-ui.yml
     with:
       version: "pr-${{ github.event.number }}"
       publish: false
