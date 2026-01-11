@@ -22,7 +22,11 @@ and visualize your history without sharing your data with third parties.
 ## How To Use It
 
 1. Get the Android app (currently local build, proper releases coming soon!)
-2. Host your LocationHistory server via [Docker Compose](https://docs.docker.com/compose/) (see the [example docker-compose.yml](./examples) for more info)
+2. To host your LocationHistory server via [Docker Compose](https://docs.docker.com/compose/), you just need 2 files:
+   1. Copy the example [docker-compose.yml](./examples/docker-compose.yml) (you shouldn't need to change anything here)
+   2. Copy the example [.env](./examples/.env) file into the same directory and customise the variables according the explanations
+3. Run with `docker compose up`
+4. You should now have a working location history server! Check connectivity via the app.
 
 ## Security
 
