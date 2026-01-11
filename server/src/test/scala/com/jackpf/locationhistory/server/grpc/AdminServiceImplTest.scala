@@ -1,28 +1,8 @@
 package com.jackpf.locationhistory.server.grpc
 
 import com.jackpf.locationhistory.admin_service.AdminServiceGrpc.AdminService
-import com.jackpf.locationhistory.admin_service.{
-  ApproveDeviceRequest,
-  ApproveDeviceResponse,
-  ListDevicesRequest,
-  ListDevicesResponse,
-  ListLocationsRequest,
-  ListLocationsResponse,
-  LoginRequest,
-  LoginResponse,
-  NotificationType,
-  SendNotificationRequest,
-  SendNotificationResponse,
-  StoredDeviceWithMetadata
-}
-import com.jackpf.locationhistory.common.{
-  Device,
-  DeviceStatus,
-  Location,
-  PushHandler,
-  StoredDevice,
-  StoredLocation
-}
+import com.jackpf.locationhistory.admin_service.*
+import com.jackpf.locationhistory.common.*
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
   InvalidDeviceStatus
@@ -43,8 +23,7 @@ import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{mock, when}
 import org.specs2.concurrent.ExecutionEnv
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 class AdminServiceImplTest(implicit ee: ExecutionEnv)
@@ -89,11 +68,11 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         when(deviceRepo.getAll).thenReturn(getAllResponse)
 
         lazy val getLastLocationsResponse: Future[Map[DeviceId.Type, Option[model.StoredLocation]]]
-        when(
-          locationRepo.getDevicesLastLocationMap(
-            Await.result(getAllResponse, Duration.Inf).map(_.device.id)
-          )
-        ).thenReturn(getLastLocationsResponse)
+        getAllResponse.map { devices =>
+          when(
+            locationRepo.getDevicesLastLocationMap(devices.map(_.device.id))
+          ).thenReturn(getLastLocationsResponse)
+        }
 
         val request: ListDevicesRequest = ListDevicesRequest()
         val result: Future[ListDevicesResponse] = adminService.listDevices(request)
