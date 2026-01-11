@@ -4,6 +4,11 @@ Build status:
 
 ![Build Status](https://github.com/jackpf/LocationHistory/actions/workflows/main-build.yml/badge.svg)
 ![Latest Version](https://img.shields.io/github/v/release/jackpf/LocationHistory)
+
+[![Docker Hub](https://img.shields.io/docker/v/jackpfarrelly/location-history-server?label=Server%20Image)](https://hub.docker.com/r/jackpfarrelly/location-history-server)
+[![Docker Hub](https://img.shields.io/docker/v/jackpfarrelly/location-history-ui?label=UI%20Image)](https://hub.docker.com/r/jackpfarrelly/location-history-ui)
+[![Docker Hub](https://img.shields.io/docker/v/jackpfarrelly/location-history-ui?label=UI%20Proxy%20Image)](https://hub.docker.com/r/jackpfarrelly/location-history-ui-proxy)
+
 [![Docker Hub](https://img.shields.io/docker/pulls/jackpfarrelly/location-history-server)](https://hub.docker.com/r/jackpfarrelly/location-history-server)
 
 > **Private, self-hosted, and secure location tracking.**
@@ -95,12 +100,6 @@ If you want to test the full Docker stack, you can run like so:
 4. Run `docker compose up`
 
 Your components should be running on ports specified in the `.env` file.
-
-## Links
-
-- [![Docker Hub](https://img.shields.io/docker/v/jackpfarrelly/location-history-server?label=Server%20Image)](https://hub.docker.com/r/jackpfarrelly/location-history-server)
-- [![Docker Hub](https://img.shields.io/docker/v/jackpfarrelly/location-history-ui?label=UI%20Image)](https://hub.docker.com/r/jackpfarrelly/location-history-ui)
-- [![Docker Hub](https://img.shields.io/docker/v/jackpfarrelly/location-history-ui?label=UI%20Proxy%20Image)](https://hub.docker.com/r/jackpfarrelly/location-history-ui-proxy)
 
 ## License
 This project is licensed under the [GPLv3 License](https://www.gnu.org/licenses/gpl-3.0.en.html).
