@@ -60,7 +60,7 @@ const Dashboard = () => {
         error
     } = useAdminClient(REFRESH_INTERVAL);
 
-    const storedDevice = devices.find(d => d.storedDevice?.device?.id === selectedDeviceId)?.storedDevice;
+    const storedDevice = useMemo(() => devices.find(d => d.storedDevice?.device?.id === selectedDeviceId)?.storedDevice, [devices, selectedDeviceId]);
 
     usePushPoller(
         storedDevice?.device?.id,
