@@ -23,48 +23,37 @@ object App {
         .valueName("<beacon-port>")
         .action((x, c) => c.copy(beaconPort = Some(x)))
         .withFallback(() => 8080)
-        .text(
-          "Beacon service port (for Android clients)"
-        )
+        .text("Beacon service port (for Android clients)")
 
       opt[Int]('a', "admin-port")
         .valueName("<admin-port>")
         .action((x, c) => c.copy(adminPort = Some(x)))
         .withFallback(() => 8081)
-        .text(
-          "Admin service port (for the web UI)"
-        )
+        .text("Admin service port (for the web UI)")
 
       opt[String]('x', "admin-password")
         .valueName("<admin-password>")
         .action((x, c) => c.copy(adminPassword = Some(x)))
         .required()
-        .text(
-          "Administrator password for admin endpoints"
-        )
+        .text("Administrator password for admin endpoints")
 
       opt[String]('d', "data-directory")
         .valueName("<data-directory>")
         .action((x, c) => c.copy(dataDirectory = Some(x)))
         .withFallback(() => "/tmp")
-        .text(
-          "Directory for data storage"
-        )
+        .text("Directory for data storage")
 
       opt[StorageType]('s', "storage-type")
         .valueName("<storage-type>")
         .action((x, c) => c.copy(storageType = Some(x)))
         .required()
-        .text(
-          "Storage type for data"
-        )
+        .text("Storage type for data")
 
       opt[String]("ssl-certs-directory")
         .valueName("<ssl-certs-directory>")
         .action((x, c) => c.copy(sslCertsDir = Some(x)))
-        .text(
-          "Path to SSL certificates"
-        )
+        .withFallback(() => "/tmp/certs")
+        .text("Path to SSL certificates")
     }
 
   def main(args: Array[String]): Unit = {

@@ -35,6 +35,10 @@ integration-test:
 compile:
 	$(SBT) assembly
 
+.PHONY: generate-local-cert
+generate-local-cert:
+	SERVER_NAME="localhost" ALT_SERVER_NAMES="10.0.2.2" ./bin/generate-ssl-cert.sh /tmp/certs
+
 .PHONY: run
 run:
 	$(SBT) "run $(RUN_ARGS)"
