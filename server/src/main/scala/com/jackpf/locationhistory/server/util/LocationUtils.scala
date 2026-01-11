@@ -1,10 +1,11 @@
 package com.jackpf.locationhistory.server.util
 
 import scala.math.*
-import com.jackpf.locationhistory.server.model.Location
+import com.jackpf.locationhistory.server.model.{Location, StoredLocation}
 
 object LocationUtils {
   private val EarthRadiusMeters = 6371000.0
+  private val DuplicateThresholdMeters = 20
 
   def distanceMeters(lat1: Double, lon1: Double)(lat2: Double, lon2: Double): Double = {
     val dLat = toRadians(lat2 - lat1)
@@ -19,7 +20,18 @@ object LocationUtils {
     EarthRadiusMeters * c
   }
 
-  def isDuplicate(location1: Location, location2: Location, thresholdMeters: Int): Boolean = {
-    distanceMeters(location1.lat, location1.lon)(location2.lat, location2.lon) < thresholdMeters
+  def isDuplicate(
+      newLocation: Location,
+      newTimestamp: Long,
+      previousLocation: StoredLocation
+  ): Boolean = {
+    // Ignoring timestamps currently, but check it so we don't get compiler warnings...
+    newTimestamp > 0 && distanceMeters(
+      newLocation.lat,
+      newLocation.lon
+    )(
+      previousLocation.location.lat,
+      previousLocation.location.lon
+    ) < DuplicateThresholdMeters
   }
 }

@@ -1,6 +1,7 @@
 package com.jackpf.locationhistory.server.repo
 
 import com.jackpf.locationhistory.server.model.{DeviceId, Location, StoredLocation}
+import com.jackpf.locationhistory.server.repo.LocationRepoExtensions.CheckDuplicateLocationFunc
 import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification, MockModels}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq as eqTo
@@ -25,7 +26,7 @@ class LocationRepoExtensionsTest(using ee: ExecutionEnv) extends DefaultSpecific
         any[DeviceId.Type](),
         any[Location](),
         any[Long](),
-        any[(Location, Long, StoredLocation) => Boolean]()
+        any[CheckDuplicateLocationFunc]()
       )
     ).thenCallRealMethod()
   }

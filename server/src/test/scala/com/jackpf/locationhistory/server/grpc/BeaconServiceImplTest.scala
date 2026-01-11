@@ -6,6 +6,7 @@ import com.jackpf.locationhistory.common.{Device, DeviceStatus, Location, PushHa
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.DeviceNotFoundException
 import com.jackpf.locationhistory.server.model
 import com.jackpf.locationhistory.server.model.{DeviceId, StoredDevice}
+import com.jackpf.locationhistory.server.repo.LocationRepoExtensions.CheckDuplicateLocationFunc
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.testutil.{
   DefaultScope,
@@ -17,7 +18,7 @@ import io.grpc.Status.Code
 import org.mockito.Mockito.{mock, when}
 import org.specs2.concurrent.ExecutionEnv
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 
@@ -130,12 +131,14 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
 
         lazy val storeDeviceLocationResponse: Future[Try[Unit]]
         if (location.isDefined) {
+          given ec: ExecutionContext = any[ExecutionContext]()
           when(
             locationRepo
-              .storeDeviceLocation(
-                DeviceId(deviceId),
-                model.Location.fromProto(location.get),
-                timestamp
+              .storeDeviceLocationOrUpdatePrevious(
+                eqTo(DeviceId(deviceId)),
+                eqTo(model.Location.fromProto(location.get)),
+                eqTo(timestamp),
+                any[CheckDuplicateLocationFunc]()
               )
           ).thenReturn(storeDeviceLocationResponse)
         }

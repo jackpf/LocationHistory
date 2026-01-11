@@ -9,7 +9,7 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
 }
 import com.jackpf.locationhistory.server.model.*
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
-import com.jackpf.locationhistory.server.util.Logging
+import com.jackpf.locationhistory.server.util.{LocationUtils, Logging}
 import com.jackpf.locationhistory.server.util.ParamExtractor.*
 import com.jackpf.locationhistory.server.util.ResponseMapper.*
 
@@ -54,10 +54,11 @@ class BeaconServiceImpl(
       location <- request.location.toFutureOr(NoLocationProvidedException())
       storedDevice <- deviceRepo.getRegisteredDevice(DeviceId(request.deviceId)).toFuture
       storeLocationResponse <- locationRepo
-        .storeDeviceLocation(
+        .storeDeviceLocationOrUpdatePrevious(
           storedDevice.device.id,
           Location.fromProto(location),
-          timestamp = request.timestamp
+          timestamp = request.timestamp,
+          LocationUtils.isDuplicate
         )
     } yield storeLocationResponse
   }.toResponse(_ => SetLocationResponse(success = true))

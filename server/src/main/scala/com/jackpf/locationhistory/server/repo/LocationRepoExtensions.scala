@@ -1,9 +1,14 @@
 package com.jackpf.locationhistory.server.repo
 
 import com.jackpf.locationhistory.server.model.{DeviceId, Location, StoredLocation}
+import com.jackpf.locationhistory.server.repo.LocationRepoExtensions.CheckDuplicateLocationFunc
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
+
+object LocationRepoExtensions {
+  type CheckDuplicateLocationFunc = (Location, Long, StoredLocation) => Boolean
+}
 
 trait LocationRepoExtensions { self: LocationRepo =>
 
@@ -18,7 +23,7 @@ trait LocationRepoExtensions { self: LocationRepo =>
       deviceId: DeviceId.Type,
       location: Location,
       timestamp: Long,
-      isDuplicate: (Location, Long, StoredLocation) => Boolean
+      isDuplicate: CheckDuplicateLocationFunc
   )(using ec: ExecutionContext): Future[Try[Unit]] = {
     getForDevice(deviceId, limit = Some(1)).map(_.headOption).flatMap {
       case Some(previousLocation) if isDuplicate(location, timestamp, previousLocation) =>
