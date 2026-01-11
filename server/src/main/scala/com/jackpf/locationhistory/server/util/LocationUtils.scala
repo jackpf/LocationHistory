@@ -22,11 +22,11 @@ object LocationUtils {
 
   def isDuplicate(
       newLocation: Location,
-      newTimestamp: Long,
+      @scala.annotation.unused newTimestamp: Long,
       previousLocation: StoredLocation
   ): Boolean = {
-    // Ignoring timestamps currently, but check it so we don't get compiler warnings...
-    newTimestamp > 0 && distanceMeters(
+    // Ignoring timestamps currently
+    distanceMeters(
       newLocation.lat,
       newLocation.lon
     )(
