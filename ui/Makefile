@@ -1,4 +1,5 @@
 APP_NAME = jackpfarrelly/location-history-ui
+VERSION ?= 0.1.0-SNAPSHOT
 DOCKER ?= docker
 DOCKER_BUILD_PLATFORMS = linux/amd64,linux/arm64
 DOCKER_BUILDX = $(DOCKER) buildx create --use; $(DOCKER) buildx build
@@ -51,9 +52,9 @@ package-local: build
 docker-run: package-local
 	$(DOCKER) run --rm -p $(DOCKER_PORT):80 $(APP_NAME):latest
 
-.PHONY: docker-publish
-docker-publish: package
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME):latest --push .
+.PHONY: release
+release: build
+	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME):latest -t $(APP_NAME):$(VERSION) --push .
 
 .PHONY: package-proxy
 package-proxy:
@@ -63,11 +64,10 @@ package-proxy:
 package-local-proxy:
 	$(DOCKER_BUILDX_LOCAL) -t $(APP_NAME)-proxy:latest -f proxy.Dockerfile .
 
-.PHONY: docker-publish-proxy
-docker-publish-proxy:
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest --push -f proxy.Dockerfile .
+.PHONY: release-proxy
+release-proxy:
+	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest -t $(APP_NAME)-proxy:$(VERSION) --push -f proxy.Dockerfile .
 
-# 100.103.216.83:7070
 .PHONY: run-proxy
 run-proxy: package-local-proxy
 	docker run --rm \

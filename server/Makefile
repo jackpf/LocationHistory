@@ -1,4 +1,5 @@
 APP_NAME = jackpfarrelly/location-history-server
+VERSION ?= 0.1.0-SNAPSHOT
 SBT ?= sbt
 RUN_ARGS ?=
 DOCKER ?= docker
@@ -55,6 +56,6 @@ package-local: compile
 docker-run: package-local
 	$(DOCKER) run --rm -p $(DOCKER_PORT):8080 $(APP_NAME):latest
 
-.PHONY: docker-publish
-docker-publish: package
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME):latest --push .
+.PHONY: release
+release: compile
+	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME):latest -t $(APP_NAME):$(VERSION) --push .
