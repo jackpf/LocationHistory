@@ -98,7 +98,10 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
           deviceId = context.device.id,
           pushHandler = Some(PushHandler(name = "ph", url = "phUrl"))
         )
-      ) must throwAGrpcRuntimeException(Code.PERMISSION_DENIED, "Device 123 is not registered")
+      ) must throwAGrpcRuntimeException(
+        Code.PERMISSION_DENIED,
+        "Device 123 has an invalid state; expected Pending but was Registered"
+      )
     }
 
     "register a push handler on an approved device" >> in(
