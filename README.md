@@ -43,12 +43,12 @@ Optional SSL setup is coming soon.
 
 This repository is a monorepo containing all components:
 
-| Component | Path                            | Description                                                                 |
-| :--- |:--------------------------------|:----------------------------------------------------------------------------|
-| **Server** | [`/server`](./server/README.md) | The gRPC backend that ingests and stores location data, also serving the UI |
-| **Client** | [`/client`](./client/README.md)           | Native Android application for battery-friendly background location syncing |
-| **UI** | [`/ui`](./ui/README.md)                   | Modern TypeScript-based web dashboard for visualizing history.              |
-| **Shared** | [`/shared`](./shared/README.md)           | Shared protocol definitions and logic.                                      |
+| Component                        | Description                                                                  |
+|:---------------------------------|:-----------------------------------------------------------------------------|
+| [**Server**](./server/README.md) | The gRPC backend that ingests and stores location data, also serving the UI  |
+| [**Client**](./client/README.md) | Native Android application for battery-friendly background location syncing  |
+| [**UI**](./ui/README.md)         | Modern TypeScript-based web dashboard for visualizing history.               |
+| [**Shared**](./shared/README.md) | Shared protocol definitions and logic.                                       |
 
 ## Getting Started
 

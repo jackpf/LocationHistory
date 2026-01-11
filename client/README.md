@@ -25,6 +25,7 @@ syncs your device's location to your self-hosted server.
 ### Local build
 
 ```bash
+export ANDROID_HOME="${HOME}/Library/Android/sdk"
 make lint build-debug
 ```
 

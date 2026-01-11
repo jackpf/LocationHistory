@@ -28,5 +28,8 @@ make lint test integration-test package
 The server can be run locally via:
 
 ```bash
-RUN_ARGS='--admin-password=password' make run # via sbt
+# First of all, generate a self-signed SSL certificate (required)
+make generate-local-cert
+# Then run the server
+RUN_ARGS='--admin-password=password --storage-type=in_memory' make run # via sbt
 ```
