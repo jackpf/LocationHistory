@@ -61,16 +61,33 @@ This repository is a monorepo containing all components:
 ### Build & Run
 We use a root `Makefile` to orchestrate builds across the entire stack.
 
-```bash
-# Build & package all components
-make package-local
+#### Running locally
 
-# Run everything locally
-make run
+This is a quick way to run everything locally.
+
+See each individual component README for instructions
+how to customise the environment.
+
+```bash
+# Note that you'll need to run each of these commands in individual shells
+# Run the server
+RUN_ARGS='--admin-password=password --storage-type=in_memory' make -C server  run
+# Run the UI proxy
+make -C ui run-proxy
+# Run the UI
+make -C ui init-local-env run
 ```
 
-For more details on building & running individual components,
-refer to individual components' READMEs.
+#### Running locally via Docker
+
+If you want to test the full Docker stack, you can run like so:
+
+1. Make a copy of the example [docker-compose.yml](./examples/docker-compose.yml) and [.env file](/examples/.env)
+2. Customise it to your liking (it might just work out of the box though)
+3. Package everything locally: `make package-local`
+4. Run `docker compose up`
+
+Your components should be running on ports specified in the `.env` file.
 
 ## License
 This project is licensed under the [GPLv3 License](https://www.gnu.org/licenses/gpl-3.0.en.html).

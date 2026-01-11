@@ -27,13 +27,17 @@ build-protos:
 		--proto_path=../shared/src/main/protobuf \
 		../shared/src/main/protobuf/*.proto
 
-.PHONY: run
-run:
-	npm run dev
-
 .PHONY: build
 build: install build-protos
 	npm run build
+
+.PHONY: init-local-env
+init-local-env:
+	@printf "VITE_PROXY_URL=http://localhost:9123\nVITE_MAP_TYPE=openstreetmaps\n" >> .env.local
+
+.PHONY: run
+run: build
+	npm run dev
 
 .PHONY: package
 package: build
