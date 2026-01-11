@@ -6,11 +6,12 @@ import {useLogin} from "./hooks/use-login.ts";
 import {MLMap} from "./components/MLMap.tsx";
 import {MAP_TYPE} from "./config/config.ts";
 import {OSMMap} from "./components/OSMMap.tsx";
-import type {StoredLocation} from "./gen/common.ts";
+import type {StoredDevice, StoredLocation} from "./gen/common.ts";
 import {useState} from "react";
 import {usePushPoller} from "./hooks/use-push-poller.ts";
 import {usePageVisibility} from "./hooks/use-page-visibility.ts";
 import {Toaster} from "sonner";
+import type {StoredDeviceWithMetadata} from "./gen/admin-service.ts";
 
 const DisplayMap = ({history, selectedDeviceId, forceRecenter, setForceRecenter}: {
     history: StoredLocation[],
@@ -44,7 +45,8 @@ const DisplayMap = ({history, selectedDeviceId, forceRecenter, setForceRecenter}
 }
 
 const Dashboard = () => {
-    const REFRESH_INTERVAL = 10000;
+    const REFRESH_INTERVAL = 10_000;
+    const PUSH_NOTIFICATION_INTERVAL = 60_000;
 
     const isVisible = usePageVisibility();
 
@@ -59,8 +61,16 @@ const Dashboard = () => {
         error
     } = useAdminClient(REFRESH_INTERVAL);
 
-    const storedDeviceWithMetadata = devices.find(d => d.storedDevice?.device?.id === selectedDeviceId)
-    usePushPoller(storedDeviceWithMetadata?.storedDevice, isVisible, REFRESH_INTERVAL, sendNotification);
+    const storedDeviceWithMetadata: StoredDeviceWithMetadata | undefined = devices.find(d => d.storedDevice?.device?.id === selectedDeviceId)
+    const storedDevice: StoredDevice | undefined = storedDeviceWithMetadata?.storedDevice
+
+    usePushPoller(
+        storedDevice?.device?.id,
+        !!storedDevice?.pushHandler,
+        isVisible,
+        PUSH_NOTIFICATION_INTERVAL,
+        sendNotification
+    );
 
     const [forceRecenter, setForceRecenter] = useState<boolean>(false);
 
