@@ -41,7 +41,7 @@ trait LocationRepoExtensions { self: LocationRepo =>
           deviceId,
           id = previousLocation.id,
           updateAction =
-            previousLocation => updatePreviousLocation(location, timestamp, previousLocation)
+            storedLocation => updatePreviousLocation(location, timestamp, storedLocation)
         )
       case _ =>
         storeDeviceLocation(deviceId, location, timestamp)
