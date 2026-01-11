@@ -1,5 +1,5 @@
 APP_NAME = jackpfarrelly/location-history-server
-VERSION ?= "0.1.0-SNAPSHOT"
+VERSION ?= 0.1.0-SNAPSHOT
 SBT ?= sbt "set version := \"$(VERSION)\""
 RUN_ARGS ?=
 DOCKER ?= docker
