@@ -15,8 +15,8 @@ and visualize your history without sharing your data with third parties.
 Designed with privacy as the core feature,
 LocationHistory ensures that your movement data remains yours.
 
-|                    ![Web UI](./docs/img/ui-screenshot.png)                     | ![Android Client](./docs/img/android-screenshot.png) |
-|:---------------------------------------:| :---: |
+| ![Web UI](./docs/img/ui-screenshot.png) | ![Android Client](./docs/img/android-screenshot.png) |
+|:---------------------------------------:|:----------------------------------------------------:|
 
 ## How To Use It
 
@@ -82,7 +82,7 @@ make -C ui init-local-env run
 
 If you want to test the full Docker stack, you can run like so:
 
-1. Make a copy of the example [docker-compose.yml](./examples/docker-compose.yml) and [.env file](/examples/.env)
+1. Make a copy of the example [docker-compose.yml](./examples/docker-compose.yml) and [.env file](./examples/.env)
 2. Customise it to your liking (it might just work out of the box though)
 3. Package everything locally: `make package-local`
 4. Run `docker compose up`

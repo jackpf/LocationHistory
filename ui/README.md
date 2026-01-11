@@ -51,7 +51,7 @@ VITE_PROXY_URL=http://localhost:9123
 VITE_MAP_TYPE=maptiler
 VITE_MAPTILER_API_KEY=<YOUR_API_KEY>
 EOF
-````
+```
 
 Then:
 
