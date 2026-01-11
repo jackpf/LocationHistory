@@ -22,6 +22,7 @@ lazy val root = (project in file("."))
   .configs(IntegrationTest)
   .settings(
     name := "server",
+    assembly / assemblyJarName := "app.jar",
     inConfig(IntegrationTest)(Defaults.testSettings),
     libraryDependencies ++= Seq(
       "com.jackpf.locationhistory" %% "shared" % versions.sharedProtos,
