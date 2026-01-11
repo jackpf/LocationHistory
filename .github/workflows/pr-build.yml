@@ -30,95 +30,28 @@ jobs:
   build-server:
     needs: changes
     if: ${{ needs.changes.outputs.server == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: sbt
-
-      - uses: sbt/setup-sbt@v1
-        with:
-          sbt-runner-version: 1.11.7
-
-      - name: Build Shared
-        run: make -C shared compile publish
-
-      - name: Lint
-        run: make -C server lint
-
-      - name: Unit Test
-        run: make -C server test
-
-      - name: Integration Test
-        run: make -C server integration-test
-
-      - name: Build
-        run: make -C server compile
-
-      - name: Package
-        run: make -C server package
+    uses: ./build-server.yml
+    with:
+      version: "pr-${{ github.event.number }}"
+      publish: false
+    secrets: inherit
 
   build-client:
     needs: changes
     if: ${{ needs.changes.outputs.client == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: sbt
-
-      - uses: sbt/setup-sbt@v1
-        with:
-          sbt-runner-version: 1.11.7
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Build Shared
-        run: make -C shared compile publish
-
-      - name: Lint
-        run: make -C client lint
-
-      - name: Build
-        run: make -C client build-debug
+    uses: ./build-client.yml
+    with:
+      version: "1.0.0-PR${{ github.event.number }}"
+      build_type: "debug"
+      publish: false
+    secrets: inherit
 
   build-ui:
+    ui-pr:
     needs: changes
     if: ${{ needs.changes.outputs.ui == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.7.0'
-          cache: 'npm'
-          cache-dependency-path: './ui/package-lock.json'
-
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install
-        working-directory: ./ui
-        run: npm ci
-
-      - name: Build Shared
-        working-directory: ./ui
-        run: make build-protos
-
-      - name: Package
-        working-directory: ./ui
-        run: make package
+    uses: ./build-ui.yml
+    with:
+      version: "pr-${{ github.event.number }}"
+      publish: false
+    secrets: inherit

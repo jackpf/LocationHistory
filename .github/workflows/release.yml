@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags: [ "v*" ]
+
+jobs:
+  build-server:
+    uses: ./build-server.yml
+    with:
+      version: ${{ github.ref_name }}
+      publish: true
+    secrets: inherit
+
+  build-client:
+    uses: ./build-client.yml
+    with:
+      version: ${{ github.ref_name }}
+      build_type: "release"
+      publish: true
+    secrets: inherit
+
+  build-ui:
+    uses: ./build-ui.yml
+    with:
+      version: ${{ github.ref_name }}
+      publish: true
+    secrets: inherit
+
+  # TODO: Create GitHub Release and attach APK
+#  create-release:
+#    needs: client
+#    runs-on: ubuntu-latest
+#    permissions:
+#      contents: write
+#    steps:
+#      - uses: actions/download-artifact@v4
+#        with:
+#          name: app-release
+#          path: ./artifacts
+#
+#      - name: Create Release
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          files: ./artifacts/*.apk
+#          generate_release_notes: true

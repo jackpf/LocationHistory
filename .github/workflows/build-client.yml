@@ -1,0 +1,56 @@
+name: Reusable Client Build
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      build_type:
+        required: true
+        type: string # 'debug' or 'release'
+      publish:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: sbt
+
+      - uses: sbt/setup-sbt@v1
+        with:
+          sbt-runner-version: 1.11.7
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Shared
+        run: make -C shared compile publish
+
+      - name: Lint
+        run: make -C client lint
+
+      - name: Build Debug
+        if: inputs.build_type == 'debug'
+        run: make -C client build-debug
+
+      - name: Build Release
+        if: inputs.build_type == 'release'
+        run: make -C client build-release
+
+      - name: Release
+        if: inputs.publish
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ inputs.build_type }}
+          path: client/app/build/outputs/apk/${{ inputs.build_type }}/*.apk

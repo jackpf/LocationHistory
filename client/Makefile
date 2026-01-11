@@ -9,3 +9,7 @@ lint:
 .PHONY: build-debug
 build-debug:
 	./gradlew assembleDebug
+
+.PHONY: build-release
+build-release:
+	./gradlew assembleDebug
