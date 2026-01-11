@@ -2,14 +2,11 @@ package com.jackpf.locationhistory.server.service
 
 import com.jackpf.locationhistory.admin_service.NotificationType
 import com.jackpf.locationhistory.server.service.NotificationService.Notification
-
-import scala.concurrent.{ExecutionContext, Future}
 import sttp.client4.*
-import sttp.model.Uri
 
 import java.io.IOException
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
-import com.jackpf.locationhistory.server.util.ParamExtractor.*
 
 object NotificationService {
   object Notification {
@@ -31,12 +28,12 @@ class NotificationService(backend: Backend[Future]) {
   def sendNotification(url: String, notification: Notification)(using
       ec: ExecutionContext
   ): Future[Try[Unit]] = {
+    val request = quickRequest
+      .header("content-type", "text/plain")
+      .body(notification.message)
+      .post(uri"${url}")
+
     for {
-      uri <- Try(Uri(url)).toFuture
-      request = quickRequest
-        .header("content-type", "text/plain")
-        .body(notification.message)
-        .post(uri)
       response <- backend.send(request).map { response =>
         if (response.isSuccess) Success(())
         else Failure(new IOException(s"Request failed: ${response.body}"))
