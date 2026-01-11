@@ -27,7 +27,7 @@ jobs:
               - 'shared/**'
               - 'ui/**'
 
-  release-server:
+  release-server-latest:
     needs: changes
     if: ${{ needs.changes.outputs.server == 'true' }}
     uses: ./.github/workflows/build-server.yml
@@ -36,7 +36,7 @@ jobs:
       publish: true
     secrets: inherit
 
-  release-client:
+  release-client-latest:
     needs: changes
     if: ${{ needs.changes.outputs.client == 'true' }}
     uses: ./.github/workflows/build-client.yml
@@ -46,7 +46,7 @@ jobs:
       publish: true
     secrets: inherit
 
-  release-ui:
+  release-ui-latest:
     needs: changes
     if: ${{ needs.changes.outputs.ui == 'true' }}
     uses: ./.github/workflows/build-ui.yml

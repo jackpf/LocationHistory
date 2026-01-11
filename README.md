@@ -7,7 +7,7 @@ Build status:
 
 [![Docker Hub](https://img.shields.io/docker/v/jackpfarrelly/location-history-server?label=Server%20Image)](https://hub.docker.com/r/jackpfarrelly/location-history-server)
 [![Docker Hub](https://img.shields.io/docker/v/jackpfarrelly/location-history-ui?label=UI%20Image)](https://hub.docker.com/r/jackpfarrelly/location-history-ui)
-[![Docker Hub](https://img.shields.io/docker/v/jackpfarrelly/location-history-ui?label=UI%20Proxy%20Image)](https://hub.docker.com/r/jackpfarrelly/location-history-ui-proxy)
+[![Docker Hub](https://img.shields.io/docker/v/jackpfarrelly/location-history-ui-proxy?label=UI%20Proxy%20Image)](https://hub.docker.com/r/jackpfarrelly/location-history-ui-proxy)
 
 [![Docker Hub](https://img.shields.io/docker/pulls/jackpfarrelly/location-history-server)](https://hub.docker.com/r/jackpfarrelly/location-history-server)
 
@@ -28,7 +28,7 @@ and visualize your history without sharing your data with third parties.
 
 ## How To Use It
 
-1. Get the Android app (currently local build, proper releases coming soon!)
+1. Get the Android app from the [releases](https://github.com/jackpf/LocationHistory/releases) page (F-Droid releases hopefully coming soon!)
 2. To host your LocationHistory server via [Docker Compose](https://docs.docker.com/compose/), you just need 2 files:
    1. Copy the example [docker-compose.yml](./examples/docker-compose.yml) (you shouldn't need to change anything here)
    2. Copy the example [.env](./examples/.env) file into the same directory and customise the variables according the explanations
