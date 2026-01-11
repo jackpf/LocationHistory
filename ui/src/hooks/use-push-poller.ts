@@ -12,21 +12,16 @@ export function usePushPoller(
     // We don't want to endlessly wake the device if we're buried in the users 238 open tabs
     useEffect(() => {
         const poll = () => {
-            if (!isVisible) {
-                return;
-            }
-
-            if (!storedDevice) {
-                return;
-            }
+            if (!isVisible) return;
+            if (!storedDevice) return;
 
             const device = storedDevice.device;
-            if (device) {
-                sendNotification(device.id, NotificationType.REQUEST_BEACON)
-                    .then(r => {
-                        if (r && r.success) console.log(`Sent beacon notification to ${device.id}`);
-                    });
-            }
+            if (!device || !storedDevice.pushHandler) return;
+
+            sendNotification(device.id, NotificationType.REQUEST_BEACON)
+                .then(r => {
+                    if (r && r.success) console.log(`Sent beacon notification to ${device.id}`);
+                });
         }
 
         poll();
