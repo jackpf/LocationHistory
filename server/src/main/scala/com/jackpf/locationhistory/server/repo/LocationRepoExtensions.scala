@@ -12,6 +12,16 @@ object LocationRepoExtensions {
 
 trait LocationRepoExtensions { self: LocationRepo =>
 
+  // TODO We might want to update an endTimestamp and count so we don't lose info of when the location was first seen
+  private def updatePreviousLocation(
+      newLocation: Location,
+      newTimestamp: Long,
+      previousLocation: StoredLocation
+  ): StoredLocation = previousLocation.copy(
+    location = newLocation,
+    timestamp = newTimestamp
+  )
+
   /** Note that this is a "best effort" approach and not strictly thread safe:
     * race conditions can occur between checking previous location and update/insert logic
     * But for the sake of code readability and adhering to our functional interface,
@@ -30,8 +40,8 @@ trait LocationRepoExtensions { self: LocationRepo =>
         update(
           deviceId,
           id = previousLocation.id,
-          // TODO We might want to update an endTimestamp and count so we don't lose info of when the location was first seen
-          updateAction = _.copy(timestamp = timestamp)
+          updateAction =
+            previousLocation => updatePreviousLocation(location, timestamp, previousLocation)
         )
       case _ =>
         storeDeviceLocation(deviceId, location, timestamp)

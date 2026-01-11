@@ -72,7 +72,7 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
 
       insertLocation(51.500700, -0.124600, 0.1, 1L)
       insertLocation(51.500700, -0.124600, 0.1, 2L) // Exact duplicate
-      insertLocation(51.500800, -0.124500, 0.1, 3L) // Close duplicate
+      insertLocation(51.500800, -0.124500, 0.2, 3L) // Close duplicate
       insertLocation(35.659500, 139.700500, 0.1, 4L) // Not a duplicate
 
       // Check location the fetched location is actually correct
@@ -82,8 +82,8 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
       listLocationsResponse.locations must haveSize(2)
       listLocationsResponse.locations === Seq(
         StoredLocation(
-          location = Some(Location(lat = 51.500700, lon = -0.124600, accuracy = 0.1)),
-          timestamp = 3L // We should have an updated timestamp
+          location = Some(Location(lat = 51.500800, lon = -0.124500, accuracy = 0.2)),
+          timestamp = 3L
         ),
         StoredLocation(
           location = Some(Location(lat = 35.659500, lon = 139.700500, accuracy = 0.1)),
