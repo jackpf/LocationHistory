@@ -17,10 +17,7 @@ object ParamExtractor {
   }
 
   extension [T](param: Try[T]) {
-    def toFuture: Future[T] = param match {
-      case Success(value)     => Future.successful(value)
-      case Failure(exception) => Future.failed(exception)
-    }
+    def toFuture: Future[T] = Future.fromTry(param)
   }
 
   extension [T](param: Future[Option[T]]) {
