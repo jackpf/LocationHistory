@@ -55,5 +55,12 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
         timestamp = timestamp
       )
     }
+
+
+    "set a location with duplicates" >> in(
+      new ApprovedDeviceContext {}
+    ) { _ =>
+      failure("TODO")
+    }
   }
 }

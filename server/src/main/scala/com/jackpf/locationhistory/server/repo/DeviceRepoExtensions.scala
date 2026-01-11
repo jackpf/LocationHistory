@@ -9,7 +9,6 @@ import com.jackpf.locationhistory.server.model.{DeviceId, StoredDevice}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-// TODO Make an extension
 trait DeviceRepoExtensions { self: DeviceRepo =>
   def getWithStatus(
       id: DeviceId.Type,
