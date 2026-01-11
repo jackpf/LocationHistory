@@ -16,8 +16,8 @@ trait DeviceRepoExtensions { self: DeviceRepo =>
   )(using ec: ExecutionContext): Future[Try[StoredDevice]] =
     get(id).map {
       case Some(foundDevice) if foundDevice.status == status => Success(foundDevice)
-      case Some(foudDevice) => Failure(InvalidDeviceStatus(id, status, foudDevice.status))
-      case _                => Failure(DeviceNotFoundException(id))
+      case Some(foundDevice) => Failure(InvalidDeviceStatus(id, status, foundDevice.status))
+      case _                 => Failure(DeviceNotFoundException(id))
     }
 
   def getPendingDevice(
