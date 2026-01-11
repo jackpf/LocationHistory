@@ -1,11 +1,6 @@
 import React, {useState} from 'react';
 import {type Device, DeviceStatus, type StoredDevice} from "../gen/common.ts";
-import {
-    sendUnifiedPushNotification,
-    TRIGGER_ALARM_MESSAGE,
-    UNIFIED_PUSH_HANDLER
-} from "../utils/unified-push-client.ts";
-import {toast} from "sonner";
+import {NotificationType, type SendNotificationResponse} from "../gen/admin-service.ts";
 
 interface DeviceListProps {
     devices: StoredDevice[];
@@ -14,6 +9,7 @@ interface DeviceListProps {
     setForceRecenter: (force: boolean) => void;
     approveDevice: (deviceId: string) => void;
     deleteDevice: (deviceId: string) => void;
+    sendNotification: (deviceId: string, notificationType: NotificationType) => Promise<SendNotificationResponse | undefined>;
     logout: () => void;
 }
 
@@ -24,6 +20,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                                                           setForceRecenter,
                                                           approveDevice,
                                                           deleteDevice,
+                                                          sendNotification,
                                                           logout
                                                       }) => {
     const handleApprove = async (deviceId: string) => {
@@ -41,19 +38,10 @@ export const DeviceList: React.FC<DeviceListProps> = ({
         const device = storedDevice.device;
         if (!device || !storedDevice.pushHandler) return;
 
-        const pushHandlerName = storedDevice.pushHandler.name;
-        const pushHandlerUrl = storedDevice.pushHandler.url;
-
-        if (pushHandlerName === UNIFIED_PUSH_HANDLER) {
-            toast("Sending alarm notification...");
-
-            sendUnifiedPushNotification(pushHandlerUrl, TRIGGER_ALARM_MESSAGE)
-                .then(r => {
-                    if (r) console.log(`Sent alarm to ${device.id} on ${pushHandlerUrl}`);
-                });
-        } else {
-            console.error(`Invalid push handler ${pushHandlerName}`)
-        }
+        sendNotification(device.id, NotificationType.REQUEST_ALARM)
+            .then(r => {
+                if (r && r.success) console.log(`Sent alarm notification to ${device.id}`);
+            });
 
         setOpenMenuId(null);
     };

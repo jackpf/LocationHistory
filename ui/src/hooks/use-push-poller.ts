@@ -1,15 +1,12 @@
 import {useEffect} from "react";
-import {
-    sendUnifiedPushNotification,
-    TRIGGER_BEACON_MESSAGE,
-    UNIFIED_PUSH_HANDLER
-} from "../utils/unified-push-client.ts";
 import type {StoredDevice} from "../gen/common.ts";
+import {NotificationType, type SendNotificationResponse} from "../gen/admin-service.ts";
 
 export function usePushPoller(
     storedDevice: StoredDevice | undefined,
     isVisible: boolean,
-    refreshInterval: number
+    refreshInterval: number,
+    sendNotification: (deviceId: string, notificationType: NotificationType) => Promise<SendNotificationResponse | undefined>,
 ){
     // Poll push notification updates if tab is currently active
     // We don't want to endlessly wake the device if we're buried in the users 238 open tabs
@@ -23,19 +20,12 @@ export function usePushPoller(
                 return;
             }
 
-            if (storedDevice && storedDevice.device && storedDevice.pushHandler) {
-                const deviceId = storedDevice.device.id;
-                const pushHandlerName = storedDevice.pushHandler.name;
-                const pushHandlerUrl = storedDevice.pushHandler.url;
-
-                if (pushHandlerName === UNIFIED_PUSH_HANDLER) {
-                    sendUnifiedPushNotification(pushHandlerUrl, TRIGGER_BEACON_MESSAGE)
-                        .then(r => {
-                            if (r) console.log(`Sent notification to ${deviceId} on ${pushHandlerUrl}`);
-                        });
-                } else {
-                    console.error(`Invalid push handler ${pushHandlerName}`)
-                }
+            const device = storedDevice.device;
+            if (device) {
+                sendNotification(device.id, NotificationType.REQUEST_BEACON)
+                    .then(r => {
+                        if (r && r.success) console.log(`Sent beacon notification to ${device.id}`);
+                    });
             }
         }
 
