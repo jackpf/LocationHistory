@@ -6,10 +6,11 @@ import com.jackpf.locationhistory.server.model.DeviceId.Type
 import com.jackpf.locationhistory.server.model.{Location, StoredLocation}
 import scalasql.core.DbClient
 import scalasql.simple.SimpleTable
-import scalasql.SqliteDialect.*
 
 import scala.concurrent.{ExecutionContext, Future, blocking}
 import scala.util.{Failure, Try}
+import scalasql.*, SqliteDialect.*
+import scalasql.core.SqlStr.SqlStringSyntax
 
 private case class StoredLocationRow(
     id: Long,
@@ -149,6 +150,39 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
       blocking {
         db.run(StoredLocationTable.delete(_ => true))
         ()
+      }
+    }
+  }
+
+  /** Overriding the default implementation with an optimised SQL version
+    */
+  override def getDevicesLastLocationMap(devices: Seq[DeviceId.Type])(using
+      ec: ExecutionContext
+  ): Future[Map[DeviceId.Type, Option[StoredLocation]]] = Future {
+    if (devices.isEmpty) Map.empty
+    else {
+      import com.jackpf.locationhistory.server.repo.StoredLocationTable.given
+
+      val deviceIds = SqlStr.join(devices.map(d => sql"${d.toString}"), sql", ")
+
+      db.transaction { implicit db =>
+        blocking {
+          val result = db.runSql[StoredLocationRow](sql"""
+          SELECT * FROM (
+            SELECT *,
+              ROW_NUMBER() OVER (PARTITION BY device_id ORDER BY timestamp DESC) as rn
+            FROM stored_location_table
+            WHERE device_id IN ($deviceIds)
+          )
+          WHERE rn = 1
+        """)
+
+          val map: Map[DeviceId.Type, Option[StoredLocation]] = result.map { row =>
+            DeviceId(row.deviceId) -> Some(row.toStoredLocation)
+          }.toMap
+
+          map
+        }
       }
     }
   }

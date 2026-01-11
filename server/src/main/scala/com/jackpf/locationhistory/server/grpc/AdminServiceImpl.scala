@@ -40,7 +40,7 @@ class AdminServiceImpl(
     } yield ListDevicesResponse(devices.map { storedDevice =>
       StoredDeviceWithMetadata(
         storedDevice = Some(storedDevice.toProto),
-        lastLocation = lastLocationsMap(storedDevice.device.id).map(_.toProto)
+        lastLocation = lastLocationsMap.get(storedDevice.device.id).flatten.map(_.toProto)
       )
     })
   }
