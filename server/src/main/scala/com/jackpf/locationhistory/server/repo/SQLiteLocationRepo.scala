@@ -177,11 +177,9 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
           WHERE rn = 1
         """)
 
-          val map: Map[DeviceId.Type, Option[StoredLocation]] = result.map { row =>
+          result.map { row =>
             DeviceId(row.deviceId) -> Some(row.toStoredLocation)
           }.toMap
-
-          map
         }
       }
     }
