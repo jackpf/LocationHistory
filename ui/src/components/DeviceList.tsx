@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {type Device, DeviceStatus, type StoredDevice, type StoredLocation} from "../gen/common.ts";
+import {type Device, DeviceStatus, type StoredDevice} from "../gen/common.ts";
 import {NotificationType, type SendNotificationResponse, type StoredDeviceWithMetadata} from "../gen/admin-service.ts";
 import {formatDistanceToNow} from "date-fns";
 
@@ -98,10 +98,8 @@ export const DeviceList: React.FC<DeviceListProps> = ({
 
                 {devices.length === 0 && <div className="no-devices">No devices</div>}
 
-                {devices.map((storedDeviceWithMetadata: StoredDeviceWithMetadata) => {
-                    const storedDevice: StoredDevice | undefined = storedDeviceWithMetadata.storedDevice;
+                {devices.map(({storedDevice, lastLocation}: StoredDeviceWithMetadata) => {
                     const device: Device | undefined = storedDevice?.device;
-                    const lastLocation: StoredLocation | undefined = storedDeviceWithMetadata.lastLocation;
                     if (!storedDevice || !device) return;
 
                     return (

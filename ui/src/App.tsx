@@ -59,8 +59,8 @@ const Dashboard = () => {
         error
     } = useAdminClient(REFRESH_INTERVAL);
 
-    const storedDevice = devices.find(d => d.storedDevice?.device?.id === selectedDeviceId)
-    usePushPoller(storedDevice?.storedDevice, isVisible, REFRESH_INTERVAL, sendNotification);
+    const storedDeviceWithMetadata = devices.find(d => d.storedDevice?.device?.id === selectedDeviceId)
+    usePushPoller(storedDeviceWithMetadata?.storedDevice, isVisible, REFRESH_INTERVAL, sendNotification);
 
     const [forceRecenter, setForceRecenter] = useState<boolean>(false);
 
