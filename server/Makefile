@@ -57,5 +57,5 @@ docker-run: package-local
 	$(DOCKER) run --rm -p $(DOCKER_PORT):8080 $(APP_NAME):latest
 
 .PHONY: release
-release: package
+release: compile
 	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME):latest -t $(APP_NAME):$(VERSION) --push .

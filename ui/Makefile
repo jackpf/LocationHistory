@@ -53,7 +53,7 @@ docker-run: package-local
 	$(DOCKER) run --rm -p $(DOCKER_PORT):80 $(APP_NAME):latest
 
 .PHONY: release
-release: package
+release: build
 	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME):latest -t $(APP_NAME):$(VERSION) --push .
 
 .PHONY: package-proxy
