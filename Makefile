@@ -7,8 +7,13 @@ package-local:
 	make -C ui package-local
 	make -C ui package-local-proxy
 
+.PHONY: check-version
+check-version:
+	@echo "$(VERSION)" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$$' || \
+		(echo "Error: VERSION must follow the pattern v[0-9]+.[0-9]+.[0-9]+, got: $(VERSION)"; exit 1)
+	@echo "Version $(VERSION) is valid"
+
 .PHONY: release
-release:
-#	git tag v1.0.0
-#	git push origin v1.0.0
-	echo $(VERSION)
+release: check-version
+	git tag v$(VERSION)
+	git push origin v$(VERSION)
