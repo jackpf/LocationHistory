@@ -29,4 +29,11 @@ object ParamExtractor {
       case None        => Future.failed(failure)
     }
   }
+
+  extension [T](param: Future[Try[T]]) {
+    def toFuture(using ec: ExecutionContext): Future[T] = param.flatMap {
+      case Success(value)     => Future.successful(value)
+      case Failure(exception) => Future.failed(exception)
+    }
+  }
 }

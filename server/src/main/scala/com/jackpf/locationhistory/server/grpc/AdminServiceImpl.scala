@@ -3,8 +3,7 @@ package com.jackpf.locationhistory.server.grpc
 import com.jackpf.locationhistory.admin_service.*
 import com.jackpf.locationhistory.admin_service.AdminServiceGrpc.AdminService
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.*
-import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
-import com.jackpf.locationhistory.server.model.{DeviceId, StoredDevice}
+import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.service.NotificationService
 import com.jackpf.locationhistory.server.service.NotificationService.Notification
@@ -54,19 +53,8 @@ class AdminServiceImpl(
     val deviceId = DeviceId(request.deviceId)
 
     for {
-      storedDevice <- deviceRepo.get(deviceId).toFutureOr(DeviceNotFoundException(deviceId))
-      response <- storedDevice.status match {
-        case StoredDevice.DeviceStatus.Pending =>
-          deviceRepo.update(storedDevice.device.id, device => device.register())
-        case _ =>
-          Future.failed(
-            InvalidDeviceStatus(
-              storedDevice.device.id,
-              actualState = storedDevice.status,
-              expectedState = DeviceStatus.Pending
-            )
-          )
-      }
+      storedDevice <- deviceRepo.getPendingDevice(deviceId).toFuture
+      response <- deviceRepo.update(storedDevice.device.id, device => device.register())
     } yield response
   }.toResponse(_ => ApproveDeviceResponse(success = true))
 
@@ -84,7 +72,7 @@ class AdminServiceImpl(
     val deviceId = DeviceId(request.deviceId)
 
     for {
-      storedDevice <- deviceRepo.get(deviceId).toFutureOr(DeviceNotFoundException(deviceId))
+      storedDevice <- deviceRepo.getRegisteredDevice(deviceId).toFuture
       pushHandler <- storedDevice.pushHandler.toFutureOr(NoPushHandler(deviceId))
       notification <- Notification
         .fromProto(request.notificationType)
