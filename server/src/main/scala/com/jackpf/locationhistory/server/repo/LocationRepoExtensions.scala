@@ -30,6 +30,7 @@ trait LocationRepoExtensions { self: LocationRepo =>
         update(
           deviceId,
           id = previousLocation.id,
+          // TODO We might want to update an endTimestamp and count so we don't lose info of when the location was first seen
           updateAction = _.copy(timestamp = timestamp)
         )
       case _ =>

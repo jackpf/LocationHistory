@@ -58,8 +58,38 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
 
     "set a location with duplicates" >> in(
       new ApprovedDeviceContext {}
-    ) { _ =>
-      failure("TODO")
+    ) { context =>
+      def insertLocation(lat: Double, lon: Double, accuracy: Double, timestamp: Long) = {
+        val request =
+          SetLocationRequest(
+            timestamp = timestamp,
+            deviceId = context.device.id,
+            location = Some(Location(lat, lon, accuracy))
+          )
+
+        context.client.setLocation(request) === SetLocationResponse(success = true)
+      }
+
+      insertLocation(51.500700, -0.124600, 0.1, 1L)
+      insertLocation(51.500700, -0.124600, 0.1, 2L) // Exact duplicate
+      insertLocation(51.500800, -0.124500, 0.1, 3L) // Close duplicate
+      insertLocation(35.659500, 139.700500, 0.1, 4L) // Not a duplicate
+
+      // Check location the fetched location is actually correct
+      val listLocationsRequest = ListLocationsRequest(deviceId = context.device.id)
+      val listLocationsResponse = context.adminClient.listLocations(listLocationsRequest)
+
+      listLocationsResponse.locations must haveSize(2)
+      listLocationsResponse.locations === Seq(
+        StoredLocation(
+          location = Some(Location(lat = 51.500700, lon = -0.124600, accuracy = 0.1)),
+          timestamp = 3L // We should have an updated timestamp
+        ),
+        StoredLocation(
+          location = Some(Location(lat = 35.659500, lon = 139.700500, accuracy = 0.1)),
+          timestamp = 4L
+        )
+      )
     }
   }
 }
