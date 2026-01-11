@@ -6,12 +6,11 @@ import {useLogin} from "./hooks/use-login.ts";
 import {MLMap} from "./components/MLMap.tsx";
 import {MAP_TYPE} from "./config/config.ts";
 import {OSMMap} from "./components/OSMMap.tsx";
-import type {StoredDevice, StoredLocation} from "./gen/common.ts";
+import type {StoredLocation} from "./gen/common.ts";
 import {useState} from "react";
 import {usePushPoller} from "./hooks/use-push-poller.ts";
 import {usePageVisibility} from "./hooks/use-page-visibility.ts";
 import {Toaster} from "sonner";
-import type {StoredDeviceWithMetadata} from "./gen/admin-service.ts";
 
 const DisplayMap = ({history, selectedDeviceId, forceRecenter, setForceRecenter}: {
     history: StoredLocation[],
@@ -61,8 +60,7 @@ const Dashboard = () => {
         error
     } = useAdminClient(REFRESH_INTERVAL);
 
-    const storedDeviceWithMetadata: StoredDeviceWithMetadata | undefined = devices.find(d => d.storedDevice?.device?.id === selectedDeviceId)
-    const storedDevice: StoredDevice | undefined = storedDeviceWithMetadata?.storedDevice
+    const storedDevice = devices.find(d => d.storedDevice?.device?.id === selectedDeviceId)?.storedDevice;
 
     usePushPoller(
         storedDevice?.device?.id,

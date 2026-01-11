@@ -25,5 +25,5 @@ export function usePushPoller(
 
         const interval = setInterval(poll, refreshInterval);
         return () => clearInterval(interval);
-    }, [deviceId, refreshInterval, isVisible]);
+    }, [deviceId, pushEnabled, isVisible, refreshInterval, sendNotification]);
 }
