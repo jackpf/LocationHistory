@@ -1,5 +1,3 @@
-ThisBuild / version := "0.1.0-SNAPSHOT"
-
 ThisBuild / scalaVersion := "3.7.0"
 
 lazy val versions = new {
@@ -23,7 +21,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "server",
     assembly / assemblyJarName := "app.jar",
-    ThisBuild / version := sys.env.get("VERSION").getOrElse("0.1.0-SNAPSHOT")
+    version := sys.env.get("VERSION").getOrElse("0.1.0-SNAPSHOT"),
     inConfig(IntegrationTest)(Defaults.testSettings),
     libraryDependencies ++= Seq(
       "com.jackpf.locationhistory" %% "shared" % versions.sharedProtos,
