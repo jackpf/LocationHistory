@@ -119,7 +119,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
             blocking {
               db.run(
                 StoredLocationTable
-                  .update(l => l.id === id && l.deviceId === deviceId.toString) // TODO Make pred
+                  .update(l => l.id === id && l.deviceId === deviceId.toString)
                   .set(
                     _.lat := updatedStoredDevice.location.lat,
                     _.lon := updatedStoredDevice.location.lon,
