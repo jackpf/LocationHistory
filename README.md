@@ -70,7 +70,7 @@ make run
 ```
 
 For more details on building & running individual components,
-refer to the components' readmes.
+refer to individual components' READMEs.
 
 ## License
 This project is licensed under the [GPLv3 License](https://www.gnu.org/licenses/gpl-3.0.en.html).
