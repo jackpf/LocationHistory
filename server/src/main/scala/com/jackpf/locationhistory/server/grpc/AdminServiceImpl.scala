@@ -36,7 +36,13 @@ class AdminServiceImpl(
   ): Future[ListDevicesResponse] = {
     for {
       devices <- deviceRepo.getAll
-    } yield ListDevicesResponse(devices.map(_.toProto))
+      lastLocationsMap <- locationRepo.getDevicesLastLocationMap(devices.map(_.device.id))
+    } yield ListDevicesResponse(devices.map { storedDevice =>
+      StoredDeviceWithMetadata(
+        storedDevice = Some(storedDevice.toProto),
+        lastLocation = lastLocationsMap(storedDevice.device.id).map(_.toProto)
+      )
+    })
   }
 
   override def deleteDevice(request: DeleteDeviceRequest): Future[DeleteDeviceResponse] = {

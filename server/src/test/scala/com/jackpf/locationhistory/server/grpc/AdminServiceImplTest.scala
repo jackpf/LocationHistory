@@ -12,7 +12,8 @@ import com.jackpf.locationhistory.admin_service.{
   LoginResponse,
   NotificationType,
   SendNotificationRequest,
-  SendNotificationResponse
+  SendNotificationResponse,
+  StoredDeviceWithMetadata
 }
 import com.jackpf.locationhistory.common.{
   Device,
@@ -42,7 +43,8 @@ import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{mock, when}
 import org.specs2.concurrent.ExecutionEnv
 
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success, Try}
 
 class AdminServiceImplTest(implicit ee: ExecutionEnv)
@@ -86,6 +88,13 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         lazy val getAllResponse: Future[Seq[model.StoredDevice]]
         when(deviceRepo.getAll).thenReturn(getAllResponse)
 
+        lazy val getLastLocationsResponse: Future[Map[DeviceId.Type, Option[model.StoredLocation]]]
+        when(
+          locationRepo.getDevicesLastLocationMap(
+            Await.result(getAllResponse, Duration.Inf).map(_.device.id)
+          )
+        ).thenReturn(getLastLocationsResponse)
+
         val request: ListDevicesRequest = ListDevicesRequest()
         val result: Future[ListDevicesResponse] = adminService.listDevices(request)
       }
@@ -105,19 +114,34 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
             )
           )
         )
+        override lazy val getLastLocationsResponse
+            : Future[Map[DeviceId.Type, Option[model.StoredLocation]]] =
+          Future.successful(
+            Map(DeviceId("123") -> None, DeviceId("456") -> Some(MockModels.storedLocation()))
+          )
       }) { context =>
         context.result must beEqualTo(
           ListDevicesResponse(devices =
             Seq(
-              StoredDevice(
-                device = Some(Device(id = "123", name = "dev1", publicKey = "xxx")),
-                status = DeviceStatus.DEVICE_PENDING,
-                pushHandler = None
+              StoredDeviceWithMetadata(
+                storedDevice = Some(
+                  StoredDevice(
+                    device = Some(Device(id = "123", name = "dev1", publicKey = "xxx")),
+                    status = DeviceStatus.DEVICE_PENDING,
+                    pushHandler = None
+                  )
+                ),
+                lastLocation = None
               ),
-              StoredDevice(
-                device = Some(Device(id = "456", name = "dev2", publicKey = "yyy")),
-                status = DeviceStatus.DEVICE_REGISTERED,
-                pushHandler = Some(PushHandler(name = "ph", url = "phUrl"))
+              StoredDeviceWithMetadata(
+                storedDevice = Some(
+                  StoredDevice(
+                    device = Some(Device(id = "456", name = "dev2", publicKey = "yyy")),
+                    status = DeviceStatus.DEVICE_REGISTERED,
+                    pushHandler = Some(PushHandler(name = "ph", url = "phUrl"))
+                  )
+                ),
+                lastLocation = Some(MockModels.storedLocation().toProto)
               )
             )
           )
