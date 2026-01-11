@@ -7,10 +7,7 @@ import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
 object ResponseMapper {
   extension [T](response: Future[Try[T]]) {
     def toResponse[R](f: T => R)(using ec: ExecutionContext): Future[R] = response
-      .flatMap {
-        case Success(value)     => Future.successful(f(value))
-        case Failure(exception) => Future.failed(exception)
-      }
+      .flatMap(t => Future.fromTry(t.map(f)))
       .recoverWith { case t: Throwable =>
         Future.failed(t.toGrpcError)
       }
