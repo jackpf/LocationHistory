@@ -4,7 +4,9 @@ import com.jackpf.locationhistory.server.db.DataSourceFactory
 import com.jackpf.locationhistory.server.grpc.{AuthenticationManager, Services}
 import com.jackpf.locationhistory.server.model.StorageType
 import com.jackpf.locationhistory.server.repo.*
+import com.jackpf.locationhistory.server.service.NotificationService
 import scopt.OptionParser
+import sttp.client4.DefaultFutureBackend
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -78,6 +80,8 @@ object App {
 
     val deviceRepo: DeviceRepo = repoFactory.deviceRepo(parsedArgs.storageType.get)
     val locationRepo: LocationRepo = repoFactory.locationRepo(parsedArgs.storageType.get)
+    val sttpBackend = DefaultFutureBackend()
+    val notificationService: NotificationService = new NotificationService(sttpBackend)
 
     Await.result(
       Future.sequence(
@@ -90,18 +94,24 @@ object App {
     )
 
     val beaconServer = new AppServer(
-      "Admin service",
-      parsedArgs.adminPort.get,
-      sslCertsPath = None,
-      Services.adminServices(authenticationManager, deviceRepo, locationRepo)*
-    ).start()
-
-    val adminServer = new AppServer(
       "Beacon service",
       parsedArgs.beaconPort.get,
       parsedArgs.sslCertsPath,
       Services.beaconServices(deviceRepo, locationRepo)*
     ).start()
+
+    val adminServer = new AppServer(
+      "Admin service",
+      parsedArgs.adminPort.get,
+      sslCertsPath = None,
+      Services.adminServices(authenticationManager, deviceRepo, locationRepo, notificationService)*
+    ).start()
+
+    sys.addShutdownHook {
+      beaconServer.shutdown()
+      adminServer.shutdown()
+      sttpBackend.close(): Unit
+    }
 
     beaconServer.awaitTermination()
     adminServer.awaitTermination()

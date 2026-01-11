@@ -52,6 +52,7 @@ const Dashboard = () => {
         setSelectedDeviceId,
         approveDevice,
         deleteDevice,
+        sendNotification,
         devices,
         selectedDeviceId,
         history,
@@ -59,7 +60,7 @@ const Dashboard = () => {
     } = useAdminClient(REFRESH_INTERVAL);
 
     const storedDevice = devices.find(d => d.device && d.device.id === selectedDeviceId)
-    usePushPoller(storedDevice, isVisible, REFRESH_INTERVAL);
+    usePushPoller(storedDevice, isVisible, REFRESH_INTERVAL, sendNotification);
 
     const [forceRecenter, setForceRecenter] = useState<boolean>(false);
 
@@ -93,6 +94,7 @@ const Dashboard = () => {
                         setForceRecenter={setForceRecenter}
                         approveDevice={approveDevice}
                         deleteDevice={deleteDevice}
+                        sendNotification={sendNotification}
                         logout={logout}/>
 
             <DisplayMap history={history}
