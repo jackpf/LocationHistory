@@ -5,14 +5,14 @@ on:
     tags: [ "v*" ]
 
 jobs:
-  build-server:
+  release-server-version:
     uses: ./.github/workflows/build-server.yml
     with:
       version: ${{ github.ref_name }}
       publish: true
     secrets: inherit
 
-  build-client:
+  release-client-version:
     uses: ./.github/workflows/build-client.yml
     with:
       version: ${{ github.ref_name }}
@@ -20,18 +20,18 @@ jobs:
       publish: true
     secrets: inherit
 
-  build-ui:
+  release-ui-version:
     uses: ./.github/workflows/build-ui.yml
     with:
       version: ${{ github.ref_name }}
       publish: true
     secrets: inherit
 
-  create-release:
+  publish-release:
     needs:
-      - build-server
-      - build-client
-      - build-ui
+      - release-server-version
+      - release-client-version
+      - release-ui-version
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -41,7 +41,7 @@ jobs:
           name: app-release
           path: ./artifacts
 
-      - name: Create Release
+      - name: Publish Release
         uses: softprops/action-gh-release@v1
         with:
           files: ./artifacts/*.apk
