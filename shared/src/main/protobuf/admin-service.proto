@@ -12,6 +12,7 @@ service AdminService {
   rpc DeleteDevice(DeleteDeviceRequest) returns (DeleteDeviceResponse);
   rpc ApproveDevice(ApproveDeviceRequest) returns (ApproveDeviceResponse);
   rpc ListLocations(ListLocationsRequest) returns (ListLocationsResponse);
+  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse);
 }
 
 message LoginRequest {
@@ -51,4 +52,18 @@ message ListLocationsRequest {
 
 message ListLocationsResponse {
   repeated StoredLocation locations = 1;
+}
+
+enum NotificationType {
+  REQUEST_BEACON = 0;
+  REQUEST_ALARM = 1;
+}
+
+message SendNotificationRequest {
+  string deviceId = 1;
+  NotificationType notification_type = 2;
+}
+
+message SendNotificationResponse {
+  bool success = 1;
 }

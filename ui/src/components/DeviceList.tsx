@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {type Device, DeviceStatus, type StoredDevice} from "../gen/common.ts";
+import {NotificationType, type SendNotificationResponse} from "../gen/admin-service.ts";
 
 interface DeviceListProps {
     devices: StoredDevice[];
@@ -8,6 +9,7 @@ interface DeviceListProps {
     setForceRecenter: (force: boolean) => void;
     approveDevice: (deviceId: string) => void;
     deleteDevice: (deviceId: string) => void;
+    sendNotification: (deviceId: string, notificationType: NotificationType) => Promise<SendNotificationResponse | undefined>;
     logout: () => void;
 }
 
@@ -18,6 +20,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                                                           setForceRecenter,
                                                           approveDevice,
                                                           deleteDevice,
+                                                          sendNotification,
                                                           logout
                                                       }) => {
     const handleApprove = async (deviceId: string) => {
@@ -28,6 +31,18 @@ export const DeviceList: React.FC<DeviceListProps> = ({
         if (window.confirm("Are you sure you want to delete this device?")) {
             await deleteDevice(deviceId);
         }
+        setOpenMenuId(null);
+    };
+
+    const handleRing = async (storedDevice: StoredDevice) => {
+        const device = storedDevice.device;
+        if (!device || !storedDevice.pushHandler) return;
+
+        sendNotification(device.id, NotificationType.REQUEST_ALARM)
+            .then(r => {
+                if (r && r.success) console.log(`Sent alarm notification to ${device.id}`);
+            });
+
         setOpenMenuId(null);
     };
 
@@ -110,6 +125,14 @@ export const DeviceList: React.FC<DeviceListProps> = ({
 
                                 {openMenuId === device.id && (
                                     <div className="device-menu-dropdown">
+                                        {storedDevice.pushHandler &&
+                                            <button
+                                                className="device-ring-btn"
+                                                onClick={() => handleRing(storedDevice)}
+                                            >
+                                                Play Sound
+                                            </button>
+                                        }
                                         <button
                                             className="device-delete-btn"
                                             onClick={() => handleDelete(device.id)}

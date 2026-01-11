@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useState} from 'react';
 import {adminClient, grpcErrorMessage} from '../utils/admin-client';
 import {StoredDevice, type StoredLocation} from '../gen/common';
-import type {ListDevicesResponse, ListLocationsResponse} from "../gen/admin-service.ts";
+import {type ListDevicesResponse, type ListLocationsResponse, NotificationType} from "../gen/admin-service.ts";
 
 export function useAdminClient(refreshInterval: number) {
     const [devices, setDevices] = useState<StoredDevice[]>([]);
@@ -60,6 +60,17 @@ export function useAdminClient(refreshInterval: number) {
         }
     };
 
+    const sendNotification = async (deviceId: string, notificationType: NotificationType) => {
+        try {
+            return await adminClient.sendNotification(
+                {deviceId: deviceId, notificationType: notificationType} as any,
+            );
+        } catch (e) {
+            console.error(e);
+            setError(grpcErrorMessage("Failed to send notification", e));
+        }
+    };
+
     // Poll device list
     useEffect(() => {
         fetchDevices();
@@ -84,6 +95,7 @@ export function useAdminClient(refreshInterval: number) {
         setSelectedDeviceId,
         approveDevice,
         deleteDevice,
+        sendNotification,
         devices,
         selectedDeviceId,
         history,

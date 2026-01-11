@@ -202,16 +202,24 @@ html, body, #root {
 }
 
 /* The delete button inside the dropdown */
-.device-delete-btn {
+.device-menu-dropdown button {
   display: block;
   width: 100%;
-  text-align: center;
+  text-align: left;
   background: none;
   border: none;
   padding: 8px 12px;
   cursor: pointer;
-  color: #d32f2f; /* Red color for danger action */
   font-size: 14px;
+  color: gray;
+}
+
+.device-menu-dropdown button:hover {
+  color: white;
+}
+
+.device-delete-btn {
+  color: #d32f2f !important;
 }
 
 /* Maplibre */

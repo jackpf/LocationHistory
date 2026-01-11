@@ -10,6 +10,7 @@ import type {StoredLocation} from "./gen/common.ts";
 import {useState} from "react";
 import {usePushPoller} from "./hooks/use-push-poller.ts";
 import {usePageVisibility} from "./hooks/use-page-visibility.ts";
+import {Toaster} from "sonner";
 
 const DisplayMap = ({history, selectedDeviceId, forceRecenter, setForceRecenter}: {
     history: StoredLocation[],
@@ -51,6 +52,7 @@ const Dashboard = () => {
         setSelectedDeviceId,
         approveDevice,
         deleteDevice,
+        sendNotification,
         devices,
         selectedDeviceId,
         history,
@@ -58,7 +60,7 @@ const Dashboard = () => {
     } = useAdminClient(REFRESH_INTERVAL);
 
     const storedDevice = devices.find(d => d.device && d.device.id === selectedDeviceId)
-    usePushPoller(storedDevice, isVisible, REFRESH_INTERVAL);
+    usePushPoller(storedDevice, isVisible, REFRESH_INTERVAL, sendNotification);
 
     const [forceRecenter, setForceRecenter] = useState<boolean>(false);
 
@@ -70,12 +72,29 @@ const Dashboard = () => {
         <div className="app-container">
             {error && <div className="error-text">{error}</div>}
 
+            <Toaster
+                position="top-center"
+                toastOptions={{
+                    style: {
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        color: '#fff',
+                        borderRadius: '25px',
+                        border: 'none',
+                        fontSize: '14px',
+                        padding: '10px 20px',
+                        textAlign: 'center',
+                        minWidth: 'fit-content'
+                    },
+                }}
+            />
+
             <DeviceList devices={devices}
                         selectedDeviceId={selectedDeviceId}
                         setSelectedDeviceId={setSelectedDeviceId}
                         setForceRecenter={setForceRecenter}
                         approveDevice={approveDevice}
                         deleteDevice={deleteDevice}
+                        sendNotification={sendNotification}
                         logout={logout}/>
 
             <DisplayMap history={history}

@@ -49,4 +49,7 @@
     <string name="toast_unregister_push_handler_error">Un-registration error: %s</string>
     <string name="toast_no_push_distributors">No push distributors found</string>
 
+    <string name="notification_alarm_title">Alarm Triggered</string>
+    <string name="notification_alarm_description">Alarm triggered via Location History</string>
+
 </resources>
