@@ -41,23 +41,30 @@ jobs:
           sbt-runner-version: 1.11.7
 
       - name: Build Shared
-        run: make -C shared compile publish
+        working-directory: ./shared
+        run: make compile publish
 
       - name: Lint
-        run: make -C server lint
+        working-directory: ./server
+        run: make lint
 
       - name: Unit Test
-        run: make -C server test
+        working-directory: ./server
+        run: make test
 
       - name: Integration Test
-        run: make -C server integration-test
+        working-directory: ./server
+        run: make integration-test
 
       - name: Build
-        run: make -C server compile
+        working-directory: ./server
+        run: make compile
 
       - name: Package
-        run: VERSION="${{ inputs.version }}" make -C server package
+        working-directory: ./server
+        run: VERSION="${{ inputs.version }}" make package
 
       - name: Release
         if: inputs.publish
-        run: VERSION="${{ inputs.version }}" make -C server release
+        working-directory: ./server
+        run: VERSION="${{ inputs.version }}" make release

@@ -56,15 +56,12 @@ jobs:
         working-directory: ./ui
         run: make package
 
-      - name: Release
+      - name: Release Proxy
         if: inputs.publish
         working-directory: ./ui
-        run: |
-          docker build . -t ${{ secrets.DOCKERHUB_USERNAME }}/locationhistory-ui:${{ inputs.version }}
-          docker build . -t ${{ secrets.DOCKERHUB_USERNAME }}/locationhistory-ui:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/locationhistory-ui:${{ inputs.version }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/locationhistory-ui:latest
-          
-          # Assuming you want to push the proxy as well
-          docker build -f Dockerfile.proxy . -t ${{ secrets.DOCKERHUB_USERNAME }}/locationhistory-proxy:${{ inputs.version }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/locationhistory-proxy:${{ inputs.version }}
+        run: make release-proxy
+
+      - name: Release UI
+        if: inputs.publish
+        working-directory: ./ui
+        run: make release

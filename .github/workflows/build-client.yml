@@ -35,18 +35,22 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build Shared
-        run: make -C shared compile publish
+        working-directory: ./shared
+        run: make compile publish
 
       - name: Lint
-        run: make -C client lint
+        working-directory: ./client
+        run: make lint
 
       - name: Build Debug
         if: inputs.build_type == 'debug'
-        run: make -C client build-debug
+        working-directory: ./client
+        run: make build-debug
 
       - name: Build Release
         if: inputs.build_type == 'release'
-        run: make -C client build-release
+        working-directory: ./client
+        run: make build-release
 
       - name: Release
         if: inputs.publish
