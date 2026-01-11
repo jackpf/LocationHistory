@@ -1,7 +1,14 @@
 package com.jackpf.locationhistory.server.testutil
 
 import com.jackpf.locationhistory.server.model.StoredDevice.DeviceStatus
-import com.jackpf.locationhistory.server.model.{Device, DeviceId, PushHandler, StoredDevice}
+import com.jackpf.locationhistory.server.model.{
+  Device,
+  DeviceId,
+  Location,
+  PushHandler,
+  StoredDevice,
+  StoredLocation
+}
 
 object MockModels {
   def device(
@@ -20,4 +27,13 @@ object MockModels {
       status: DeviceStatus = DeviceStatus.Unknown,
       pushHandler: Option[PushHandler] = None
   ): StoredDevice = StoredDevice(device = device, status = status, pushHandler = pushHandler)
+
+  def location(lat: Double = 0.1, lon: Double = 0.2, accuracy: Double = 0.3): Location =
+    Location(lat = lat, lon = lon, accuracy = accuracy)
+
+  def storedLocation(
+      id: Long = 1,
+      location: Location = location(),
+      timestamp: Long = 123L
+  ): StoredLocation = StoredLocation(id = id, location = location, timestamp = timestamp)
 }

@@ -56,7 +56,6 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
       )
     }
 
-
     "set a location with duplicates" >> in(
       new ApprovedDeviceContext {}
     ) { _ =>

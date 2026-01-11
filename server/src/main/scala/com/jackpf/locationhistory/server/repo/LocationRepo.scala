@@ -5,7 +5,7 @@ import com.jackpf.locationhistory.server.model.{DeviceId, Location, StoredLocati
 import scala.concurrent.Future
 import scala.util.Try
 
-trait LocationRepo {
+trait LocationRepo extends LocationRepoExtensions {
   def init(): Future[Unit] = Future.successful(())
 
   def storeDeviceLocation(

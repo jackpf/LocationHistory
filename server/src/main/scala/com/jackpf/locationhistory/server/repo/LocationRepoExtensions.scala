@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.repo
 
-import com.jackpf.locationhistory.server.model.{DeviceId, Location}
+import com.jackpf.locationhistory.server.model.{DeviceId, Location, StoredLocation}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -18,19 +18,17 @@ trait LocationRepoExtensions { self: LocationRepo =>
       deviceId: DeviceId.Type,
       location: Location,
       timestamp: Long,
-      isDuplicateFunc: ((Location, Option[Location])) => Boolean
+      isDuplicate: (Location, Long, StoredLocation) => Boolean
   )(using ec: ExecutionContext): Future[Try[Unit]] = {
-    for {
-      previousLocation <- getForDevice(deviceId, limit = Some(1)).map(_.headOption)
-      isDuplicate = isDuplicateFunc(location, previousLocation.map(_.location))
-      insertOrUpdate <-
-        if (!isDuplicate) storeDeviceLocation(deviceId, location, timestamp)
-        else
-          update(
-            deviceId,
-            id = previousLocation.get.id,
-            updateAction = storedLocation => storedLocation.copy(timestamp = timestamp)
-          )
-    } yield insertOrUpdate
+    getForDevice(deviceId, limit = Some(1)).map(_.headOption).flatMap {
+      case Some(previousLocation) if isDuplicate(location, timestamp, previousLocation) =>
+        update(
+          deviceId,
+          id = previousLocation.id,
+          updateAction = _.copy(timestamp = timestamp)
+        )
+      case _ =>
+        storeDeviceLocation(deviceId, location, timestamp)
+    }
   }
 }
