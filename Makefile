@@ -15,5 +15,5 @@ check-version:
 
 .PHONY: release
 release: check-version
-	git tag v$(VERSION)
-	git push origin v$(VERSION)
+	git tag $(VERSION)
+	git push origin $(VERSION)
