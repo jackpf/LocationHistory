@@ -4,37 +4,30 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
   InvalidDeviceStatus
 }
-import com.jackpf.locationhistory.server.model.DeviceId.Type
-import com.jackpf.locationhistory.server.model.{Device, DeviceId, StoredDevice}
+import com.jackpf.locationhistory.server.model.{DeviceId, StoredDevice}
 import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification, MockModels}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{mock, when}
 import org.specs2.concurrent.ExecutionEnv
 
-import scala.concurrent.Future
-import scala.util.Try
+import scala.concurrent.{ExecutionContext, Future}
 
 class DeviceRepoExtensionsTest(using ee: ExecutionEnv) extends DefaultSpecification {
-  trait StubDeviceRepo extends DeviceRepo {
-    override def register(device: Device): Future[Try[Unit]] = ???
-    override def update(id: Type, updateAction: StoredDevice => StoredDevice): Future[Try[Unit]] =
-      ???
-    override def getAll: Future[Seq[StoredDevice]] = ???
-    override def delete(id: Type): Future[Try[Unit]] = ???
-    override def deleteAll(): Future[Unit] = ???
-  }
-
   trait Context extends DefaultScope {
     val activeDevice: StoredDevice =
       MockModels.storedDevice(status = StoredDevice.DeviceStatus.Registered)
     val pendingDevice: StoredDevice =
       MockModels.storedDevice(status = StoredDevice.DeviceStatus.Pending)
 
-    val repository: StubDeviceRepo
+    given ec: ExecutionContext = any[ExecutionContext]()
+    val repository: DeviceRepo = mock(classOf[DeviceRepo])
   }
 
   "DeviceRepoExtensions" should {
     "return success when device exists and status matches" >> in(new Context {
-      override val repository: StubDeviceRepo =
-        (_: DeviceId.Type) => Future.successful(Some(activeDevice))
+      when(repository.get(DeviceId("123"))).thenReturn(Future.successful(Some(activeDevice)))
+      when(repository.getWithStatus(any[DeviceId.Type](), any[StoredDevice.DeviceStatus]()))
+        .thenCallRealMethod()
     }) { context =>
       context.repository
         .getWithStatus(
@@ -47,8 +40,9 @@ class DeviceRepoExtensionsTest(using ee: ExecutionEnv) extends DefaultSpecificat
     }
 
     "return failure when status mismatch" >> in(new Context {
-      override val repository: StubDeviceRepo =
-        (_: DeviceId.Type) => Future.successful(Some(pendingDevice))
+      when(repository.get(DeviceId("123"))).thenReturn(Future.successful(Some(pendingDevice)))
+      when(repository.getWithStatus(any[DeviceId.Type](), any[StoredDevice.DeviceStatus]()))
+        .thenCallRealMethod()
     }) { context =>
       context.repository
         .getWithStatus(
@@ -59,8 +53,9 @@ class DeviceRepoExtensionsTest(using ee: ExecutionEnv) extends DefaultSpecificat
     }
 
     "return failure when device not found" >> in(new Context {
-      override val repository: StubDeviceRepo =
-        (_: DeviceId.Type) => Future.successful(None)
+      when(repository.get(DeviceId("123"))).thenReturn(Future.successful(None))
+      when(repository.getWithStatus(any[DeviceId.Type](), any[StoredDevice.DeviceStatus]()))
+        .thenCallRealMethod()
     }) { context =>
       context.repository
         .getWithStatus(

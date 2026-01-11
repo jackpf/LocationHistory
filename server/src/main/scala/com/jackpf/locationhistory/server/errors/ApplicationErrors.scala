@@ -58,6 +58,14 @@ object ApplicationErrors {
     override val status: Status = Status.ALREADY_EXISTS
   }
 
+  case class LocationNotFoundException(
+      deviceId: DeviceId.Type,
+      id: Long,
+      cause: Throwable = None.orNull
+  ) extends ApplicationError(s"Location ${id} does not exist for device ${deviceId}", cause) {
+    override val status: Status = Status.NOT_FOUND
+  }
+
   case class NoPushHandler(
       deviceId: DeviceId.Type,
       cause: Throwable = None.orNull
