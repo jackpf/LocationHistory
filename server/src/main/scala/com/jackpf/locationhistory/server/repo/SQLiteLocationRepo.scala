@@ -177,8 +177,8 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
         """)
 
           val locationsMap =
-            result.map(row => DeviceId(row.deviceId) -> Some(row.toStoredLocation)).toMap
-          devices.map(device => device -> locationsMap.get(device).flatten).toMap
+            result.map(row => DeviceId(row.deviceId) -> row.toStoredLocation).toMap
+          devices.map(device => device -> locationsMap.get(device)).toMap
         }
       }
     }
