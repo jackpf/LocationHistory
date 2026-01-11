@@ -47,7 +47,6 @@ jobs:
     secrets: inherit
 
   build-ui:
-    ui-pr:
     needs: changes
     if: ${{ needs.changes.outputs.ui == 'true' }}
     uses: ./.github/workflows/build-ui.yml
