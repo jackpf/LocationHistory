@@ -208,7 +208,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         lazy val deviceId: String = "123"
 
         lazy val getResponse: Future[Vector[model.StoredLocation]]
-        when(locationRepo.getForDevice(DeviceId(deviceId))).thenReturn(getResponse)
+        when(locationRepo.getForDevice(DeviceId(deviceId), limit = None)).thenReturn(getResponse)
 
         val request: ListLocationsRequest = ListLocationsRequest(deviceId = deviceId)
         val result: Future[ListLocationsResponse] = adminService.listLocations(request)
@@ -218,9 +218,17 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val getResponse: Future[Vector[model.StoredLocation]] = Future.successful(
           Vector(
             model
-              .StoredLocation(model.Location(lat = 0.1, lon = 0.2, accuracy = 0.3), timestamp = 1L),
+              .StoredLocation(
+                1L,
+                model.Location(lat = 0.1, lon = 0.2, accuracy = 0.3),
+                timestamp = 1L
+              ),
             model
-              .StoredLocation(model.Location(lat = 0.4, lon = 0.5, accuracy = 0.6), timestamp = 2L)
+              .StoredLocation(
+                2L,
+                model.Location(lat = 0.4, lon = 0.5, accuracy = 0.6),
+                timestamp = 2L
+              )
           )
         )
       }) { context =>

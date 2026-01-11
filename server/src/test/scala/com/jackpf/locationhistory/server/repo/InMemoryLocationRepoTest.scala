@@ -31,7 +31,7 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends LocationRepoTe
           _ <- storeLocation(4L)
           _ <- storeLocation(5L)
           _ <- storeLocation(6L)
-          locations <- context.locationRepo.getForDevice(deviceId)
+          locations <- context.locationRepo.getForDevice(deviceId, limit = None)
         } yield {
           locations must haveSize(4)
           locations.map(_.timestamp) must beEqualTo(

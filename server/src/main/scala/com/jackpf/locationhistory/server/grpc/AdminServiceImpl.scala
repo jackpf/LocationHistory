@@ -62,7 +62,7 @@ class AdminServiceImpl(
       request: ListLocationsRequest
   ): Future[ListLocationsResponse] = {
     for {
-      locations <- locationRepo.getForDevice(DeviceId(request.deviceId))
+      locations <- locationRepo.getForDevice(DeviceId(request.deviceId), limit = None)
     } yield ListLocationsResponse(locations.map(_.toProto))
   }
 
