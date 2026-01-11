@@ -4,18 +4,16 @@ import com.jackpf.locationhistory.beacon_service.*
 import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
 import com.jackpf.locationhistory.common.DeviceStatus
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
-  DeviceNotFoundException,
-  DeviceNotRegisteredException,
   NoDeviceProvidedException,
   NoLocationProvidedException
 }
-import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
 import com.jackpf.locationhistory.server.model.*
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.util.Logging
+import com.jackpf.locationhistory.server.util.ParamExtractor.*
+import com.jackpf.locationhistory.server.util.ResponseMapper.*
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 class BeaconServiceImpl(
     deviceRepo: DeviceRepo,
@@ -30,20 +28,11 @@ class BeaconServiceImpl(
   override def registerDevice(
       request: RegisterDeviceRequest
   ): Future[RegisterDeviceResponse] = {
-    request.device match {
-      case Some(device) =>
-        deviceRepo.register(Device.fromProto(device)).flatMap {
-          case Failure(exception) =>
-            Future.failed(exception.toGrpcError)
-          case Success(_) =>
-            Future.successful(
-              RegisterDeviceResponse(success = true, status = DeviceStatus.DEVICE_PENDING)
-            )
-        }
-      case None =>
-        Future.failed(NoDeviceProvidedException().toGrpcError)
-    }
-  }
+    for {
+      device <- request.device.toFutureOr(NoDeviceProvidedException())
+      registerResponse <- deviceRepo.register(Device.fromProto(device))
+    } yield registerResponse
+  }.toResponse(_ => RegisterDeviceResponse(success = true, status = DeviceStatus.DEVICE_PENDING))
 
   override def checkDevice(
       request: CheckDeviceRequest
@@ -61,56 +50,29 @@ class BeaconServiceImpl(
   override def setLocation(
       request: SetLocationRequest
   ): Future[SetLocationResponse] = {
-    if (request.location.isEmpty)
-      Future.failed(NoLocationProvidedException().toGrpcError)
-    else {
-      val deviceId = DeviceId(request.deviceId)
-      val location = request.location.get
-
-      deviceRepo.get(deviceId).flatMap {
-        case Some(storedDevice) =>
-          if (storedDevice.isRegistered) {
-            locationRepo
-              .storeDeviceLocation(
-                deviceId,
-                Location.fromProto(location),
-                timestamp = request.timestamp
-              )
-              .flatMap {
-                case Failure(exception) => Future.failed(exception.toGrpcError)
-                case Success(_)         => Future.successful(SetLocationResponse(success = true))
-              }
-          } else {
-            Future.failed(DeviceNotRegisteredException(deviceId).toGrpcError)
-          }
-        case None =>
-          Future.failed(
-            DeviceNotFoundException(deviceId).toGrpcError
-          )
-      }
-    }
-  }
+    for {
+      location <- request.location.toFutureOr(NoLocationProvidedException())
+      storedDevice <- deviceRepo.getRegisteredDevice(DeviceId(request.deviceId)).toFuture
+      storeLocationResponse <- locationRepo
+        .storeDeviceLocation(
+          storedDevice.device.id,
+          Location.fromProto(location),
+          timestamp = request.timestamp
+        )
+    } yield storeLocationResponse
+  }.toResponse(_ => SetLocationResponse(success = true))
 
   override def registerPushHandler(
       request: RegisterPushHandlerRequest
   ): Future[RegisterPushHandlerResponse] = {
-    val deviceId = DeviceId(request.deviceId)
-
-    deviceRepo.get(deviceId).flatMap {
-      case Some(storedDevice) if storedDevice.isRegistered =>
-        deviceRepo
-          .update(
-            deviceId,
-            storedDevice =>
-              storedDevice.withPushHandler(request.pushHandler.map(PushHandler.fromProto))
-          )
-          .flatMap {
-            case Failure(exception) => Future.failed(exception.toGrpcError)
-            case Success(value) => Future.successful(RegisterPushHandlerResponse(success = true))
-          }
-      case Some(_) => Future.failed(DeviceNotRegisteredException(deviceId).toGrpcError)
-      case None    =>
-        Future.failed(DeviceNotFoundException(deviceId).toGrpcError)
-    }
-  }
+    for {
+      storedDevice <- deviceRepo.getRegisteredDevice(DeviceId(request.deviceId)).toFuture
+      registerHandlerResponse <- deviceRepo
+        .update(
+          storedDevice.device.id,
+          storedDevice =>
+            storedDevice.withPushHandler(request.pushHandler.map(PushHandler.fromProto))
+        )
+    } yield registerHandlerResponse
+  }.toResponse(_ => RegisterPushHandlerResponse(success = true))
 }
