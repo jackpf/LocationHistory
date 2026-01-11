@@ -26,8 +26,13 @@ message LoginResponse {
 message ListDevicesRequest {
 }
 
+message StoredDeviceWithMetadata {
+    StoredDevice stored_device = 1;
+    optional StoredLocation last_location = 2;
+}
+
 message ListDevicesResponse {
-  repeated StoredDevice devices = 1;
+  repeated StoredDeviceWithMetadata devices = 1;
 }
 
 message DeleteDeviceRequest {

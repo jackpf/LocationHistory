@@ -1,9 +1,10 @@
 import React, {useState} from 'react';
 import {type Device, DeviceStatus, type StoredDevice} from "../gen/common.ts";
-import {NotificationType, type SendNotificationResponse} from "../gen/admin-service.ts";
+import {NotificationType, type SendNotificationResponse, type StoredDeviceWithMetadata} from "../gen/admin-service.ts";
+import {formatDistanceToNow} from "date-fns";
 
 interface DeviceListProps {
-    devices: StoredDevice[];
+    devices: StoredDeviceWithMetadata[];
     selectedDeviceId: string | null;
     setSelectedDeviceId: (deviceId: string) => void;
     setForceRecenter: (force: boolean) => void;
@@ -97,9 +98,9 @@ export const DeviceList: React.FC<DeviceListProps> = ({
 
                 {devices.length === 0 && <div className="no-devices">No devices</div>}
 
-                {devices.map((storedDevice: StoredDevice) => {
-                    const device: Device | undefined = storedDevice.device;
-                    if (!device) return;
+                {devices.map(({storedDevice, lastLocation}: StoredDeviceWithMetadata) => {
+                    const device: Device | undefined = storedDevice?.device;
+                    if (!storedDevice || !device) return;
 
                     return (
                         <div
@@ -146,16 +147,21 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                             <strong>{device.name || "No name"}</strong>
                             <div className="device-details">
                                 <div className="detail-row">
-                                    <span className="detail-label">ID:</span>
+                                    <span className="detail-label">ID</span>
                                     <span className="detail-value">{device.id}</span>
                                 </div>
                                 <div className="detail-row">
-                                    <span className="detail-label">Status:</span>
+                                    <span className="detail-label">Status</span>
                                     <span className="detail-value">{showDeviceStatus(storedDevice.status)}</span>
+                                </div>
+                                <div className="detail-row">
+                                    <span className="detail-label">Last seen</span>
+                                    <span
+                                        className="detail-value">{lastLocation ? formatDistanceToNow(new Date(lastLocation.timestamp), {addSuffix: true}) : "never"}</span>
                                 </div>
                                 {storedDevice.pushHandler &&
                                     <div className="detail-row">
-                                        <span className="detail-label">Push Handler:</span>
+                                        <span className="detail-label">Push Handler</span>
                                         <span className="detail-value">{storedDevice.pushHandler.name}</span>
                                     </div>}
                                 <div className="detail-row">

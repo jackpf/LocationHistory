@@ -1,10 +1,15 @@
 import {useCallback, useEffect, useState} from 'react';
 import {adminClient, grpcErrorMessage} from '../utils/admin-client';
-import {StoredDevice, type StoredLocation} from '../gen/common';
-import {type ListDevicesResponse, type ListLocationsResponse, NotificationType} from "../gen/admin-service.ts";
+import {type StoredLocation} from '../gen/common';
+import {
+    type ListDevicesResponse,
+    type ListLocationsResponse,
+    NotificationType,
+    type StoredDeviceWithMetadata
+} from "../gen/admin-service.ts";
 
 export function useAdminClient(refreshInterval: number) {
-    const [devices, setDevices] = useState<StoredDevice[]>([]);
+    const [devices, setDevices] = useState<StoredDeviceWithMetadata[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const [history, setHistory] = useState<StoredLocation[]>([]);
     const [error, setError] = useState<string | null>(null);

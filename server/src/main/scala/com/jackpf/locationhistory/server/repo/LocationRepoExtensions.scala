@@ -47,4 +47,14 @@ trait LocationRepoExtensions { self: LocationRepo =>
         storeDeviceLocation(deviceId, location, timestamp)
     }
   }
+
+  def getDevicesLastLocationMap(
+      devices: Seq[DeviceId.Type]
+  )(using ec: ExecutionContext): Future[Map[DeviceId.Type, Option[StoredLocation]]] = {
+    Future
+      .sequence(devices.map { deviceId =>
+        getForDevice(deviceId, limit = Some(1)).map(locations => deviceId -> locations.headOption)
+      })
+      .map(_.toMap)
+  }
 }
