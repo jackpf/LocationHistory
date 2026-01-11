@@ -8,7 +8,7 @@ RUN curl -Lo /bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-healt
 
 RUN mkdir -p /data
 
-COPY target/scala-3.7.0/app.jar app.jar
+COPY target/scala-*/app.jar app.jar
 COPY bin/entrypoint.sh entrypoint.sh
 
 RUN mkdir -p ./bin
