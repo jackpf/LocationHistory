@@ -1,8 +1,9 @@
 package com.jackpf.locationhistory.server.util
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
 import com.jackpf.locationhistory.server.grpc.ErrorMapper.*
+
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 object ResponseMapper {
   extension [T](response: Future[Try[T]]) {
