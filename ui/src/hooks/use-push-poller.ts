@@ -1,26 +1,23 @@
 import {useEffect} from "react";
-import type {StoredDevice} from "../gen/common.ts";
 import {NotificationType, type SendNotificationResponse} from "../gen/admin-service.ts";
 
 export function usePushPoller(
-    storedDevice: StoredDevice | undefined,
+    deviceId: string | undefined,
+    pushEnabled: boolean | undefined,
     isVisible: boolean,
     refreshInterval: number,
     sendNotification: (deviceId: string, notificationType: NotificationType) => Promise<SendNotificationResponse | undefined>,
 ){
-    // Poll push notification updates if tab is currently active
-    // We don't want to endlessly wake the device if we're buried in the users 238 open tabs
     useEffect(() => {
         const poll = () => {
+            // Poll push notification updates if tab is currently active
+            // We don't want to endlessly wake the device if we're buried in the users 238 open tabs
             if (!isVisible) return;
-            if (!storedDevice) return;
+            if (!deviceId || !pushEnabled) return;
 
-            const device = storedDevice.device;
-            if (!device || !storedDevice.pushHandler) return;
-
-            sendNotification(device.id, NotificationType.REQUEST_BEACON)
+            sendNotification(deviceId, NotificationType.REQUEST_BEACON)
                 .then(r => {
-                    if (r && r.success) console.log(`Sent beacon notification to ${device.id}`);
+                    if (r && r.success) console.log(`Sent beacon notification to ${deviceId}`);
                 });
         }
 
@@ -28,5 +25,5 @@ export function usePushPoller(
 
         const interval = setInterval(poll, refreshInterval);
         return () => clearInterval(interval);
-    }, [storedDevice, refreshInterval, isVisible]);
+    }, [deviceId, pushEnabled, isVisible, refreshInterval, sendNotification]);
 }
