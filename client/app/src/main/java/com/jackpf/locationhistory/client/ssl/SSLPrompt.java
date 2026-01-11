@@ -4,19 +4,22 @@ import android.app.Activity;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.jackpf.locationhistory.client.R;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SSLPrompt {
     private final Activity activity;
     private final TrustedCertStorage storage;
     private final static AtomicBoolean isShowing = new AtomicBoolean(false);
-    private final static Map<String, Long> promptCache = new ConcurrentHashMap<>();
+    private static final long PROMPT_COOLDOWN_MS = 30_000;
 
-    private final long PROMPT_COOLDOWN_MS = 30_000;
+    private final static Cache<String, Boolean> promptCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(PROMPT_COOLDOWN_MS, TimeUnit.MILLISECONDS)
+            .build();
 
     public SSLPrompt(Activity activity) {
         this.activity = activity;
@@ -24,7 +27,7 @@ public class SSLPrompt {
     }
 
     private void closePrompt(String fingerprint, boolean accept) {
-        promptCache.put(fingerprint, System.currentTimeMillis());
+        promptCache.put(fingerprint, true);
         if (accept) {
             storage.addFingerprint(fingerprint);
         }
@@ -36,11 +39,8 @@ public class SSLPrompt {
             return;
         }
 
-        if (!force && promptCache.containsKey(fingerprint)) {
-            long lastDenied = promptCache.get(fingerprint);
-            if (System.currentTimeMillis() - lastDenied < PROMPT_COOLDOWN_MS) {
-                return;
-            }
+        if (!force && promptCache.getIfPresent(fingerprint) != null) {
+            return;
         }
 
         if (isShowing.compareAndSet(false, true)) {
