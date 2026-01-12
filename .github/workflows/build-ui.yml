@@ -50,18 +50,18 @@ jobs:
 
       - name: Package Proxy
         working-directory: ./ui
-        run: make package-proxy
+        run: make VERSION="${{ inputs.version }}" package-proxy
 
       - name: Package UI
         working-directory: ./ui
-        run: make package
+        run: make VERSION="${{ inputs.version }}" package
 
       - name: Release Proxy
         if: inputs.publish
         working-directory: ./ui
-        run: make release-proxy
+        run: make VERSION="${{ inputs.version }}" release-proxy
 
       - name: Release UI
         if: inputs.publish
         working-directory: ./ui
-        run: make release
+        run: make VERSION="${{ inputs.version }}" release
