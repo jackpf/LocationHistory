@@ -1,10 +1,10 @@
-APP_NAME = location-history-server
+APP_NAME = location-history-ui
 IMAGE = jackpfarrelly/$(APP_NAME)
 VERSION ?= 0.1.0-SNAPSHOT
 NPM ?= npm
 DOCKER ?= docker
 BUILDER_NAME = $(APP_NAME)-builder
-DOCKER_BUILDX = $(DOCKER) buildx build --load
+DOCKER_BUILDX = $(DOCKER) buildx build
 DOCKER_PORT ?= 8081
 
 .PHONY: init
@@ -42,7 +42,7 @@ run: build
 
 .PHONY: package
 package: build
-	$(DOCKER_BUILDX) -t $(IMAGE):latest .
+	$(DOCKER_BUILDX) --load -t $(IMAGE):latest .
 
 #.PHONY: docker-run
 #docker-run: package-local
@@ -58,15 +58,15 @@ setup-buildx:
 
 .PHONY: release
 release: build setup-buildx
-	$(DOCKER_BUILDX) -t $(IMAGE):latest -t $(IMAGE):$(VERSION) --push .
+	$(DOCKER_BUILDX) --push -t $(IMAGE):latest -t $(IMAGE):$(VERSION) .
 
 .PHONY: package-proxy
 package-proxy: setup-buildx
-	$(DOCKER_BUILDX) -t $(IMAGE)-proxy:latest -f proxy.Dockerfile .
+	$(DOCKER_BUILDX) --load -t $(IMAGE)-proxy:latest -f proxy.Dockerfile .
 
 .PHONY: release-proxy
 release-proxy: setup-buildx
-	$(DOCKER_BUILDX) -t $(IMAGE)-proxy:latest -t $(IMAGE)-proxy:$(VERSION) --push -f proxy.Dockerfile .
+	$(DOCKER_BUILDX) --push -t $(IMAGE)-proxy:latest -t $(IMAGE)-proxy:$(VERSION) -f proxy.Dockerfile .
 
 .PHONY: run-proxy
 run-proxy: package-proxy

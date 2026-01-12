@@ -4,7 +4,7 @@ VERSION ?= 0.1.0-SNAPSHOT
 SBT ?= sbt
 DOCKER ?= docker
 BUILDER_NAME = $(APP_NAME)-builder
-DOCKER_BUILDX = $(DOCKER) buildx build --load
+DOCKER_BUILDX = $(DOCKER) buildx build
 DOCKER_PORT ?= 8080
 RUN_ARGS ?=
 
@@ -53,7 +53,7 @@ setup-buildx:
 
 .PHONY: package
 package: compile setup-buildx
-	$(DOCKER_BUILDX) -t $(IMAGE):latest .
+	$(DOCKER_BUILDX) --load -t $(IMAGE):latest .
 
 # Maybe not working/needed
 #.PHONY: docker-run
@@ -62,4 +62,4 @@ package: compile setup-buildx
 
 .PHONY: release
 release: compile setup-buildx
-	$(DOCKER_BUILDX) -t $(IMAGE):latest -t $(IMAGE):$(VERSION) --push .
+	$(DOCKER_BUILDX) --push -t $(IMAGE):latest -t $(IMAGE):$(VERSION) .
