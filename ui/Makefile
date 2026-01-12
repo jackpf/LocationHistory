@@ -1,15 +1,15 @@
-APP_NAME = jackpfarrelly/location-history-ui
+APP_NAME = location-history-server
+IMAGE = jackpfarrelly/$(APP_NAME)
 VERSION ?= 0.1.0-SNAPSHOT
+NPM ?= npm
 DOCKER ?= docker
-DOCKER_BUILD_PLATFORMS = linux/amd64,linux/arm64
-DOCKER_BUILDX = $(DOCKER) buildx create --use; $(DOCKER) buildx build
-DOCKER_BUILDX_MULTI = $(DOCKER_BUILDX) --platform $(DOCKER_BUILD_PLATFORMS)
-DOCKER_BUILDX_LOCAL = $(DOCKER_BUILDX) --load
+BUILDER_NAME = $(APP_NAME)-builder
+DOCKER_BUILDX = $(DOCKER) buildx build --load
 DOCKER_PORT ?= 8081
 
 .PHONY: init
 init:
-	npm create vite@latest . -- --template react-ts
+	$(NPM) create vite@latest . -- --template react-ts
 
 .PHONY: clean
 clean:
@@ -17,7 +17,7 @@ clean:
 
 .PHONY: install
 install:
-	npm install
+	$(NPM) install
 
 .PHONY: build-protos
 build-protos:
@@ -30,7 +30,7 @@ build-protos:
 
 .PHONY: build
 build: install build-protos
-	npm run build
+	$(NPM) run build
 
 .PHONY: init-local-env
 init-local-env:
@@ -38,43 +38,43 @@ init-local-env:
 
 .PHONY: run
 run: build
-	npm run dev
+	$(NPM) run dev
 
 .PHONY: package
 package: build
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME):latest .
+	$(DOCKER_BUILDX) -t $(IMAGE):latest .
 
-.PHONY: package-local
-package-local: build
-	$(DOCKER_BUILDX_LOCAL) -t $(APP_NAME):latest .
+#.PHONY: docker-run
+#docker-run: package-local
+#	$(DOCKER) run --rm -p $(DOCKER_PORT):80 $(IMAGE):latest
 
-.PHONY: docker-run
-docker-run: package-local
-	$(DOCKER) run --rm -p $(DOCKER_PORT):80 $(APP_NAME):latest
+.PHONY: setup-buildx
+setup-buildx:
+	@if ! $(DOCKER) buildx ls | grep -q $(BUILDER_NAME); then \
+		$(DOCKER) buildx create --name $(BUILDER_NAME) --use; \
+	else \
+		$(DOCKER) buildx use $(BUILDER_NAME); \
+	fi
 
 .PHONY: release
-release: build
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME):latest -t $(APP_NAME):$(VERSION) --push .
+release: build setup-buildx
+	$(DOCKER_BUILDX) -t $(IMAGE):latest -t $(IMAGE):$(VERSION) --push .
 
 .PHONY: package-proxy
-package-proxy:
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest -f proxy.Dockerfile .
-
-.PHONY: package-local-proxy
-package-local-proxy:
-	$(DOCKER_BUILDX_LOCAL) -t $(APP_NAME)-proxy:latest -f proxy.Dockerfile .
+package-proxy: setup-buildx
+	$(DOCKER_BUILDX) -t $(IMAGE)-proxy:latest -f proxy.Dockerfile .
 
 .PHONY: release-proxy
-release-proxy:
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME)-proxy:latest -t $(APP_NAME)-proxy:$(VERSION) --push -f proxy.Dockerfile .
+release-proxy: setup-buildx
+	$(DOCKER_BUILDX) -t $(IMAGE)-proxy:latest -t $(IMAGE)-proxy:$(VERSION) --push -f proxy.Dockerfile .
 
 .PHONY: run-proxy
-run-proxy: package-local-proxy
+run-proxy: package-proxy
 	docker run --rm \
 		-p 9123:8080 \
 		--name grpc-proxy \
 		--add-host host.docker.internal:host-gateway \
-		$(APP_NAME)-proxy \
+		$(IMAGE)-proxy \
 		--backend_addr=host.docker.internal:8081 \
 		--run_tls_server=false \
 		--allow_all_origins

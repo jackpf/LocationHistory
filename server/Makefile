@@ -1,13 +1,12 @@
-APP_NAME = jackpfarrelly/location-history-server
+APP_NAME = location-history-server
+IMAGE = jackpfarrelly/$(APP_NAME)
 VERSION ?= 0.1.0-SNAPSHOT
 SBT ?= sbt
-RUN_ARGS ?=
 DOCKER ?= docker
-DOCKER_BUILD_PLATFORMS = linux/amd64,linux/arm64
-DOCKER_BUILDX = $(DOCKER) buildx create --use; $(DOCKER) buildx build
-DOCKER_BUILDX_MULTI = $(DOCKER_BUILDX) --platform $(DOCKER_BUILD_PLATFORMS)
-DOCKER_BUILDX_LOCAL = $(DOCKER_BUILDX) --load
+BUILDER_NAME = $(APP_NAME)-builder
+DOCKER_BUILDX = $(DOCKER) buildx build --load
 DOCKER_PORT ?= 8080
+RUN_ARGS ?=
 
 .PHONY: clean
 clean:
@@ -44,18 +43,23 @@ generate-local-cert:
 run:
 	$(SBT) "run $(RUN_ARGS)"
 
+.PHONY: setup-buildx
+setup-buildx:
+	@if ! $(DOCKER) buildx ls | grep -q $(BUILDER_NAME); then \
+		$(DOCKER) buildx create --name $(BUILDER_NAME) --use; \
+	else \
+		$(DOCKER) buildx use $(BUILDER_NAME); \
+	fi
+
 .PHONY: package
-package: compile
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME):latest .
+package: compile setup-buildx
+	$(DOCKER_BUILDX) -t $(IMAGE):latest .
 
-.PHONY: package-local
-package-local: compile
-	$(DOCKER_BUILDX_LOCAL) -t $(APP_NAME):latest .
-
-.PHONY: docker-run
-docker-run: package-local
-	$(DOCKER) run --rm -p $(DOCKER_PORT):8080 $(APP_NAME):latest
+# Maybe not working/needed
+#.PHONY: docker-run
+#docker-run:
+#	$(DOCKER) run --rm -p $(DOCKER_PORT):8080 -e SERVER_NAME=localhost -e ADMIN_PASSWORD=password $(IMAGE):latest
 
 .PHONY: release
-release: compile
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME):latest -t $(APP_NAME):$(VERSION) --push .
+release: compile setup-buildx
+	$(DOCKER_BUILDX) -t $(IMAGE):latest -t $(IMAGE):$(VERSION) --push .
