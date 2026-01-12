@@ -15,7 +15,7 @@ ifeq ($(USE_DOCKER),true)
     	-w /app \
     	sbtscala/scala-sbt:eclipse-temurin-17.0.15_6_1.12.0_3.7.4 sbt
 else
-    SBT = sbt
+    SBT ?= sbt
 endif
 
 include ../docker-buildx.mk

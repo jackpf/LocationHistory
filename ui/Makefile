@@ -15,7 +15,7 @@ ifeq ($(USE_DOCKER),true)
 		-w /app \
 		node:24-bookworm npm
 else
-    NPM = npm
+    NPM ?= npm
 endif
 
 include ../docker-buildx.mk
