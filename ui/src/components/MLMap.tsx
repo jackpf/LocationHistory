@@ -102,7 +102,6 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
         [lastLocation.location.lat, lastLocation.location.lon] : DEFAULT_CENTER;
 
     const onMapStyleChange = (mapStyle: string) => {
-        console.log("mapStyle change", mapStyle);
         setMapStyle(mapStyle);
     }
 
