@@ -34,7 +34,7 @@ if (!MAPTILER_API_KEY) {
 }
 
 const getMapUrl = (style: string) => {
-    return "https://api.maptiler.com/maps/" + style + "/style.json?key=" + MAPTILER_API_KEY;
+    return `https://api.maptiler.com/maps/${style}/style.json?key=${MAPTILER_API_KEY}`;
 }
 const DEFAULT_CENTER: [number, number] = [40, 0];
 const DEFAULT_ZOOM = 2;
