@@ -6,6 +6,7 @@ import type {StoredLocation} from "../gen/common.ts";
 import {type LngLatLike, type MapGeoJSONFeature} from "maplibre-gl";
 import {MAPTILER_API_KEY} from "../config/config.ts";
 import type {Point} from 'geojson';
+import {Select} from "antd";
 
 const lineLayerStyle = {
     id: 'route-line',
@@ -32,10 +33,16 @@ if (!MAPTILER_API_KEY) {
     alert("MAPTILER_API_KEY must be set to use maptiler");
 }
 
-const MAP_STYLE = "https://api.maptiler.com/maps/streets-v2/style.json?key=" + MAPTILER_API_KEY
+const getMapUrl = (style: string) => {
+    return "https://api.maptiler.com/maps/" + style + "/style.json?key=" + MAPTILER_API_KEY;
+}
 const DEFAULT_CENTER: [number, number] = [40, 0];
 const DEFAULT_ZOOM = 2;
 const DEFAULT_ZOOM_IN = 15;
+const MAP_STYLE_OPTIONS = [
+    {value: "streets-v2", label: "Light Mode"},
+    {value: "base-v4-dark", label: "Dark Mode"},
+];
 
 function MapUpdater({center, selectedId, history, forceRecenter, setForceRecenter}: {
     center: [number, number],
@@ -88,10 +95,16 @@ interface MLMapProps {
 export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRecenter, setForceRecenter}) => {
     const [popupInfo, setPopupInfo] = useState<MapGeoJSONFeature | null>(null);
     const [cursor, setCursor] = useState('');
+    const [mapStyle, setMapStyle] = useState(MAP_STYLE_OPTIONS[0].value);
 
     const lastLocation: StoredLocation | null = history.length > 0 ? history[history.length - 1] : null;
     const mapCenter: [number, number] = lastLocation != null && lastLocation.location != null ?
         [lastLocation.location.lat, lastLocation.location.lon] : DEFAULT_CENTER;
+
+    const onMapStyleChange = (mapStyle: string) => {
+        console.log("mapStyle change", mapStyle);
+        setMapStyle(mapStyle);
+    }
 
     const geoJsonData = useMemo(() => {
         return {
@@ -132,6 +145,16 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
     return (
         <main className="map-area" style={{position: 'relative'}}>
 
+            {/* Map settings */}
+            <div style={{position: 'absolute', right: 10, bottom: 150, zIndex: 1000}}>
+                <Select
+                    value={mapStyle}
+                    style={{width: 160}}
+                    onChange={onMapStyleChange}
+                    options={MAP_STYLE_OPTIONS}
+                />
+            </div>
+
             {/* Overlay UI */}
             {selectedDeviceId && (
                 <div className="map-overlay"
@@ -152,7 +175,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                     zoom: DEFAULT_ZOOM
                 }}
                 style={{width: '100%', height: '100%'}}
-                mapStyle={MAP_STYLE}
+                mapStyle={getMapUrl(mapStyle)}
                 interactiveLayerIds={['history-points']}
                 cursor={cursor}
                 onMouseEnter={() => setCursor('pointer')}
