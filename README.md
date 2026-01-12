@@ -96,10 +96,19 @@ If you want to test the full Docker stack, you can run like so:
 
 1. Make a copy of the example [docker-compose.yml](./examples/docker-compose.yml) and [.env file](./examples/.env)
 2. Customise it to your liking (it might just work out of the box though)
-3. Package everything locally: `make package-local`
+3. Package everything locally: `make package-all`
 4. Run `docker compose up`
 
 Your components should be running on ports specified in the `.env` file.
+
+#### Pushing to a local test server
+
+Note that this is quite setup dependant, but you should be able to run something
+like this to build everything locally and push & reload containers on a local server.
+
+```bash
+TEST_SERVER=<user>@<server> USE_DOCKER=true PLATFORM=linux/amd64 make package-all push-test
+```
 
 ## License
 This project is licensed under the [GPLv3 License](https://www.gnu.org/licenses/gpl-3.0.en.html).
