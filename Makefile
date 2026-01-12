@@ -41,8 +41,8 @@ release: check-status check-version
 push-test:
 	@echo "Pushing latest tags to $(TEST_SERVER)..."
 	docker save jackpfarrelly/location-history-server:latest | ssh $(TEST_SERVER) "docker load"
-	#docker save jackpfarrelly/location-history-ui:latest | ssh $(TEST_SERVER) "docker load"
-	#docker save jackpfarrelly/location-history-ui-proxy:latest | ssh $(TEST_SERVER) "docker load"
+	docker save jackpfarrelly/location-history-ui:latest | ssh $(TEST_SERVER) "docker load"
+	docker save jackpfarrelly/location-history-ui-proxy:latest | ssh $(TEST_SERVER) "docker load"
 	@echo "✅ Pushed!"
 
 	@echo "♻️ Recreating containers..."
