@@ -26,6 +26,8 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // TODO FixMe with a proper signing config
+            signingConfig signingConfigs.debug
         }
     }
     compileOptions {
