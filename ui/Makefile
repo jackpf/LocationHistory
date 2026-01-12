@@ -7,7 +7,7 @@ DOCKER_BUILDX = $(DOCKER) buildx build $(if $(PLATFORM),--platform $(PLATFORM))
 USE_DOCKER ?= false
 PLATFORM ?=
 ifeq ($(USE_DOCKER),true)
-    NPM ?= docker run --rm \
+    NPM ?= docker volume create npm-cache && docker run --rm \
 		$(if $(PLATFORM),--platform $(PLATFORM)) \
 		-v .:/app \
 		-v npm-cache:/root/.npm \
@@ -54,7 +54,7 @@ run: build
 	$(NPM) run dev
 
 .PHONY: package
-package: build
+package: build setup-buildx
 	$(DOCKER_BUILDX) --load -t $(IMAGE):latest .
 
 .PHONY: release
