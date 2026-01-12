@@ -18,6 +18,8 @@ else
     SBT = sbt
 endif
 
+include ../docker-buildx.mk
+
 .PHONY: clean
 clean:
 	$(SBT) clean
@@ -52,14 +54,6 @@ generate-local-cert:
 .PHONY: run
 run:
 	$(SBT) "run $(RUN_ARGS)"
-
-.PHONY: setup-buildx
-setup-buildx:
-	@if ! $(DOCKER) buildx ls | grep -q $(BUILDER_NAME); then \
-		$(DOCKER) buildx create --name $(BUILDER_NAME) --use --bootstrap; \
-	else \
-		$(DOCKER) buildx use $(BUILDER_NAME); \
-	fi
 
 .PHONY: package
 package: compile setup-buildx

@@ -18,6 +18,8 @@ else
     NPM = npm
 endif
 
+include ../docker-buildx.mk
+
 .PHONY: init
 init:
 	$(NPM) create vite@latest . -- --template react-ts
@@ -54,14 +56,6 @@ run: build
 .PHONY: package
 package: build
 	$(DOCKER_BUILDX) --load -t $(IMAGE):latest .
-
-.PHONY: setup-buildx
-setup-buildx:
-	@if ! $(DOCKER) buildx ls | grep -q $(BUILDER_NAME); then \
-		$(DOCKER) buildx create --name $(BUILDER_NAME) --use --bootstrap; \
-	else \
-		$(DOCKER) buildx use $(BUILDER_NAME); \
-	fi
 
 .PHONY: release
 release: build setup-buildx
