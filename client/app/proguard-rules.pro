@@ -19,3 +19,15 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep protobuf lite message classes and their fields.
+# This is required to prevent fields from being removed, which would break serialization.
+-keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite {
+    <fields>;
+}
+
+# Keep the static newStub method for gRPC client stubs.
+# This is used to create new stubs.
+-keepclassmembers class * extends io.grpc.stub.AbstractStub {
+    public static * newStub(*);
+}
