@@ -1,4 +1,6 @@
 VERSION ?= $(error VERSION var is not set)
+TEST_SERVER ?= $(error TEST_SERVER var is not set)
+DOCKER_RELOAD ?= docker compose up -d --force-recreate
 
 .PHONY: clean
 clean:
@@ -34,3 +36,15 @@ release: check-status check-version
 	git tag $(VERSION)
 	git push origin $(VERSION)
 	@echo "✅ $(VERSION) pushed!"
+
+.PHONY: push-test
+push-test:
+	@echo "Pushing latest tags to $(TEST_SERVER)..."
+	docker save jackpfarrelly/location-history-server:latest | ssh $(TEST_SERVER) "docker load"
+	#docker save jackpfarrelly/location-history-ui:latest | ssh $(TEST_SERVER) "docker load"
+	#docker save jackpfarrelly/location-history-ui-proxy:latest | ssh $(TEST_SERVER) "docker load"
+	@echo "✅ Pushed!"
+
+	@echo "♻️ Recreating containers..."
+	ssh $(TEST_SERVER) "$(DOCKER_RELOAD) location-history-server location-history-ui location-history-ui-proxy"
+	@echo "✅ Deployed!"
