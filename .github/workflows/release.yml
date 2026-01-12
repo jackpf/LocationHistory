@@ -41,6 +41,11 @@ jobs:
           name: app-release
           path: ./artifacts
 
+      - name: Version APK
+        run: |
+          mv client/app/build/outputs/apk/release/app-release.apk \
+             client/app/build/outputs/apk/release/LocationHistory-${{ github.ref_name }}.apk
+
       - name: Publish Release
         uses: softprops/action-gh-release@v1
         with:
