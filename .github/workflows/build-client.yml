@@ -42,24 +42,24 @@ jobs:
         working-directory: ./client
         run: make lint
 
+      - name: Decode Keystore
+        if: inputs.publish
+        working-directory: ./client
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > release.jks
+
       - name: Build Debug
         if: inputs.build_type == 'debug'
         working-directory: ./client
         run: make VERSION="${{ inputs.version }}" build-debug
 
-      - name: Decode Keystore
-        if: inputs.publish
-        run: echo "${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > release.jks
-        env:
-          KEYSTORE_PATH: ../../release.jks
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-
       - name: Build Release
         if: inputs.build_type == 'release'
         working-directory: ./client
         run: make VERSION="${{ inputs.version }}" build-release
+        env:
+          KEYSTORE_PATH: '../release.jks'
+          KEYSTORE_PASSWORD: '${{ secrets.ANDROID_KEYSTORE_PASSWORD }}'
+          KEY_ALIAS: '${{ secrets.ANDROID_KEYSTORE_ALIAS }}'
 
       - name: Release
         if: inputs.publish
