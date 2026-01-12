@@ -6,12 +6,12 @@ clean:
 	make -C client clean
 	make -C ui clean
 
-.PHONY: package-local
-package-local:
-	make -C server package-local
-	make -C client build-debug
-	make -C ui package-local
-	make -C ui package-local-proxy
+.PHONY: package-all
+package-all:
+	make -C server package
+	#make -C client build
+	make -C ui package
+	make -C ui package-proxy
 
 .PHONY: check-version
 check-version:
