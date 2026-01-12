@@ -1,9 +1,15 @@
 VERSION ?= $(error VERSION var is not set)
 
+.PHONY: clean
+clean:
+	make -C server clean
+	make -C client clean
+	make -C ui clean
+
 .PHONY: package-local
 package-local:
-	make -C client build-debug # Can probably be something better when client has proper build scripts
 	make -C server package-local
+	make -C client build-debug
 	make -C ui package-local
 	make -C ui package-local-proxy
 
