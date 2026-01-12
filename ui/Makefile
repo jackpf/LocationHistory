@@ -1,11 +1,22 @@
 APP_NAME = location-history-ui
 IMAGE = jackpfarrelly/$(APP_NAME)
 VERSION ?= 0.1.0-SNAPSHOT
-NPM ?= npm
 DOCKER ?= docker
 BUILDER_NAME = $(APP_NAME)-builder
-DOCKER_BUILDX = $(DOCKER) buildx build
-DOCKER_PORT ?= 8081
+DOCKER_BUILDX = $(DOCKER) buildx build $(if $(PLATFORM),--platform $(PLATFORM))
+USE_DOCKER ?= false
+PLATFORM ?=
+ifeq ($(USE_DOCKER),true)
+    NPM ?= docker run --rm \
+		$(if $(PLATFORM),--platform $(PLATFORM)) \
+		-v .:/app \
+		-v npm-cache:/root/.npm \
+		-e npm_config_cache=/root/.npm \
+		-w /app \
+		node:24-bookworm npm
+else
+    NPM = npm
+endif
 
 .PHONY: init
 init:
@@ -44,14 +55,10 @@ run: build
 package: build
 	$(DOCKER_BUILDX) --load -t $(IMAGE):latest .
 
-#.PHONY: docker-run
-#docker-run: package-local
-#	$(DOCKER) run --rm -p $(DOCKER_PORT):80 $(IMAGE):latest
-
 .PHONY: setup-buildx
 setup-buildx:
 	@if ! $(DOCKER) buildx ls | grep -q $(BUILDER_NAME); then \
-		$(DOCKER) buildx create --name $(BUILDER_NAME) --use; \
+		$(DOCKER) buildx create --name $(BUILDER_NAME) --use --bootstrap; \
 	else \
 		$(DOCKER) buildx use $(BUILDER_NAME); \
 	fi

@@ -1,12 +1,22 @@
 APP_NAME = location-history-server
 IMAGE = jackpfarrelly/$(APP_NAME)
 VERSION ?= 0.1.0-SNAPSHOT
-SBT ?= sbt
 DOCKER ?= docker
 BUILDER_NAME = $(APP_NAME)-builder
-DOCKER_BUILDX = $(DOCKER) buildx build
-DOCKER_PORT ?= 8080
+DOCKER_BUILDX = $(DOCKER) buildx build $(if $(PLATFORM),--platform $(PLATFORM),)
+USE_DOCKER ?= false
+PLATFORM ?=
 RUN_ARGS ?=
+ifeq ($(USE_DOCKER),true)
+    SBT = docker volume create build-cache && $(DOCKER) run --rm \
+    	$(if $(PLATFORM),--platform $(PLATFORM),) \
+    	-v .:/app \
+    	-v build-cache:/root \
+    	-w /app \
+    	sbtscala/scala-sbt:eclipse-temurin-17.0.15_6_1.12.0_3.7.4 sbt
+else
+    SBT = sbt
+endif
 
 .PHONY: clean
 clean:
@@ -46,7 +56,7 @@ run:
 .PHONY: setup-buildx
 setup-buildx:
 	@if ! $(DOCKER) buildx ls | grep -q $(BUILDER_NAME); then \
-		$(DOCKER) buildx create --name $(BUILDER_NAME) --use; \
+		$(DOCKER) buildx create --name $(BUILDER_NAME) --use --bootstrap; \
 	else \
 		$(DOCKER) buildx use $(BUILDER_NAME); \
 	fi
@@ -54,11 +64,6 @@ setup-buildx:
 .PHONY: package
 package: compile setup-buildx
 	$(DOCKER_BUILDX) --load -t $(IMAGE):latest .
-
-# Maybe not working/needed
-#.PHONY: docker-run
-#docker-run:
-#	$(DOCKER) run --rm -p $(DOCKER_PORT):8080 -e SERVER_NAME=localhost -e ADMIN_PASSWORD=password $(IMAGE):latest
 
 .PHONY: release
 release: compile setup-buildx
