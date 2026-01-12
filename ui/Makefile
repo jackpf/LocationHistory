@@ -1,7 +1,7 @@
 APP_NAME = jackpfarrelly/location-history-ui
 VERSION ?= 0.1.0-SNAPSHOT
 DOCKER ?= docker
-DOCKER_BUILD_PLATFORMS = linux/amd64,linux/arm64
+DOCKER_BUILD_PLATFORMS = linux/amd64
 DOCKER_BUILDX = $(DOCKER) buildx create --use; $(DOCKER) buildx build
 DOCKER_BUILDX_MULTI = $(DOCKER_BUILDX) --platform $(DOCKER_BUILD_PLATFORMS)
 DOCKER_BUILDX_LOCAL = $(DOCKER_BUILDX) --load

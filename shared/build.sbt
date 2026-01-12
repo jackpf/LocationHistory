@@ -28,9 +28,5 @@ lazy val root = (project in file("."))
       PB.gens.java -> (Compile / sourceManaged).value,
       PB.gens.plugin("grpc-java") -> (Compile / sourceManaged).value
     )
-    // TODO Get proto lite working
-//    Compile / PB.protocOptions ++= Seq(
-//      "--java_out=lite:" + (Compile / sourceManaged).value
-//    )
   )
   .enablePlugins(ProtocPlugin)

@@ -1,4 +1,5 @@
 VERSION ?= $(error VERSION var is not set)
+TEST_SERVER ?= $(error TEST_SERVER var is not set)
 
 .PHONY: clean
 clean:
@@ -8,10 +9,10 @@ clean:
 
 .PHONY: package-local
 package-local:
-	make -C server package-local
-	make -C client build-debug
-	make -C ui package-local
-	make -C ui package-local-proxy
+	VERSION=test make -C server package-local
+	#make -C client build-debug
+	#make -C ui package-local
+	#make -C ui package-local-proxy
 
 .PHONY: check-version
 check-version:
@@ -34,3 +35,15 @@ release: check-status check-version
 	git tag $(VERSION)
 	git push origin $(VERSION)
 	@echo "✅ $(VERSION) pushed!"
+
+.PHONY: push-test
+push-test:
+	@echo "Pushing latest tags to $(TEST_SERVER)..."
+	docker save jackpfarrelly/location-history-server:test | ssh $(TEST_SERVER) "docker load"
+	#docker save jackpfarrelly/location-history-ui:latest | ssh $(TEST_SERVER) "docker load"
+	#docker save jackpfarrelly/location-history-ui-proxy:latest | ssh $(TEST_SERVER) "docker load"
+	@echo "✅ Pushed!"
+
+	@echo "♻️ Recreating containers..."
+	ssh $(TEST_SERVER) "docker compose up -d --force-recreate location-history-server location-history-ui location-history-ui-proxy"
+	@echo "✅ Deployed!"

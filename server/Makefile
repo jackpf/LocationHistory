@@ -1,9 +1,14 @@
 APP_NAME = jackpfarrelly/location-history-server
 VERSION ?= 0.1.0-SNAPSHOT
-SBT ?= sbt
+SBT ?= docker run --rm \
+           --platform linux/amd64 \
+           -v .:/app \
+           -v build-cache:/root \
+           -w /app \
+           sbtscala/scala-sbt:eclipse-temurin-17.0.15_6_1.12.0_3.7.4 sbt
 RUN_ARGS ?=
 DOCKER ?= docker
-DOCKER_BUILD_PLATFORMS = linux/amd64,linux/arm64
+DOCKER_BUILD_PLATFORMS = linux/amd64
 DOCKER_BUILDX = $(DOCKER) buildx create --use; $(DOCKER) buildx build
 DOCKER_BUILDX_MULTI = $(DOCKER_BUILDX) --platform $(DOCKER_BUILD_PLATFORMS)
 DOCKER_BUILDX_LOCAL = $(DOCKER_BUILDX) --load
@@ -43,6 +48,14 @@ generate-local-cert:
 .PHONY: run
 run:
 	$(SBT) "run $(RUN_ARGS)"
+
+.PHONY: setup-buildx
+setup-buildx:
+	@if ! $(DOCKER) buildx ls | grep -q $(BUILDER_NAME); then \
+		$(DOCKER) buildx create --name $(BUILDER_NAME) --use; \
+	else \
+		$(DOCKER) buildx use $(BUILDER_NAME); \
+	fi
 
 .PHONY: package
 package: compile
