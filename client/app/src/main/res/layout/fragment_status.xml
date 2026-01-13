@@ -1,51 +1,92 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.Material3.CardView.Elevated"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp">
 
-    <TableLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/table_border"
-        android:padding="16dp"
-        android:stretchColumns="1">
+        android:orientation="vertical"
+        android:padding="20dp">
 
-        <TableRow android:layout_marginBottom="8dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="System Status"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            android:layout_marginBottom="16dp"
+            android:textColor="?attr/colorPrimary" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="@string/status_key"
-                android:textStyle="bold" />
+                android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+                android:layout_alignParentStart="true" />
 
             <TextView
                 android:id="@+id/statusTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="@string/disconnected"
-                android:gravity="end" />
-        </TableRow>
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                android:layout_alignParentEnd="true" />
+        </RelativeLayout>
 
-        <TableRow android:layout_marginBottom="8dp">
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="12dp" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="@string/device_state_key"
-                android:textStyle="bold" />
+                android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+                android:layout_alignParentStart="true" />
 
             <TextView
                 android:id="@+id/deviceStateTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="@string/unknown"
-                android:gravity="end" />
-        </TableRow>
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                android:layout_alignParentEnd="true" />
+        </RelativeLayout>
 
-        <TableRow android:layout_marginBottom="8dp">
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="12dp" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="@string/last_ping_key"
-                android:textStyle="bold" />
+                android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+                android:layout_alignParentStart="true" />
 
             <TextView
                 android:id="@+id/lastPingTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="@string/never"
-                android:gravity="end" />
-        </TableRow>
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                android:layout_alignParentEnd="true" />
+        </RelativeLayout>
 
-    </TableLayout>
-
-</LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

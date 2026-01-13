@@ -9,6 +9,7 @@ import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.color.DynamicColors;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.PingResponse;
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(bundle);
 
         setContentView(R.layout.activity_main);
+        DynamicColors.applyToActivitiesIfAvailable(getApplication());
 
         permissionsFlow = createPermissionsFlow();
         permissionsFlow.start();
