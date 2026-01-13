@@ -11,15 +11,13 @@ object DeviceId {
 object Device {
   def fromProto(device: ProtoDevice): Device = Device(
     id = DeviceId(device.id),
-    name = device.name,
-    publicKey = device.publicKey
+    name = device.name
   )
 }
 
-case class Device(id: DeviceId.Type, name: String, publicKey: String) {
+case class Device(id: DeviceId.Type, name: String) {
   def toProto: ProtoDevice = ProtoDevice(
     id = id.toString,
-    name = name,
-    publicKey = publicKey
+    name = name
   )
 }

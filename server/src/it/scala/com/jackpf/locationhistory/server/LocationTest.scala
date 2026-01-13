@@ -15,7 +15,7 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
   }
 
   trait ApprovedDeviceContext extends IntegrationContext {
-    lazy val device = Device(id = "123", publicKey = "xxx")
+    lazy val device = Device(id = "123")
 
     val registerDeviceRequest =
       RegisterDeviceRequest(device = Some(device))

@@ -48,9 +48,9 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
 
     "register device endpoint" >> {
       trait RegisterDeviceContext extends Context {
-        lazy val device: Option[Device] = Some(Device(id = "123", name = "dev1", publicKey = "xxx"))
+        lazy val device: Option[Device] = Some(Device(id = "123", name = "dev1"))
         lazy val expectedDevice: model.Device =
-          model.Device(id = DeviceId("123"), name = "dev1", publicKey = "xxx")
+          model.Device(id = DeviceId("123"), name = "dev1")
 
         lazy val registerResponse: Future[Try[Unit]]
         when(deviceRepo.register(expectedDevice)).thenReturn(registerResponse)
