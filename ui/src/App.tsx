@@ -11,6 +11,8 @@ import {useMemo, useState} from "react";
 import {usePushPoller} from "./hooks/use-push-poller.ts";
 import {usePageVisibility} from "./hooks/use-page-visibility.ts";
 import {Toaster} from "sonner";
+import {TimeRangeSelector} from "./components/TimeRangeSelector.tsx";
+import {TimeRangeOption} from "./utils/time-range-options.ts";
 
 const DisplayMap = ({history, selectedDeviceId, forceRecenter, setForceRecenter}: {
     history: StoredLocation[],
@@ -76,6 +78,11 @@ const Dashboard = () => {
         logout
     } = useLogin();
 
+    const handleRangeChange = (x) => {
+        console.log("Fetching data from", x);
+        // refreshMapData(start, end);
+    };
+
     return (
         <div className="app-container">
             {error && <div className="error-text">{error}</div>}
@@ -104,6 +111,10 @@ const Dashboard = () => {
                         deleteDevice={deleteDevice}
                         sendNotification={sendNotification}
                         logout={logout}/>
+
+            <div style={{position: 'absolute', right: 200, top: 20, zIndex: 1000}}>
+                <TimeRangeSelector onChange={handleRangeChange} value={TimeRangeOption.LAST_7_DAYS}/>
+            </div>
 
             <DisplayMap history={history}
                         selectedDeviceId={selectedDeviceId}
