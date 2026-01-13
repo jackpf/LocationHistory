@@ -9,6 +9,7 @@ import type {Point} from 'geojson';
 import {Segmented} from "antd";
 import {GlobalOutlined, MoonFilled, SunOutlined} from '@ant-design/icons';
 import {useLocalStorage} from "../hooks/use-local-storage.ts";
+import styles from './MLMap.module.css';
 
 if (!MAPTILER_API_KEY) {
     alert("MAPTILER_API_KEY must be set to use maptiler");
@@ -78,14 +79,11 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
     const [popupInfo, setPopupInfo] = useState<MapGeoJSONFeature | null>(null);
     const [cursor, setCursor] = useState('');
     const [mapStyle, setMapStyle] = useLocalStorage("ml_map_style", MAP_STYLE_OPTIONS[0].value);
+    const mapUrl = useMemo(() => getMapUrl(mapStyle), [mapStyle]);
 
     const lastLocation: StoredLocation | null = history.length > 0 ? history[history.length - 1] : null;
     const mapCenter: [number, number] = lastLocation != null && lastLocation.location != null ?
         [lastLocation.location.lat, lastLocation.location.lon] : DEFAULT_CENTER;
-
-    const onMapStyleChange = (mapStyle: string) => {
-        setMapStyle(mapStyle);
-    }
 
     const geoJsonData = useMemo(() => {
         return {
@@ -124,37 +122,22 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
     }, [history]);
 
     return (
-        <main className="map-area" style={{position: 'relative'}}>
+        <main className={styles.mapArea}>
 
             {/* Map settings */}
-            <div style={{position: 'absolute', right: 10, bottom: 150, zIndex: 1000}}>
+            <div className={styles.mapSettings}>
                 <Segmented
                     vertical
-                    style={{width: "30px"}}
-                    styles={{
-                        item: {
-                            padding: 0,
-                            display: 'flex',
-                            justifyContent: 'center',
-                        },
-                        label: {
-                            padding: 0,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            minHeight: 30,
-                        }
-                    }}
+                    className={styles.segmentedControl}
                     options={MAP_STYLE_OPTIONS}
                     value={mapStyle}
-                    onChange={onMapStyleChange}
+                    onChange={setMapStyle}
                 />
             </div>
 
             {/* Overlay UI */}
             {selectedDeviceId && (
-                <div className="map-overlay"
-                     style={{position: 'absolute', zIndex: 10, padding: 10}}>
+                <div className={styles.mapOverlay}>
                     <strong>Points:</strong> {history.length} <br/>
                     <small>
                         Updated: {lastLocation
@@ -171,7 +154,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                     zoom: DEFAULT_ZOOM
                 }}
                 style={{width: '100%', height: '100%'}}
-                mapStyle={getMapUrl(mapStyle)}
+                mapStyle={mapUrl}
                 interactiveLayerIds={['history-points']}
                 cursor={cursor}
                 onMouseEnter={() => setCursor('pointer')}
