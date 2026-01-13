@@ -137,7 +137,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
 
             {/* Overlay UI */}
             {selectedDeviceId && (
-                <div className={styles.mapOverlay}>
+                <div className="map-overlay">
                     <strong>Points:</strong> {history.length} <br/>
                     <small>
                         Updated: {lastLocation
