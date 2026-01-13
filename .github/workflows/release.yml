@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags: [ "v*" ]
+
+jobs:
+  release-server-version:
+    uses: ./.github/workflows/build-server.yml
+    with:
+      version: ${{ github.ref_name }}
+      publish: true
+    secrets: inherit
+
+  release-client-version:
+    uses: ./.github/workflows/build-client.yml
+    with:
+      version: ${{ github.ref_name }}
+      build_type: "release"
+      publish: true
+    secrets: inherit
+
+  release-ui-version:
+    uses: ./.github/workflows/build-ui.yml
+    with:
+      version: ${{ github.ref_name }}
+      publish: true
+    secrets: inherit
+
+  publish-release:
+    needs:
+      - release-server-version
+      - release-client-version
+      - release-ui-version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-release
+          path: ./artifacts
+
+      - name: Version APK
+        run: |
+          mv ./artifacts/app-release.apk \
+             ./artifacts/LocationHistory-${{ github.ref_name }}.apk
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./artifacts/*.apk
+          generate_release_notes: true

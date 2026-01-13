@@ -1,3 +1,5 @@
+VERSION ?= 0.1.0-SNAPSHOT
+
 .PHONY: clean
 clean:
 	./gradlew clean
@@ -8,4 +10,8 @@ lint:
 
 .PHONY: build-debug
 build-debug:
-	./gradlew assembleDebug
+	./gradlew assembleDebug -PversionName=$(VERSION)
+
+.PHONY: build-release
+build-release:
+	./gradlew assembleRelease -PversionName=$(VERSION)

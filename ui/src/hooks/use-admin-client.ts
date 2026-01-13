@@ -65,7 +65,7 @@ export function useAdminClient(refreshInterval: number) {
         }
     };
 
-    const sendNotification = async (deviceId: string, notificationType: NotificationType) => {
+    const sendNotification = useCallback(async (deviceId: string, notificationType: NotificationType) => {
         try {
             return await adminClient.sendNotification(
                 {deviceId: deviceId, notificationType: notificationType} as any,
@@ -74,7 +74,7 @@ export function useAdminClient(refreshInterval: number) {
             console.error(e);
             setError(grpcErrorMessage("Failed to send notification", e));
         }
-    };
+    }, []);
 
     // Poll device list
     useEffect(() => {

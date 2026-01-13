@@ -13,9 +13,8 @@ import com.jackpf.locationhistory.server.model.{
 object MockModels {
   def device(
       id: DeviceId.Type = DeviceId("dev1"),
-      name: String = "device 1 name",
-      publicKey: String = "xxx"
-  ): Device = Device(id = id, name = name, publicKey = publicKey)
+      name: String = "device 1 name"
+  ): Device = Device(id = id, name = name)
 
   def pushHandler(
       name: String = "phName",

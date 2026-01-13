@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.protobuf)
 }
 
 android {
@@ -21,10 +22,20 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        release {
+            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "debug.keystore")
+            storePassword = System.getenv("KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("KEY_ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD") ?: System.getenv("KEYSTORE_PASSWORD")
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
@@ -49,6 +60,39 @@ android {
             pickFirst 'META-INF/DEPENDENCIES'
         }
     }
+
+    sourceSets {
+        main {
+            proto {
+                srcDir '../../shared/src/main/protobuf'
+            }
+        }
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = libs.protobuf.protoc.get().toString()
+    }
+    plugins {
+        grpc {
+            artifact = libs.grpc.gen.java.get().toString()
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java {
+                    option 'lite'
+                }
+            }
+            task.plugins {
+                grpc {
+                    option 'lite'
+                }
+            }
+        }
+    }
 }
 
 dependencies {
@@ -60,11 +104,12 @@ dependencies {
     implementation libs.androidx.compose.ui.graphics
     implementation libs.androidx.compose.ui.tooling.preview
     implementation libs.androidx.compose.material3
-    implementation libs.lombok
-    implementation(libs.shared) {
-        exclude group: 'org.scala-lang', module: 'scala-library'
-    }
+    implementation libs.protobuf.javalite
+    implementation libs.grpc.protobuf.lite
+    implementation libs.grpc.stub
     implementation libs.grpc
+    implementation libs.javax.annotation.api
+    implementation libs.guava
     implementation libs.work
     implementation libs.concurrent
     implementation libs.fragment
@@ -80,5 +125,9 @@ dependencies {
     debugImplementation libs.androidx.compose.ui.test.manifest
     compileOnly libs.lombok
     annotationProcessor libs.lombok
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+    coreLibraryDesugaring libs.desugar.jdk.libs
+}
+
+configurations.configureEach {
+    exclude group: 'com.google.protobuf', module: 'protobuf-java'
 }
