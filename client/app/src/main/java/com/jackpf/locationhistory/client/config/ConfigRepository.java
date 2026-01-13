@@ -14,7 +14,6 @@ public class ConfigRepository {
     private static final String DEVICE_READY_KEY = "device-ready";
     private static final String DEVICE_STATUS_KEY = "device-status";
     private static final String PRIVATE_KEY_KEY = "private-key";
-    private static final String PUBLIC_KEY_KEY = "public-key";
 
     private static final String SERVER_HOST_KEY = "server-host";
     private static final String SERVER_PORT_KEY = "server-port";
@@ -69,14 +68,6 @@ public class ConfigRepository {
 
     public void setPrivateKey(String privateKey) {
         prefs.edit().putString(PRIVATE_KEY_KEY, privateKey).apply();
-    }
-
-    public String getPublicKey() {
-        return prefs.getString(PUBLIC_KEY_KEY, "");
-    }
-
-    public void setPublicKey(String publicKey) {
-        prefs.edit().putString(PUBLIC_KEY_KEY, publicKey).apply();
     }
 
     public String getServerHost() {

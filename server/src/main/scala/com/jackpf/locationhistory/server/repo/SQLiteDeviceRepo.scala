@@ -18,13 +18,12 @@ import scala.util.{Failure, Try}
 private case class StoredDeviceRow(
     id: String,
     name: String,
-    publicKey: String,
     status: String,
     pushHandlerName: String,
     pushHandlerUrl: String
 ) {
   def toStoredDevice: StoredDevice = StoredDevice(
-    device = Device(id = DeviceId(id), name = name, publicKey = publicKey),
+    device = Device(id = DeviceId(id), name = name),
     status = DeviceStatus.valueOf(status),
     pushHandler =
       if (pushHandlerName != null)
@@ -48,7 +47,6 @@ class SQLiteDeviceRepo(db: DbClient.DataSource)(using executionContext: Executio
           """CREATE TABLE IF NOT EXISTS stored_device_table (
             id TEXT PRIMARY KEY,
             name TEXT,
-            public_key TEXT,
             status TEXT,
             push_handler_name TEXT,
             push_handler_url TEXT
@@ -66,7 +64,6 @@ class SQLiteDeviceRepo(db: DbClient.DataSource)(using executionContext: Executio
             StoredDeviceTable.insert.columns(
               _.id := device.id.toString,
               _.name := device.name,
-              _.publicKey := device.publicKey,
               _.status := DeviceStatus.Pending.toString
             )
           )
@@ -99,7 +96,6 @@ class SQLiteDeviceRepo(db: DbClient.DataSource)(using executionContext: Executio
                   .update(_.id === id.toString)
                   .set(
                     _.name := updatedStoredDevice.device.name,
-                    _.publicKey := updatedStoredDevice.device.publicKey,
                     _.status := updatedStoredDevice.status.toString,
                     _.pushHandlerName := updatedStoredDevice.pushHandler.map(_.name).orNull,
                     _.pushHandlerUrl := updatedStoredDevice.pushHandler.map(_.url).orNull

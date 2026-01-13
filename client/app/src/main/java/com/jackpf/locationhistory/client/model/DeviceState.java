@@ -21,7 +21,6 @@ public class DeviceState {
     private final AtomicBoolean ready = new AtomicBoolean(false);
     String deviceId;
     String deviceName;
-    String publicKey;
     DeviceStatus deviceStatus;
 
     // Last run values
@@ -59,7 +58,6 @@ public class DeviceState {
 
     public void storeToConfig(ConfigRepository configRepository) {
         configRepository.setDeviceId(deviceId);
-        configRepository.setPublicKey(publicKey);
         configRepository.setDeviceReady(ready.get());
         configRepository.setDeviceStatus(deviceStatus.toString());
         configRepository.setLastRunTimestamp(lastRunTimestamp);
@@ -80,7 +78,6 @@ public class DeviceState {
                 .setDeviceId(deviceId)
                 .setDeviceName(configRepository.getDeviceName())
                 .setIsReady(configRepository.getDeviceReady())
-                .setPublicKey(configRepository.getPublicKey())
                 .setDeviceStatus(thisDeviceStatus)
                 .setLastRunTimestamp(configRepository.getLastRunTimestamp());
     }

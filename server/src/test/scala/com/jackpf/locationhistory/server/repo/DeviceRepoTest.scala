@@ -26,7 +26,7 @@ abstract class DeviceRepoTest(implicit ee: ExecutionEnv) extends DefaultSpecific
 
   trait OneDeviceContext extends Context {
     lazy val device: Device =
-      MockModels.device(id = DeviceId("123"), name = "dev1", publicKey = "xxx")
+      MockModels.device(id = DeviceId("123"), name = "dev1")
     val registerResult: Future[Try[Unit]] =
       deviceRepo.register(device)
   }
