@@ -6,28 +6,9 @@ import type {StoredLocation} from "../gen/common.ts";
 import {type LngLatLike, type MapGeoJSONFeature} from "maplibre-gl";
 import {MAPTILER_API_KEY} from "../config/config.ts";
 import type {Point} from 'geojson';
-import {Select} from "antd";
-
-const lineLayerStyle = {
-    id: 'route-line',
-    type: 'line',
-    paint: {
-        'line-color': 'blue',
-        'line-width': 3,
-        'line-opacity': 0.3
-    }
-} as const;
-
-const pointLayerStyle = {
-    id: 'history-points',
-    type: 'circle',
-    paint: {
-        'circle-radius': 4,
-        'circle-color': 'blue',
-        'circle-stroke-width': 2,
-        'circle-stroke-color': 'white'
-    }
-} as const;
+import {Segmented} from "antd";
+import {GlobalOutlined, MoonFilled, SunOutlined} from '@ant-design/icons';
+import {useLocalStorage} from "../hooks/use-local-storage.ts";
 
 if (!MAPTILER_API_KEY) {
     alert("MAPTILER_API_KEY must be set to use maptiler");
@@ -40,8 +21,9 @@ const DEFAULT_CENTER: [number, number] = [40, 0];
 const DEFAULT_ZOOM = 2;
 const DEFAULT_ZOOM_IN = 15;
 const MAP_STYLE_OPTIONS = [
-    {value: "streets-v2", label: "Light Mode"},
-    {value: "base-v4-dark", label: "Dark Mode"},
+    {value: "streets-v2", label: <SunOutlined/>},
+    {value: "base-v4-dark", label: <MoonFilled/>},
+    {value: "satellite", label: <GlobalOutlined/>},
 ];
 
 function MapUpdater({center, selectedId, history, forceRecenter, setForceRecenter}: {
@@ -95,7 +77,7 @@ interface MLMapProps {
 export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRecenter, setForceRecenter}) => {
     const [popupInfo, setPopupInfo] = useState<MapGeoJSONFeature | null>(null);
     const [cursor, setCursor] = useState('');
-    const [mapStyle, setMapStyle] = useState(MAP_STYLE_OPTIONS[0].value);
+    const [mapStyle, setMapStyle] = useLocalStorage("ml_map_style", MAP_STYLE_OPTIONS[0].value);
 
     const lastLocation: StoredLocation | null = history.length > 0 ? history[history.length - 1] : null;
     const mapCenter: [number, number] = lastLocation != null && lastLocation.location != null ?
@@ -146,11 +128,26 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
 
             {/* Map settings */}
             <div style={{position: 'absolute', right: 10, bottom: 150, zIndex: 1000}}>
-                <Select
-                    value={mapStyle}
-                    style={{width: 160}}
-                    onChange={onMapStyleChange}
+                <Segmented
+                    vertical
+                    style={{width: "30px"}}
+                    styles={{
+                        item: {
+                            padding: 0,
+                            display: 'flex',
+                            justifyContent: 'center',
+                        },
+                        label: {
+                            padding: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            minHeight: 30,
+                        }
+                    }}
                     options={MAP_STYLE_OPTIONS}
+                    value={mapStyle}
+                    onChange={onMapStyleChange}
                 />
             </div>
 
@@ -199,12 +196,29 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
 
                 {/* Line */}
                 <Source type="geojson" data={lineGeoJson as any}>
-                    <Layer {...lineLayerStyle} />
+                    <Layer
+                        id="route-line"
+                        type="line"
+                        paint={{
+                            "line-color": "blue",
+                            "line-width": 3,
+                            "line-opacity": 0.3,
+                        }}
+                    />
                 </Source>
 
                 {/* Points */}
                 <Source type="geojson" data={geoJsonData as any}>
-                    <Layer {...pointLayerStyle} />
+                    <Layer
+                        id="history-points"
+                        type="circle"
+                        paint={{
+                            "circle-radius": 4,
+                            "circle-color": "blue",
+                            "circle-stroke-width": 2,
+                            "circle-stroke-color": "white"
+                        }}
+                    />
                 </Source>
 
                 {popupInfo && (
