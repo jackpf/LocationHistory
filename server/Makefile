@@ -1,13 +1,24 @@
-APP_NAME = jackpfarrelly/location-history-server
+APP_NAME = location-history-server
+IMAGE = jackpfarrelly/$(APP_NAME)
 VERSION ?= 0.1.0-SNAPSHOT
-SBT ?= sbt
-RUN_ARGS ?=
 DOCKER ?= docker
-DOCKER_BUILD_PLATFORMS = linux/amd64,linux/arm64
-DOCKER_BUILDX = $(DOCKER) buildx create --use; $(DOCKER) buildx build
-DOCKER_BUILDX_MULTI = $(DOCKER_BUILDX) --platform $(DOCKER_BUILD_PLATFORMS)
-DOCKER_BUILDX_LOCAL = $(DOCKER_BUILDX) --load
-DOCKER_PORT ?= 8080
+BUILDER_NAME = $(APP_NAME)-builder
+DOCKER_BUILDX = $(DOCKER) buildx build $(if $(PLATFORM),--platform $(PLATFORM))
+USE_DOCKER ?= false
+PLATFORM ?=
+RUN_ARGS ?=
+ifeq ($(USE_DOCKER),true)
+    SBT = docker volume create build-cache && $(DOCKER) run --rm \
+    	$(if $(PLATFORM),--platform $(PLATFORM),) \
+    	-v .:/app \
+    	-v build-cache:/root \
+    	-w /app \
+    	sbtscala/scala-sbt:eclipse-temurin-17.0.15_6_1.12.0_3.7.4 sbt
+else
+    SBT ?= sbt
+endif
+
+include ../docker-buildx.mk
 
 .PHONY: clean
 clean:
@@ -45,17 +56,9 @@ run:
 	$(SBT) "run $(RUN_ARGS)"
 
 .PHONY: package
-package: compile
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME):latest .
-
-.PHONY: package-local
-package-local: compile
-	$(DOCKER_BUILDX_LOCAL) -t $(APP_NAME):latest .
-
-.PHONY: docker-run
-docker-run: package-local
-	$(DOCKER) run --rm -p $(DOCKER_PORT):8080 $(APP_NAME):latest
+package: compile setup-buildx
+	$(DOCKER_BUILDX) --load -t $(IMAGE):latest .
 
 .PHONY: release
-release: compile
-	$(DOCKER_BUILDX_MULTI) -t $(APP_NAME):latest -t $(APP_NAME):$(VERSION) --push .
+release: compile setup-buildx
+	$(DOCKER_BUILDX) --push -t $(IMAGE):latest -t $(IMAGE):$(VERSION) .
