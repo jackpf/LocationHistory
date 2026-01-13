@@ -10,11 +10,10 @@ import com.jackpf.locationhistory.RegisterPushHandlerRequest;
 import com.jackpf.locationhistory.SetLocationRequest;
 
 public class Requests {
-    private static Device device(String deviceId, String deviceName, String publicKey) {
+    private static Device device(String deviceId, String deviceName) {
         return Device.newBuilder()
                 .setId(deviceId)
                 .setName(deviceName)
-                .setPublicKey(publicKey)
                 .build();
     }
 
@@ -43,10 +42,10 @@ public class Requests {
                 .build();
     }
 
-    public static RegisterDeviceRequest registerDeviceRequest(String deviceId, String deviceName, String publicKey) {
+    public static RegisterDeviceRequest registerDeviceRequest(String deviceId, String deviceName) {
         return RegisterDeviceRequest
                 .newBuilder()
-                .setDevice(device(deviceId, deviceName, publicKey))
+                .setDevice(device(deviceId, deviceName))
                 .build();
     }
 

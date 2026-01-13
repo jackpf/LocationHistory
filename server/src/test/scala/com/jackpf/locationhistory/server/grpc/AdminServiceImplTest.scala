@@ -82,12 +82,12 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val getAllResponse: Future[Seq[model.StoredDevice]] = Future.successful(
           Seq(
             MockModels.storedDevice(
-              device = MockModels.device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
+              device = MockModels.device(id = DeviceId("123"), name = "dev1"),
               status = model.StoredDevice.DeviceStatus.Pending,
               pushHandler = None
             ),
             MockModels.storedDevice(
-              device = MockModels.device(id = DeviceId("456"), name = "dev2", publicKey = "yyy"),
+              device = MockModels.device(id = DeviceId("456"), name = "dev2"),
               status = model.StoredDevice.DeviceStatus.Registered,
               pushHandler = Some(MockModels.pushHandler(name = "ph", url = "phUrl"))
             )
@@ -105,7 +105,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
               StoredDeviceWithMetadata(
                 storedDevice = Some(
                   StoredDevice(
-                    device = Some(Device(id = "123", name = "dev1", publicKey = "xxx")),
+                    device = Some(Device(id = "123", name = "dev1")),
                     status = DeviceStatus.DEVICE_PENDING,
                     pushHandler = None
                   )
@@ -115,7 +115,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
               StoredDeviceWithMetadata(
                 storedDevice = Some(
                   StoredDevice(
-                    device = Some(Device(id = "456", name = "dev2", publicKey = "yyy")),
+                    device = Some(Device(id = "456", name = "dev2")),
                     status = DeviceStatus.DEVICE_REGISTERED,
                     pushHandler = Some(PushHandler(name = "ph", url = "phUrl"))
                   )
@@ -153,7 +153,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
           Future.successful(
             Success(
               MockModels.storedDevice(
-                device = MockModels.device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
+                device = MockModels.device(id = DeviceId("123"), name = "dev1"),
                 status = model.StoredDevice.DeviceStatus.Pending
               )
             )
@@ -194,7 +194,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         override lazy val getResponse: Future[Try[model.StoredDevice]] = Future.successful(
           Success(
             MockModels.storedDevice(
-              device = MockModels.device(id = DeviceId("123"), name = "dev1", publicKey = "xxx"),
+              device = MockModels.device(id = DeviceId("123"), name = "dev1"),
               status = model.StoredDevice.DeviceStatus.Pending
             )
           )

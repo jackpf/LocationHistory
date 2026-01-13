@@ -35,7 +35,6 @@ public class DeviceStateService {
         return beaconClient.registerDevice(
                 deviceState.getDeviceId(),
                 deviceState.getDeviceName(),
-                deviceState.getPublicKey(),
                 GrpcFutureWrapper.empty()
         );
     }

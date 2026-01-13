@@ -18,7 +18,7 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
 
     "register a device" >> in(new IntegrationContext {}) { context =>
       val request =
-        RegisterDeviceRequest(device = Some(Device(id = "123", publicKey = "xxx")))
+        RegisterDeviceRequest(device = Some(Device(id = "123")))
 
       val result = context.client.registerDevice(request)
 
@@ -49,7 +49,7 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
   }
 
   trait RegisteredDeviceContext extends IntegrationContext {
-    lazy val device = Device(id = "123", publicKey = "xxx")
+    lazy val device = Device(id = "123")
     val registerDeviceRequest =
       RegisterDeviceRequest(device = Some(device))
     val registerDeviceResult: RegisterDeviceResponse =
@@ -77,20 +77,9 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
       )
     }
 
-    "fail if re-registering device with a different public key" >> in(
-      new RegisteredDeviceContext {
-        override lazy val device = Device(id = "123", publicKey = "yyy")
-      }
-    ) { context =>
-      context.client.registerDevice(context.registerDeviceRequest) must throwAGrpcRuntimeException(
-        Code.ALREADY_EXISTS,
-        "Device 123 is already registered"
-      )
-    }
-
     "not register a push handler on non-approved device" >> in(
       new RegisteredDeviceContext {
-        override lazy val device = Device(id = "123", publicKey = "yyy")
+        override lazy val device = Device(id = "123")
       }
     ) { context =>
       context.client.registerPushHandler(
@@ -106,7 +95,7 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
 
     "register a push handler on an approved device" >> in(
       new RegisteredDeviceContext {
-        override lazy val device = Device(id = "123", publicKey = "yyy")
+        override lazy val device = Device(id = "123")
       }
     ) { context =>
       context.adminClient.approveDevice(
