@@ -12,17 +12,6 @@
     z-index: 1000;
 }
 
-.mapOverlay {
-    position: absolute;
-    z-index: 10;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(4px);
-    border-radius: 4px;
-    margin: 10px;
-    pointer-events: none; /* Allow clicking through text to the map */
-}
-
 /* Scoped Ant Design Overrides */
 .segmentedControl {
     width: 30px;
