@@ -71,7 +71,7 @@ release-proxy: setup-buildx
 
 .PHONY: run-proxy
 run-proxy: package-proxy
-	docker run --rm \
+	$(DOCKER) run --rm \
 		-p 9123:8080 \
 		--name grpc-proxy \
 		--add-host host.docker.internal:host-gateway \
