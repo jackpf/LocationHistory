@@ -34,7 +34,10 @@ public class ClientPool<P, C extends PoolableClient> {
 
         if (client == null) {
             client = clientFactory.create(params);
-            if (client != null) pool.put(params, client);
+            if (client != null) {
+                client.setPooled(true);
+                pool.put(params, client);
+            }
         }
 
         return client;
