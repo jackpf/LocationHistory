@@ -42,7 +42,7 @@ public class UnifiedPushService extends PushService {
     private final static Logger log = new Logger("UnifiedPushService");
 
     private static BeaconClient createBeaconClient(Context context, ConfigRepository configRepository) throws IOException {
-        return BeaconClientFactory.createClient(
+        return BeaconClientFactory.createPooledClient(
                 new BeaconClientFactory.BeaconClientParams(
                         configRepository.getServerHost(),
                         configRepository.getServerPort(),

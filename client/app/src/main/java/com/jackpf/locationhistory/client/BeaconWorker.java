@@ -130,7 +130,7 @@ public class BeaconWorker extends ListenableWorker {
                             BeaconClientFactory.DEFAULT_TIMEOUT
                     );
 
-                    beaconClient = BeaconClientFactory.createClient(params, new TrustedCertStorage(getApplicationContext()));
+                    beaconClient = BeaconClientFactory.createPooledClient(params, new TrustedCertStorage(getApplicationContext()));
                 } catch (IOException e) {
                     completeNoConnection(completer, e);
                     return;

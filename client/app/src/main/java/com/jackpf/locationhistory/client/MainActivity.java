@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
                     false,
                     BeaconClientFactory.DEFAULT_TIMEOUT
             );
-            beaconClient = BeaconClientFactory.createClient(params, new TrustedCertStorage(this));
+            beaconClient = BeaconClientFactory.createPooledClient(params, new TrustedCertStorage(this));
         } catch (IOException e) {
             beaconClient = null;
         }

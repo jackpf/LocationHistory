@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -126,7 +127,7 @@ public class SettingsFragment extends Fragment {
                     }
             ));
 
-//            pingResponse.addListener(tempClient::close, ContextCompat.getMainExecutor(requireContext()));
+            pingResponse.addListener(tempClient::close, ContextCompat.getMainExecutor(requireContext()));
         } catch (NumberFormatException | IOException e) {
             Toasts.show(requireContext(), R.string.toast_invalid_settings, e.getMessage());
         }

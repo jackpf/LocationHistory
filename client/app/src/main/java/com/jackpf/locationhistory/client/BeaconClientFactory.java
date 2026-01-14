@@ -38,10 +38,43 @@ public class BeaconClientFactory {
     );
 
     /**
-     * Creates a long-lived static client
+     * Creates an un-pooled client
+     * Clients created with this method should be manually closed
+     */
+    public static BeaconClient createClient(BeaconClientParams params,
+                                            TrustedCertStorage storage) throws IOException {
+        try {
+            DynamicTrustManager dynamicTrustManager = new DynamicTrustManager(storage);
+            ManagedChannel channel = SecureChannel.create(
+                    params.getHost(),
+                    params.getPort(),
+                    DEFAULT_CLIENT_IDLE_TIMEOUT,
+                    false,
+                    dynamicTrustManager
+            );
+            ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
+
+            return new BeaconClient(
+                    channel,
+                    threadExecutor,
+                    dynamicTrustManager,
+                    params.isWaitForReady(),
+                    params.getTimeout()
+            );
+        } catch (IllegalArgumentException e) {
+            log.e("Invalid server details", e);
+            throw new IOException("Invalid server details", e);
+        } catch (NoSuchAlgorithmException | KeyStoreException e) {
+            log.e(e, "Error creating dynamic trust manager");
+            throw new IOException("Error creating dynamic trust manager", e);
+        }
+    }
+
+    /**
+     * Creates a long-lived pooled client
      * This client is shared across the application, so shouldn't be manually closed
      */
-    public static BeaconClient createClient(
+    public static BeaconClient createPooledClient(
             BeaconClientParams clientParams,
             TrustedCertStorage storage
     ) throws IOException {
@@ -49,32 +82,7 @@ public class BeaconClientFactory {
                 clientParams,
                 params -> {
                     log.d("Connecting to server %s:%d", params.getHost(), params.getPort());
-
-                    try {
-                        DynamicTrustManager dynamicTrustManager = new DynamicTrustManager(storage);
-                        ManagedChannel channel = SecureChannel.create(
-                                params.getHost(),
-                                params.getPort(),
-                                DEFAULT_CLIENT_IDLE_TIMEOUT,
-                                false,
-                                dynamicTrustManager
-                        );
-                        ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
-
-                        return new BeaconClient(
-                                channel,
-                                threadExecutor,
-                                dynamicTrustManager,
-                                params.isWaitForReady(),
-                                params.getTimeout()
-                        );
-                    } catch (IllegalArgumentException e) {
-                        log.e("Invalid server details", e);
-                        throw new IOException("Invalid server details", e);
-                    } catch (NoSuchAlgorithmException | KeyStoreException e) {
-                        log.e(e, "Error creating dynamic trust manager");
-                        throw new IOException("Error creating dynamic trust manager", e);
-                    }
+                    return createClient(params, storage);
                 }
         );
     }
