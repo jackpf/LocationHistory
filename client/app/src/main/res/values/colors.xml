@@ -3,7 +3,7 @@
     <color name="primary">#595959</color>
     <color name="onPrimary">#FFFFFF</color>
     <color name="primaryContainer">#333333</color>
-    <color name="onPrimaryContainer">#5D626262</color>
+    <color name="onPrimaryContainer">#FFFFFF</color>
 
     <color name="secondary">#595959</color>
     <color name="onSecondary">#FFFFFF</color>

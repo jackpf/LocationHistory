@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
 
             log.d("Starting beacon worker...");
             BeaconWorkerFactory.createWorker(this);
-//            BeaconWorkerFactory.createTestWorker(this, 10, TimeUnit.SECONDS);
             log.d("Beacon worker started");
         });
     }
@@ -70,10 +69,10 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle bundle) {
+        DynamicColors.applyToActivitiesIfAvailable(getApplication());
         super.onCreate(bundle);
 
         setContentView(R.layout.activity_main);
-        DynamicColors.applyToActivitiesIfAvailable(getApplication());
 
         permissionsFlow = createPermissionsFlow();
         permissionsFlow.start();
