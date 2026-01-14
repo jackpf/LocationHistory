@@ -15,6 +15,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.SetLocationResponse;
+import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.location.LocationProvider;
@@ -22,7 +23,6 @@ import com.jackpf.locationhistory.client.model.DeviceState;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.service.DeviceStateService;
 import com.jackpf.locationhistory.client.service.LocationUpdateService;
-import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
@@ -211,7 +211,6 @@ public class BeaconWorker extends ListenableWorker {
     private void close() {
         log.d("Closing resources");
         try {
-//            if (beaconClient != null) beaconClient.close();
             locationProvider.close();
             backgroundExecutor.shutdown();
         } catch (Exception e) {

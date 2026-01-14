@@ -11,9 +11,9 @@ import androidx.annotation.Nullable;
 import com.jackpf.locationhistory.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.R;
+import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
-import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.ui.Notifications;
 import com.jackpf.locationhistory.client.ui.Toasts;
 import com.jackpf.locationhistory.client.util.Logger;
@@ -63,13 +63,6 @@ public class UnifiedPushService extends PushService {
             log.e(e, "Failed to create beacon client for unified push service");
             Toasts.show(getApplicationContext(), R.string.toast_connection_failed, e.getMessage());
         }
-    }
-
-    @Override
-    public void onDestroy() {
-//        if (beaconClient != null) {
-//            beaconClient.close();
-//        }
     }
 
     /**

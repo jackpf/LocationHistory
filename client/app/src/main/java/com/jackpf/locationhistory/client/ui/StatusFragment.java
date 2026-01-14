@@ -18,12 +18,12 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.PingResponse;
 import com.jackpf.locationhistory.client.MainActivity;
 import com.jackpf.locationhistory.client.R;
+import com.jackpf.locationhistory.client.client.ssl.SSLPrompt;
+import com.jackpf.locationhistory.client.client.ssl.UntrustedCertException;
+import com.jackpf.locationhistory.client.client.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentStatusBinding;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
-import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
-import com.jackpf.locationhistory.client.ssl.SSLPrompt;
-import com.jackpf.locationhistory.client.ssl.UntrustedCertException;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.text.SimpleDateFormat;

@@ -1,35 +1,49 @@
-package com.jackpf.locationhistory.client.grpc.util;
+package com.jackpf.locationhistory.client.client.util;
 
+import androidx.annotation.NonNull;
+
+import com.google.common.util.concurrent.FutureCallback;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.util.function.Consumer;
 
 import io.grpc.StatusRuntimeException;
-import io.grpc.stub.StreamObserver;
 import lombok.Setter;
 
-public class GrpcAsyncWrapper<T> implements StreamObserver<T> {
+public class GrpcFutureWrapper<T> implements FutureCallback<T> {
     private final Consumer<T> valueCallback;
     private final Consumer<StatusRuntimeException> errorCallback;
     @Setter
     private String tag;
+    @Setter
+    private boolean loggingEnabled;
 
     private final Logger log = new Logger(this);
 
-    public GrpcAsyncWrapper(Consumer<T> valueCallback, Consumer<StatusRuntimeException> errorCallback) {
+    public GrpcFutureWrapper(Consumer<T> valueCallback, Consumer<StatusRuntimeException> errorCallback) {
         this.valueCallback = valueCallback;
         this.errorCallback = errorCallback;
     }
 
+    public static <T> GrpcFutureWrapper<T> empty() {
+        return new GrpcFutureWrapper<>((v) -> {
+        }, (e) -> {
+        });
+    }
+
     @Override
-    public void onNext(T value) {
-        log.d("%s response: %s", tag, value != null ? value.toString() : "null");
+    public void onSuccess(T value) {
+        if (loggingEnabled) {
+            log.d("%s response: %s", tag, value != null ? value.toString() : "null");
+        }
         valueCallback.accept(value);
     }
 
     @Override
-    public void onError(Throwable t) {
-        log.e(t, "%s error", tag);
+    public void onFailure(@NonNull Throwable t) {
+        if (loggingEnabled) {
+            log.e(t, "%s error", tag);
+        }
         if (t instanceof StatusRuntimeException) {
             errorCallback.accept((StatusRuntimeException) t);
         } else {
@@ -38,10 +52,5 @@ public class GrpcAsyncWrapper<T> implements StreamObserver<T> {
                     .withCause(t)
                     .asRuntimeException());
         }
-    }
-
-    @Override
-    public void onCompleted() {
-        // Pass
     }
 }

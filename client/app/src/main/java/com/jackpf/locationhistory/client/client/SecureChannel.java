@@ -1,6 +1,6 @@
-package com.jackpf.locationhistory.client;
+package com.jackpf.locationhistory.client.client;
 
-import com.jackpf.locationhistory.client.ssl.DynamicTrustManager;
+import com.jackpf.locationhistory.client.client.ssl.DynamicTrustManager;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;

@@ -1,8 +1,10 @@
 package com.jackpf.locationhistory.client;
 
+import com.jackpf.locationhistory.client.client.ClientPool;
+import com.jackpf.locationhistory.client.client.SecureChannel;
+import com.jackpf.locationhistory.client.client.ssl.DynamicTrustManager;
+import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
-import com.jackpf.locationhistory.client.ssl.DynamicTrustManager;
-import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
@@ -58,15 +60,13 @@ public class BeaconClientFactory {
                                 dynamicTrustManager
                         );
                         ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
-                        BeaconClient newClient = new BeaconClient(channel, threadExecutor, dynamicTrustManager, params.isWaitForReady(), params.getTimeout());
 
-                        return new ClientPool.ClientInfo<>(
-                                newClient,
-                                () -> {
-                                    threadExecutor.shutdown();
-                                    channel.shutdown();
-                                    dynamicTrustManager.close();
-                                }
+                        return new BeaconClient(
+                                channel,
+                                threadExecutor,
+                                dynamicTrustManager,
+                                params.isWaitForReady(),
+                                params.getTimeout()
                         );
                     } catch (IllegalArgumentException e) {
                         log.e("Invalid server details", e);
