@@ -45,7 +45,7 @@ class LoggingInterceptor(level: LogLevel) extends ServerInterceptor with Logging
       override def delegate(): ServerCall.Listener[ReqT] = listener
 
       override def onMessage(message: ReqT): Unit = {
-        output(s"[gRPC] Requested $methodName: $message")
+        output(s"[gRPC] Requested $methodName: ${message}")
         delegate().onMessage(message)
       }
 
