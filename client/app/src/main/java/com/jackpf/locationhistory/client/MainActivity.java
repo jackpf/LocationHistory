@@ -9,6 +9,7 @@ import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.color.DynamicColors;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.PingResponse;
@@ -51,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
 
             log.d("Starting beacon worker...");
             BeaconWorkerFactory.createWorker(this);
-//            BeaconWorkerFactory.createTestWorker(this, 10, TimeUnit.SECONDS);
             log.d("Beacon worker started");
         });
     }
@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle bundle) {
+        DynamicColors.applyToActivitiesIfAvailable(getApplication());
         super.onCreate(bundle);
 
         setContentView(R.layout.activity_main);

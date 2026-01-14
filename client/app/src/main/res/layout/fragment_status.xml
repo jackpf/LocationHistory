@@ -1,51 +1,100 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.Material3.CardView.Elevated"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp">
 
-    <TableLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/table_border"
-        android:padding="16dp"
-        android:stretchColumns="1">
+        android:padding="20dp">
 
-        <TableRow android:layout_marginBottom="8dp">
+        <TextView
+            android:id="@+id/titleSystem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/system"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            android:textColor="?attr/colorPrimary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:text="@string/status_key"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/labelStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/status_key"
+            android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/titleSystem" />
 
-            <TextView
-                android:id="@+id/statusTextView"
-                android:text="@string/disconnected"
-                android:gravity="end" />
-        </TableRow>
+        <TextView
+            android:id="@+id/statusTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/disconnected"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            app:layout_constraintBaseline_toBaselineOf="@id/labelStatus"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-        <TableRow android:layout_marginBottom="8dp">
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/divider1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/labelStatus" />
 
-            <TextView
-                android:text="@string/device_state_key"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/labelDeviceState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/device_state_key"
+            android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider1" />
 
-            <TextView
-                android:id="@+id/deviceStateTextView"
-                android:text="@string/unknown"
-                android:gravity="end" />
-        </TableRow>
+        <TextView
+            android:id="@+id/deviceStateTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/unknown"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            app:layout_constraintBaseline_toBaselineOf="@id/labelDeviceState"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-        <TableRow android:layout_marginBottom="8dp">
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/divider2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/labelDeviceState" />
 
-            <TextView
-                android:text="@string/last_ping_key"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/labelLastPing"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/last_ping_key"
+            android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider2" />
 
-            <TextView
-                android:id="@+id/lastPingTextView"
-                android:text="@string/never"
-                android:gravity="end" />
-        </TableRow>
+        <TextView
+            android:id="@+id/lastPingTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/never"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            app:layout_constraintBaseline_toBaselineOf="@id/labelLastPing"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-    </TableLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

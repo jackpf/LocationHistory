@@ -11,6 +11,7 @@
     <string name="save">Save</string>
     <string name="unified_push">Unified Push</string>
 
+    <string name="system">System</string>
     <string name="status_key">Status:</string>
     <string name="device_state_key">Device State:</string>
     <string name="last_ping_key">Last Ping:</string>
