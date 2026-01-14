@@ -10,6 +10,7 @@ import {Segmented} from "antd";
 import {GlobalOutlined, MoonFilled, SunOutlined} from '@ant-design/icons';
 import {useLocalStorage} from "../hooks/use-local-storage.ts";
 import styles from './MLMap.module.css';
+import circle from "@turf/circle";
 
 if (!MAPTILER_API_KEY) {
     alert("MAPTILER_API_KEY must be set to use maptiler");
@@ -90,6 +91,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
             type: 'FeatureCollection',
             features: history
                 .filter(h => !!h.location)
+                .slice(history.length - 21, history.length - 1)
                 .map((h, index) => ({
                     type: 'Feature',
                     properties: {
@@ -119,6 +121,65 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                     .map(h => [h.location!.lon, h.location!.lat])
             }
         };
+    }, [history]);
+
+    let startTime = 0
+    let endTime = 0
+    if (history.length > 0) {
+        startTime = history[0].timestamp;
+        endTime = history[history.length - 1].timestamp;
+    }
+    const totalDuration = endTime - startTime;
+
+    // 2. Calculate "24 hours ago" timestamp
+    const twentyFourHoursAgo = Date.now() - (24 * 60 * 60 * 1000);
+
+    // 3. Find where "24h ago" is as a fraction (0.0 to 1.0) of the trip
+    // Example: If trip is 48h long, 24h ago is at 0.5 (50%)
+    let cutoffRatio = (twentyFourHoursAgo - startTime) / totalDuration;
+
+    // Clamp it between 0 and 1 (in case trip is shorter than 24h or fully in past)
+    cutoffRatio = Math.max(0, Math.min(1, cutoffRatio));
+
+    // 4. Create the Gradient Style dynamically
+    const lineStyle = {
+        id: 'route-line',
+        type: 'line',
+        paint: {
+            'line-width': 4,
+            'line-gradient': [
+                'interpolate',
+                ['linear'],
+                ['line-progress'],
+
+                // From Start (0.0) to Cutoff point -> Faint (Old)
+                0, 'rgba(0, 0, 255, 0.05)',
+                cutoffRatio, 'rgba(0, 0, 255, 0.2)',
+
+                // Small transition zone (e.g. +5%) to fade into Solid (New)
+                // If you want a hard cut, make this number same as cutoffRatio
+                Math.min(1, cutoffRatio + 0.1), 'rgba(0, 0, 255, 0.3)',
+
+                // To End (1.0) -> Solid
+                1, 'rgba(0, 0, 255, 0.3)'
+            ]
+        }
+    };
+
+    // 2. Generate the Accuracy Polygon (Geometry)
+    // Only do this if we have a valid point and accuracy > 0
+    const accuracyCircle = useMemo(() => {
+        if (history.length == 0) return null;
+        const lastHistory = history[history.length - 1];
+
+        const {lat, lon, accuracy} = lastHistory.location!;
+        if (!accuracy || accuracy < 1) return null; // Hide if 0 or null
+
+        // turf/circle takes [lon, lat], radius, options
+        return circle([lon, lat], accuracy, {
+            steps: 64,       // Smoothness of the circle
+            units: 'meters'  // CRITICAL: Interpret radius as meters
+        });
     }, [history]);
 
     return (
@@ -178,16 +239,8 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                 <NavigationControl position="bottom-right"/>
 
                 {/* Line */}
-                <Source type="geojson" data={lineGeoJson as any}>
-                    <Layer
-                        id="route-line"
-                        type="line"
-                        paint={{
-                            "line-color": "blue",
-                            "line-width": 3,
-                            "line-opacity": 0.3,
-                        }}
-                    />
+                <Source type="geojson" data={lineGeoJson as any} lineMetrics={true}>
+                    <Layer {...lineStyle}/>
                 </Source>
 
                 {/* Points */}
@@ -203,6 +256,20 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                         }}
                     />
                 </Source>
+
+                {accuracyCircle && (
+                    <Source id="accuracy-zone" type="geojson" data={accuracyCircle}>
+                        <Layer
+                            id="accuracy-fill"
+                            type="fill"
+                            paint={{
+                                'fill-color': 'blue', // Match your theme
+                                'fill-opacity': 0.3,  // Very faint (10%)
+                                'fill-outline-color': 'blue' // Optional: slight border
+                            }}
+                        />
+                    </Source>
+                )}
 
                 {popupInfo && (
                     <Popup
