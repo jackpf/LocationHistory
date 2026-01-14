@@ -3,9 +3,9 @@
     <string name="app_name">Location History</string>
 
     <string name="server_host">Server Host</string>
-    <string name="server_host_hint">10.0.2.2</string>
+    <string name="server_host_hint">e.g. my-server.com</string>
     <string name="server_port">Server Port</string>
-    <string name="server_port_hint">8080</string>
+    <string name="server_port_hint">e.g. 8080</string>
 
     <string name="test">Test</string>
     <string name="save">Save</string>
