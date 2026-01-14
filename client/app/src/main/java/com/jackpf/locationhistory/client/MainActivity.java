@@ -58,9 +58,15 @@ public class MainActivity extends AppCompatActivity {
 
     public void refreshBeaconClient() {
         log.d("Refreshing beacon client");
-        if (beaconClient != null && !beaconClient.isClosed()) beaconClient.close();
+//        if (beaconClient != null && !beaconClient.isClosed()) beaconClient.close();
         try {
-            beaconClient = BeaconClientFactory.createClient(configRepo, false, new TrustedCertStorage(this));
+            BeaconClientFactory.BeaconClientParams params = new BeaconClientFactory.BeaconClientParams(
+                    configRepo.getServerHost(),
+                    configRepo.getServerPort(),
+                    false,
+                    BeaconClientFactory.DEFAULT_TIMEOUT
+            );
+            beaconClient = BeaconClientFactory.createClient(params, new TrustedCertStorage(this));
         } catch (IOException e) {
             beaconClient = null;
         }
@@ -91,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-        if (beaconClient != null) beaconClient.close();
+//        if (beaconClient != null) beaconClient.close();
     }
 
     private BeaconClient getBeaconClient() throws IOException {

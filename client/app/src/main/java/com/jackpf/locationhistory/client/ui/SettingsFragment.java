@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -99,10 +98,12 @@ public class SettingsFragment extends Fragment {
         try {
             // Create a temp client with current (non-saved) settings
             BeaconClient tempClient = BeaconClientFactory.createClient(
-                    binding.serverHostInput.getText().toString(),
-                    Integer.parseInt(binding.serverPortInput.getText().toString()),
-                    false,
-                    3000, // Smaller timeout for pings
+                    new BeaconClientFactory.BeaconClientParams(
+                            binding.serverHostInput.getText().toString(),
+                            Integer.parseInt(binding.serverPortInput.getText().toString()),
+                            false,
+                            3000 // Smaller timeout for pings
+                    ),
                     new TrustedCertStorage(getActivity())
             );
 
@@ -125,7 +126,7 @@ public class SettingsFragment extends Fragment {
                     }
             ));
 
-            pingResponse.addListener(tempClient::close, ContextCompat.getMainExecutor(requireContext()));
+//            pingResponse.addListener(tempClient::close, ContextCompat.getMainExecutor(requireContext()));
         } catch (NumberFormatException | IOException e) {
             Toasts.show(requireContext(), R.string.toast_invalid_settings, e.getMessage());
         }

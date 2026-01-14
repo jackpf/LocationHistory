@@ -123,7 +123,14 @@ public class BeaconWorker extends ListenableWorker {
         return CallbackToFutureAdapter.getFuture(completer -> {
             backgroundExecutor.execute(() -> {
                 try {
-                    beaconClient = BeaconClientFactory.createClient(configRepository, true, new TrustedCertStorage(getApplicationContext()));
+                    BeaconClientFactory.BeaconClientParams params = new BeaconClientFactory.BeaconClientParams(
+                            configRepository.getServerHost(),
+                            configRepository.getServerPort(),
+                            true,
+                            BeaconClientFactory.DEFAULT_TIMEOUT
+                    );
+
+                    beaconClient = BeaconClientFactory.createClient(params, new TrustedCertStorage(getApplicationContext()));
                 } catch (IOException e) {
                     completeNoConnection(completer, e);
                     return;
@@ -204,7 +211,7 @@ public class BeaconWorker extends ListenableWorker {
     private void close() {
         log.d("Closing resources");
         try {
-            if (beaconClient != null) beaconClient.close();
+//            if (beaconClient != null) beaconClient.close();
             locationProvider.close();
             backgroundExecutor.shutdown();
         } catch (Exception e) {

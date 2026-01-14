@@ -43,8 +43,12 @@ public class UnifiedPushService extends PushService {
 
     private static BeaconClient createBeaconClient(Context context, ConfigRepository configRepository) throws IOException {
         return BeaconClientFactory.createClient(
-                configRepository,
-                false,
+                new BeaconClientFactory.BeaconClientParams(
+                        configRepository.getServerHost(),
+                        configRepository.getServerPort(),
+                        false,
+                        BeaconClientFactory.DEFAULT_TIMEOUT
+                ),
                 new TrustedCertStorage(context)
         );
     }
@@ -63,9 +67,9 @@ public class UnifiedPushService extends PushService {
 
     @Override
     public void onDestroy() {
-        if (beaconClient != null) {
-            beaconClient.close();
-        }
+//        if (beaconClient != null) {
+//            beaconClient.close();
+//        }
     }
 
     /**
