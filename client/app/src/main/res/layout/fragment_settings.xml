@@ -17,11 +17,11 @@
             android:alpha="0.5"
             android:layout_marginStart="4dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/link1"
+            app:layout_constraintTop_toTopOf="@id/topLink"
             app:layout_constraintBottom_toBottomOf="@id/pushDesc" />
 
         <View
-            android:id="@+id/link1"
+            android:id="@+id/topLink"
             android:layout_width="16dp"
             android:layout_height="2dp"
             android:background="?attr/colorPrimary"
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:hint="@string/server_host"
             app:helperText="@string/server_host_hint"
-            app:layout_constraintStart_toEndOf="@id/link1"
+            app:layout_constraintStart_toEndOf="@id/topLink"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
@@ -50,14 +50,13 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <View
-            android:id="@+id/link2"
             android:layout_width="0dp"
             android:layout_height="2dp"
             android:background="?attr/colorPrimary"
             android:alpha="0.5"
             android:layout_marginTop="32dp"
-            app:layout_constraintStart_toStartOf="@id/link1"
-            app:layout_constraintEnd_toEndOf="@id/link1"
+            app:layout_constraintStart_toStartOf="@id/topLink"
+            app:layout_constraintEnd_toEndOf="@id/topLink"
             app:layout_constraintTop_toTopOf="@id/serverPortInputLayout" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -84,8 +83,8 @@
             android:layout_height="2dp"
             android:background="?attr/colorPrimary"
             android:alpha="0.5"
-            app:layout_constraintStart_toStartOf="@id/link1"
-            app:layout_constraintEnd_toEndOf="@id/link1"
+            app:layout_constraintStart_toStartOf="@id/topLink"
+            app:layout_constraintEnd_toEndOf="@id/topLink"
             app:layout_constraintTop_toTopOf="@id/testButton"
             app:layout_constraintBottom_toBottomOf="@id/testButton" />
 
@@ -105,8 +104,8 @@
             android:layout_height="2dp"
             android:background="?attr/colorPrimary"
             android:alpha="0.5"
-            app:layout_constraintStart_toStartOf="@id/link1"
-            app:layout_constraintEnd_toEndOf="@id/link1"
+            app:layout_constraintStart_toStartOf="@id/topLink"
+            app:layout_constraintEnd_toEndOf="@id/topLink"
             app:layout_constraintTop_toTopOf="@id/saveButton"
             app:layout_constraintBottom_toBottomOf="@id/saveButton" />
 
