@@ -37,7 +37,41 @@ export const accuracyCircleStyle = {
 };
 
 export const lineStyle = (cutoffRatio: number) => {
-    cutoffRatio = Math.max(0, Math.min(1, cutoffRatio));
+    const COLOR_FADED = "rgba(0, 0, 255, 0.05)";
+    const COLOR_SOLID = "rgba(0, 0, 255, 0.3)";
+    const FADE_LENGTH = 0.1;
+
+    let gradientStops;
+
+    if (cutoffRatio <= 0) {
+        // Full solid
+        gradientStops = [
+            0, COLOR_SOLID,
+            1, COLOR_SOLID
+        ];
+    } else if (cutoffRatio >= 1) {
+        // Full faded
+        gradientStops = [
+            0, COLOR_FADED,
+            1, COLOR_FADED
+        ];
+    } else {
+        // Faded until cutoff ratio
+        gradientStops = [
+            0, COLOR_FADED,
+            cutoffRatio, "rgba(0, 0, 255, 0.2)"
+        ];
+
+        const transitionEnd = cutoffRatio + FADE_LENGTH;
+
+        // Clamp the transition end
+        if (transitionEnd >= 1) {
+            gradientStops.push(1, COLOR_SOLID);
+        } else {
+            gradientStops.push(transitionEnd, COLOR_SOLID);
+            gradientStops.push(1, COLOR_SOLID);
+        }
+    }
 
     return {
         id: "route-line",
@@ -48,16 +82,7 @@ export const lineStyle = (cutoffRatio: number) => {
                 "interpolate",
                 ["linear"],
                 ["line-progress"],
-
-                // From Start (0.0) to Cutoff point -> Faint (Old)
-                0, "rgba(0, 0, 255, 0.05)",
-                cutoffRatio, "rgba(0, 0, 255, 0.2)",
-
-                // Small transition zone (e.g. +5%) to fade into Solid (New)
-                Math.min(1, cutoffRatio + 0.1), "rgba(0, 0, 255, 0.3)",
-
-                // To End (1.0) -> Solid
-                1, "rgba(0, 0, 255, 0.3)"
+                ...gradientStops
             ]
         }
     }
