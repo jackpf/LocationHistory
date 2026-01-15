@@ -38,6 +38,7 @@ export const accuracyCircleStyle = {
 
 export const lineStyle = (cutoffRatio: number) => {
     const COLOR_FADED = "rgba(0, 0, 255, 0.05)";
+    const COLOR_TRANSITION = "rgba(0, 0, 255, 0.2)";
     const COLOR_SOLID = "rgba(0, 0, 255, 0.3)";
     const FADE_LENGTH = 0.1;
 
@@ -59,18 +60,16 @@ export const lineStyle = (cutoffRatio: number) => {
         // Faded until cutoff ratio
         gradientStops = [
             0, COLOR_FADED,
-            cutoffRatio, "rgba(0, 0, 255, 0.2)"
+            cutoffRatio, COLOR_TRANSITION
         ];
 
         const transitionEnd = cutoffRatio + FADE_LENGTH;
 
         // Clamp the transition end
-        if (transitionEnd >= 1) {
-            gradientStops.push(1, COLOR_SOLID);
-        } else {
-            gradientStops.push(transitionEnd, COLOR_SOLID);
+        if (transitionEnd < 1) {
             gradientStops.push(1, COLOR_SOLID);
         }
+        gradientStops.push(1, COLOR_SOLID);
     }
 
     return {
