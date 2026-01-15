@@ -10,7 +10,7 @@ The UI currently supports 2 map types (controlled by the `MAP_TYPE` env var):
 | [MapTiler](https://www.maptiler.com/)      | Uses vector tiling and looks a lot nicer. Requires a free API key - see [here](https://www.maptiler.com/cloud/pricing/) for more info. |
 
 ## Features
-* **Interactive Maps:** powered by [MapLibre](https://maplibre.org/) / [MapTiler](https://www.maptiler.com/) / [OpenStreetMap](https://www.openstreetmap.org/) / [Leaflet](https://leafletjs.com/).
+* **Interactive Maps:** powered by [MapLibre](https://maplibre.org/) / [MapTiler](https://www.maptiler.com/) / [OpenStreetMap](https://www.openstreetmap.org/).
 * **Timeline View:** view your location history for multiple devices.
 * **Device Management:** view status of connected trackers.
 

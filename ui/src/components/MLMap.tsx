@@ -11,6 +11,7 @@ import styles from './MLMap.module.css';
 import {accuracyCircleStyle, circlePoint, lineStyle, pointStyle} from "./MLMapStyles.tsx";
 import {DEFAULT_CENTER, DEFAULT_ZOOM, getMapUrl, MAP_STYLE_OPTIONS, POINT_LIMIT} from "./MLMapConfig.tsx";
 import {MapUpdater} from "./MLMapUpdater.tsx";
+import {MAP_TYPE} from "../config/config.ts";
 
 interface MLMapProps {
     history: StoredLocation[];
@@ -25,7 +26,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
     const [mapStyle, setMapStyle] = useLocalStorage("ml_map_style", MAP_STYLE_OPTIONS[0].value);
     const [currentTime, setCurrentTime] = useState(() => Date.now());
 
-    const mapUrl = useMemo(() => getMapUrl("openstreetmaps", mapStyle), [mapStyle]);
+    const mapUrl = useMemo(() => getMapUrl(MAP_TYPE, mapStyle), [mapStyle]);
 
     const lastLocation: StoredLocation | null = history.length > 0 ? history[history.length - 1] : null;
     const mapCenter: [number, number] = lastLocation != null && lastLocation.location != null ?
