@@ -41,7 +41,6 @@ public class SettingsFragment extends Fragment {
     private FragmentSettingsBinding binding;
     @Nullable
     private ConfigRepository configRepository;
-
     @Nullable
     private SSLPrompt sslPrompt;
 
@@ -58,14 +57,18 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        configRepository = new ConfigRepository(requireContext());
+        sslPrompt = new SSLPrompt(getActivity());
+        UnifiedPushStorage unifiedPushStorage = new UnifiedPushStorage(requireContext());
+
         // Listen to async changes of unified push enabled state
-        isUnifiedPushEnabled().observe(getViewLifecycleOwner(), isEnabled -> {
+        isUnifiedPushEnabled(unifiedPushStorage).observe(getViewLifecycleOwner(), isEnabled -> {
             // Prevent infinite loops
             if (binding.pushRegisterSwitch.isChecked() != isEnabled) {
                 binding.pushRegisterSwitch.setOnCheckedChangeListener(null);
                 binding.pushRegisterSwitch.setChecked(isEnabled);
-                binding.pushRegisterSwitch.setOnCheckedChangeListener((v, isChecked) -> handleUnifiedPushCheck(isChecked));
             }
+            binding.pushRegisterSwitch.setOnCheckedChangeListener((v, isChecked) -> handleUnifiedPushCheck(isChecked));
         });
     }
 
@@ -73,14 +76,11 @@ public class SettingsFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        configRepository = new ConfigRepository(requireContext());
-        sslPrompt = new SSLPrompt(getActivity());
+        binding.serverHostInput.setText(configRepository.getServerHost());
+        binding.serverPortInput.setText(Integer.toString(configRepository.getServerPort()));
 
-        if (Boolean.TRUE.equals(isUnifiedPushEnabled().getValue())) {
-            binding.pushRegisterSwitch.setChecked(true);
-        }
-
-        updateUI();
+        binding.testButton.setOnClickListener(view -> handleTestClick());
+        binding.saveButton.setOnClickListener(view -> handleSaveClick());
     }
 
     @Override
@@ -92,16 +92,6 @@ public class SettingsFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
-    }
-
-    private void updateUI() {
-        log.d("Updating settings fragment");
-
-        binding.serverHostInput.setText(configRepository.getServerHost());
-        binding.serverPortInput.setText(Integer.toString(configRepository.getServerPort()));
-
-        binding.testButton.setOnClickListener(view -> handleTestClick());
-        binding.saveButton.setOnClickListener(view -> handleSaveClick());
     }
 
     private void handleTestClick() {
@@ -163,8 +153,7 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    private LiveData<Boolean> isUnifiedPushEnabled() {
-        UnifiedPushStorage unifiedPushStorage = new UnifiedPushStorage(requireContext());
+    private static LiveData<Boolean> isUnifiedPushEnabled(UnifiedPushStorage unifiedPushStorage) {
         return ObservableUnifiedPushState
                 .getInstance(unifiedPushStorage)
                 .observeEnabled();
