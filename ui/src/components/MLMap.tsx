@@ -45,7 +45,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
             type: 'FeatureCollection',
             features: history
                 .filter(h => !!h.location)
-                .slice(-POINT_LIMIT - 1)
+                .slice(-POINT_LIMIT)
                 .map((h, index, locations) => ({
                     type: 'Feature',
                     properties: {
