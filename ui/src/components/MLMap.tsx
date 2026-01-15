@@ -26,7 +26,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
     const [mapStyle, setMapStyle] = useLocalStorage("ml_map_style", mapStyleOptions(MAP_TYPE)[0].value);
     const [currentTime, setCurrentTime] = useState(() => Date.now());
 
-    const mapUrl = useMemo(() => getMapUrl(MAP_TYPE, mapStyle), [mapStyle]);
+    const mapUrl = useMemo(() => getMapUrl(MAP_TYPE as MapType, mapStyle), [mapStyle]);
 
     const lastLocation: StoredLocation | null = history.length > 0 ? history[history.length - 1] : null;
     const mapCenter: [number, number] = lastLocation != null && lastLocation.location != null ?

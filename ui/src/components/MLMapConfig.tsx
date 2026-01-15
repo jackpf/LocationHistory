@@ -52,6 +52,8 @@ export const getMapTilerUrl = (style: MapStyle) => {
     if (style === MapStyle.Light) mapTilerStyle = "streets-v2";
     else if (style === MapStyle.Dark) mapTilerStyle = "base-v4-dark";
     else if (style === MapStyle.Satellite) mapTilerStyle = "satellite";
+    else throw new Error(`Unsupported MapTiler style: ${style}`);
+
 
     return `https://api.maptiler.com/maps/${mapTilerStyle}/style.json?key=${MAPTILER_API_KEY}`;
 }
@@ -60,6 +62,7 @@ export const getOSMUrl = (style: MapStyle) => {
     let source;
     if (style === MapStyle.Light) source = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
     else if (style === MapStyle.Dark) source = "https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+    else throw new Error(`Unsupported OSM style: ${style}`);
 
     return {
         version: 8,
