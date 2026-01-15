@@ -1,7 +1,6 @@
 package com.jackpf.locationhistory.client.push;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -29,12 +28,10 @@ public class ObservableUnifiedPushState {
     }
 
     public void setEnabled(boolean enabled) {
-        Log.d("UnifiedPushStorage", "Posting value: " + enabled + " to " + System.identityHashCode(this));
         this.enabled.postValue(enabled);
     }
 
     public LiveData<Boolean> observeEnabled() {
-        Log.d("UnifiedPushStorage", "Observing instance: " + System.identityHashCode(this));
         return enabled;
     }
 }
