@@ -39,6 +39,6 @@ public class UnifiedPushStorage {
     public void setEnabled(boolean enabled) {
         prefs.edit().putBoolean(ENABLED_KEY, enabled).apply();
         // Update our observers
-        ObservableUnifiedPushState.getInstance(this).setEnabled(enabled);
+        ObservableUnifiedPushState.getInstance(context).setEnabled(enabled);
     }
 }

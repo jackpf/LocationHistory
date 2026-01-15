@@ -62,7 +62,7 @@ public class SettingsFragment extends Fragment {
         UnifiedPushStorage unifiedPushStorage = new UnifiedPushStorage(requireContext());
 
         // Listen to async changes of unified push enabled state
-        isUnifiedPushEnabled(unifiedPushStorage).observe(getViewLifecycleOwner(), isEnabled -> {
+        isUnifiedPushEnabled().observe(getViewLifecycleOwner(), isEnabled -> {
             // Prevent infinite loops
             if (binding.pushRegisterSwitch.isChecked() != isEnabled) {
                 binding.pushRegisterSwitch.setOnCheckedChangeListener(null);
@@ -153,9 +153,9 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    private static LiveData<Boolean> isUnifiedPushEnabled(UnifiedPushStorage unifiedPushStorage) {
+    private LiveData<Boolean> isUnifiedPushEnabled() {
         return ObservableUnifiedPushState
-                .getInstance(unifiedPushStorage)
+                .getInstance(requireContext())
                 .observeEnabled();
     }
 

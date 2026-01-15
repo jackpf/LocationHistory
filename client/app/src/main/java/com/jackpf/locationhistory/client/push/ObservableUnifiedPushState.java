@@ -1,5 +1,7 @@
 package com.jackpf.locationhistory.client.push;
 
+import android.content.Context;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -13,13 +15,14 @@ public class ObservableUnifiedPushState {
 
     private final MutableLiveData<Boolean> enabled;
 
-    private ObservableUnifiedPushState(UnifiedPushStorage pushStorage) {
-        this.enabled = new MutableLiveData<>(pushStorage.isEnabled());
+    private ObservableUnifiedPushState(Context context) {
+        UnifiedPushStorage unifiedPushStorage = new UnifiedPushStorage(context);
+        this.enabled = new MutableLiveData<>(unifiedPushStorage.isEnabled());
     }
 
-    public static synchronized ObservableUnifiedPushState getInstance(UnifiedPushStorage pushStorage) {
+    public static synchronized ObservableUnifiedPushState getInstance(Context context) {
         if (INSTANCE == null) {
-            INSTANCE = new ObservableUnifiedPushState(pushStorage);
+            INSTANCE = new ObservableUnifiedPushState(context);
         }
         return INSTANCE;
     }
