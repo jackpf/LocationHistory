@@ -40,20 +40,21 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
         return () => clearInterval(interval);
     }, []);
 
-    const geoData = useMemo(() => {
+    const pointData = useMemo(() => {
         return {
             type: 'FeatureCollection',
             features: history
                 .filter(h => !!h.location)
-                .slice(history.length - POINT_LIMIT - 1, history.length - 1)
-                .map((h, index) => ({
+                .slice(-POINT_LIMIT - 1)
+                .map((h, index, locations) => ({
                     type: 'Feature',
                     properties: {
                         lat: h.location!.lat,
                         lon: h.location!.lon,
                         accuracy: h.location!.accuracy,
                         time: h.timestamp,
-                        index: index
+                        index: index,
+                        isLatest: index === locations.length - 1
                     },
                     geometry: {
                         type: 'Point',
@@ -83,14 +84,14 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
         const endTime = history[history.length - 1].timestamp;
         const totalDuration = endTime - startTime;
         const twentyFourHoursAgo = currentTime - (24 * 60 * 60 * 1000);
-        cutoffRatio = (twentyFourHoursAgo - startTime) / totalDuration;
+        cutoffRatio = totalDuration > 0 ? (twentyFourHoursAgo - startTime) / totalDuration : 0;
     }
 
     // Draw an accuracy circle for the last point
     const accuracyCircle = useMemo(() => {
-        if (history.length == 0) return null;
         const lastHistory = history[history.length - 1];
-        const {lat, lon, accuracy} = lastHistory.location!;
+        if (!lastHistory?.location) return null;
+        const {lat, lon, accuracy} = lastHistory.location;
 
         return circlePoint(lat, lon, accuracy);
     }, [history]);
@@ -157,7 +158,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                 </Source>
 
                 {/* Points */}
-                <Source type="geojson" data={geoData as any}>
+                <Source type="geojson" data={pointData as any}>
                     <Layer {...pointStyle as any} />
                 </Source>
 

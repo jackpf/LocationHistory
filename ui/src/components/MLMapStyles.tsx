@@ -15,8 +15,14 @@ export const pointStyle = {
     paint: {
         "circle-radius": 4,
         "circle-color": "blue",
-        "circle-stroke-width": 2,
-        "circle-stroke-color": "white"
+        "circle-stroke-color": "white",
+        // Only show point outline for latest point
+        "circle-stroke-width": [
+            "case",
+            ["boolean", ["get", "isLatest"], false],
+            2,
+            0
+        ],
     }
 };
 
@@ -24,9 +30,9 @@ export const accuracyCircleStyle = {
     id: "accuracy-fill",
     type: "fill",
     paint: {
-        'fill-color': 'blue',
-        'fill-opacity': 0.3,
-        'fill-outline-color': 'blue'
+        "fill-color": "blue",
+        "fill-opacity": 0.3,
+        "fill-outline-color": "blue"
     }
 };
 
