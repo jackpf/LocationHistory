@@ -7,9 +7,12 @@ public class UnifiedPushStorage {
     private static final String PREFERENCES_KEY = "UnifiedPush";
     private static final String ENDPOINT_KEY = "endpoint";
     private static final String ENABLED_KEY = "enabled";
+
+    private final Context context;
     private final SharedPreferences prefs;
 
     public UnifiedPushStorage(Context context) {
+        this.context = context;
         this.prefs = context.getSharedPreferences(PREFERENCES_KEY, Context.MODE_PRIVATE);
     }
 
@@ -35,5 +38,7 @@ public class UnifiedPushStorage {
 
     public void setEnabled(boolean enabled) {
         prefs.edit().putBoolean(ENABLED_KEY, enabled).apply();
+        // Update our observers
+        ObservableUnifiedPushState.getInstance(this.context, this).setEnabled(enabled);
     }
 }
