@@ -159,16 +159,6 @@ html, body, #root {
   pointer-events: none; /* Allows clicking through to map if needed */
 }
 
-.leaflet-container {
-  height: 100%;
-  width: 100%;
-}
-
-.hide-while-flying .leaflet-overlay-pane {
-  opacity: 0;
-  transition: opacity 0.2s; /* Optional: smooth fade out */
-}
-
 .logout-button {
   padding-top: 50px;
   padding-left: 10px;

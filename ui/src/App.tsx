@@ -3,45 +3,11 @@ import {useAdminClient} from './hooks/use-admin-client.ts';
 import {Login} from "./components/Login.tsx";
 import {DeviceList} from "./components/DeviceList.tsx";
 import {useLogin} from "./hooks/use-login.ts";
-import {MLMap} from "./components/MLMap.tsx";
-import {MAP_TYPE} from "./config/config.ts";
-import {OSMMap} from "./components/OSMMap.tsx";
-import type {StoredLocation} from "./gen/common.ts";
 import {useMemo, useState} from "react";
 import {usePushPoller} from "./hooks/use-push-poller.ts";
 import {usePageVisibility} from "./hooks/use-page-visibility.ts";
 import {Toaster} from "sonner";
-
-const DisplayMap = ({history, selectedDeviceId, forceRecenter, setForceRecenter}: {
-    history: StoredLocation[],
-    selectedDeviceId: string | null,
-    forceRecenter: boolean,
-    setForceRecenter: (forceRecenter: boolean) => void,
-}) => {
-    switch (MAP_TYPE) {
-        case "maptiler":
-            return (
-                <MLMap
-                    history={history}
-                    selectedDeviceId={selectedDeviceId}
-                    forceRecenter={forceRecenter}
-                    setForceRecenter={setForceRecenter}
-                />
-            )
-        case "openstreetmaps":
-            return (
-                <OSMMap
-                    history={history}
-                    selectedDeviceId={selectedDeviceId}
-                    forceRecenter={forceRecenter}
-                    setForceRecenter={setForceRecenter}
-                />
-            )
-        default:
-            alert("Invalid map type " + MAP_TYPE + ", must be one of: [maptiler, openstreetmaps]");
-            return null;
-    }
-}
+import {MLMap} from "./components/MLMap.tsx";
 
 const Dashboard = () => {
     const REFRESH_INTERVAL = 10_000;
@@ -105,10 +71,12 @@ const Dashboard = () => {
                         sendNotification={sendNotification}
                         logout={logout}/>
 
-            <DisplayMap history={history}
-                        selectedDeviceId={selectedDeviceId}
-                        forceRecenter={forceRecenter}
-                        setForceRecenter={setForceRecenter}/>
+            <MLMap
+                history={history}
+                selectedDeviceId={selectedDeviceId}
+                forceRecenter={forceRecenter}
+                setForceRecenter={setForceRecenter}
+            />
         </div>
     );
 };

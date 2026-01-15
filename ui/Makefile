@@ -47,7 +47,7 @@ build: install build-protos
 
 .PHONY: init-local-env
 init-local-env:
-	@printf "VITE_PROXY_URL=http://localhost:9123\nVITE_MAP_TYPE=openstreetmaps\n" > .env.local
+	@printf "VITE_PROXY_URL=http://localhost:9123\nVITE_MAP_TYPE=openstreetmap\n" > .env.local
 
 .PHONY: run
 run: build

@@ -9,8 +9,9 @@ import {Segmented} from "antd";
 import {useLocalStorage} from "../hooks/use-local-storage.ts";
 import styles from './MLMap.module.css';
 import {accuracyCircleStyle, circlePoint, lineStyle, pointStyle} from "./MLMapStyles.tsx";
-import {DEFAULT_CENTER, DEFAULT_ZOOM, getMapUrl, MAP_STYLE_OPTIONS, POINT_LIMIT} from "./MLMapConfig.tsx";
+import {DEFAULT_CENTER, DEFAULT_ZOOM, getMapUrl, mapStyleOptions, MapType, POINT_LIMIT} from "./MLMapConfig.tsx";
 import {MapUpdater} from "./MLMapUpdater.tsx";
+import {MAP_TYPE} from "../config/config.ts";
 
 interface MLMapProps {
     history: StoredLocation[];
@@ -22,10 +23,10 @@ interface MLMapProps {
 export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRecenter, setForceRecenter}) => {
     const [popupInfo, setPopupInfo] = useState<MapGeoJSONFeature | null>(null);
     const [cursor, setCursor] = useState('');
-    const [mapStyle, setMapStyle] = useLocalStorage("ml_map_style", MAP_STYLE_OPTIONS[0].value);
+    const [mapStyle, setMapStyle] = useLocalStorage("ml_map_style", mapStyleOptions(MAP_TYPE)[0].value);
     const [currentTime, setCurrentTime] = useState(() => Date.now());
 
-    const mapUrl = useMemo(() => getMapUrl(mapStyle), [mapStyle]);
+    const mapUrl = useMemo(() => getMapUrl(MAP_TYPE as MapType, mapStyle), [mapStyle]);
 
     const lastLocation: StoredLocation | null = history.length > 0 ? history[history.length - 1] : null;
     const mapCenter: [number, number] = lastLocation != null && lastLocation.location != null ?
@@ -104,7 +105,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                 <Segmented
                     vertical
                     className={styles.segmentedControl}
-                    options={MAP_STYLE_OPTIONS}
+                    options={mapStyleOptions(MAP_TYPE as MapType)}
                     value={mapStyle}
                     onChange={setMapStyle}
                 />
@@ -129,7 +130,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                     zoom: DEFAULT_ZOOM
                 }}
                 style={{width: '100%', height: '100%'}}
-                mapStyle={mapUrl}
+                mapStyle={mapUrl as any}
                 interactiveLayerIds={['history-points']}
                 cursor={cursor}
                 onMouseEnter={() => setCursor('pointer')}
