@@ -47,25 +47,6 @@ public class SettingsFragment extends Fragment {
 
     private final Logger log = new Logger(this);
 
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        configRepository = new ConfigRepository(requireContext());
-        sslPrompt = new SSLPrompt(getActivity());
-
-        if (Boolean.TRUE.equals(isUnifiedPushEnabled().getValue())) {
-            binding.pushRegisterSwitch.setChecked(true);
-        }
-
-        updateUI();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -89,6 +70,25 @@ public class SettingsFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        configRepository = new ConfigRepository(requireContext());
+        sslPrompt = new SSLPrompt(getActivity());
+
+        if (Boolean.TRUE.equals(isUnifiedPushEnabled().getValue())) {
+            binding.pushRegisterSwitch.setChecked(true);
+        }
+
+        updateUI();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
@@ -102,7 +102,6 @@ public class SettingsFragment extends Fragment {
 
         binding.testButton.setOnClickListener(view -> handleTestClick());
         binding.saveButton.setOnClickListener(view -> handleSaveClick());
-        binding.pushRegisterSwitch.setOnCheckedChangeListener((v, isChecked) -> handleUnifiedPushCheck(isChecked));
     }
 
     private void handleTestClick() {
