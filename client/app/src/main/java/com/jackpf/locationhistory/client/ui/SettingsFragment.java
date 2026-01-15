@@ -167,7 +167,7 @@ public class SettingsFragment extends Fragment {
     private LiveData<Boolean> isUnifiedPushEnabled() {
         UnifiedPushStorage unifiedPushStorage = new UnifiedPushStorage(requireContext());
         return ObservableUnifiedPushState
-                .getInstance(requireActivity(), unifiedPushStorage)
+                .getInstance(unifiedPushStorage)
                 .observeEnabled();
     }
 
