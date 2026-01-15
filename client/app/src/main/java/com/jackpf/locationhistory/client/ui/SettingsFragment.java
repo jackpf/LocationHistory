@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.PingResponse;
@@ -23,6 +24,7 @@ import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.push.Ntfy;
+import com.jackpf.locationhistory.client.push.ObservableUnifiedPushState;
 import com.jackpf.locationhistory.client.push.UnifiedPushService;
 import com.jackpf.locationhistory.client.push.UnifiedPushStorage;
 import com.jackpf.locationhistory.client.util.Logger;
@@ -40,32 +42,9 @@ public class SettingsFragment extends Fragment {
     @Nullable
     private ConfigRepository configRepository;
     @Nullable
-    private UnifiedPushStorage unifiedPushStorage;
-
-    @Nullable
     private SSLPrompt sslPrompt;
 
     private final Logger log = new Logger(this);
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        configRepository = new ConfigRepository(requireContext());
-        unifiedPushStorage = new UnifiedPushStorage(requireContext());
-        sslPrompt = new SSLPrompt(getActivity());
-
-        if (unifiedPushStorage.isEnabled()) {
-            binding.pushRegisterSwitch.setChecked(true);
-        }
-
-        updateUI();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-    }
 
     @Nullable
     @Override
@@ -75,20 +54,44 @@ public class SettingsFragment extends Fragment {
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        configRepository = new ConfigRepository(requireContext());
+        sslPrompt = new SSLPrompt(getActivity());
+        UnifiedPushStorage unifiedPushStorage = new UnifiedPushStorage(requireContext());
+
+        // Listen to async changes of unified push enabled state
+        isUnifiedPushEnabled().observe(getViewLifecycleOwner(), isEnabled -> {
+            // Prevent infinite loops
+            if (binding.pushRegisterSwitch.isChecked() != isEnabled) {
+                binding.pushRegisterSwitch.setOnCheckedChangeListener(null);
+                binding.pushRegisterSwitch.setChecked(isEnabled);
+            }
+            binding.pushRegisterSwitch.setOnCheckedChangeListener((v, isChecked) -> handleUnifiedPushCheck(isChecked));
+        });
     }
 
-    private void updateUI() {
-        log.d("Updating settings fragment");
+    @Override
+    public void onResume() {
+        super.onResume();
 
         binding.serverHostInput.setText(configRepository.getServerHost());
         binding.serverPortInput.setText(Integer.toString(configRepository.getServerPort()));
 
         binding.testButton.setOnClickListener(view -> handleTestClick());
         binding.saveButton.setOnClickListener(view -> handleSaveClick());
-        binding.pushRegisterSwitch.setOnCheckedChangeListener((view, isChecked) -> handleUnifiedPushCheck(isChecked));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 
     private void handleTestClick() {
@@ -148,6 +151,12 @@ public class SettingsFragment extends Fragment {
                 Toasts.show(requireContext(), R.string.toast_invalid_settings, e.getMessage());
             }
         }
+    }
+
+    private LiveData<Boolean> isUnifiedPushEnabled() {
+        return ObservableUnifiedPushState
+                .getInstance(requireContext())
+                .observeEnabled();
     }
 
     private void handleUnifiedPushCheck(boolean isChecked) {

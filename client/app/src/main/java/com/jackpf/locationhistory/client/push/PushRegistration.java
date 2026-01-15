@@ -46,11 +46,13 @@ public class PushRegistration {
                                 log.d("Registered push handler");
                                 Toasts.show(context, R.string.toast_register_push_handler_success);
                             } else {
+                                storage.setEnabled(false);
                                 log.e("Registering push handler failed");
                                 Toasts.show(context, R.string.toast_register_push_handler_failed);
                             }
                         },
                         error -> {
+                            storage.setEnabled(false);
                             log.e(error, "Error registering push handler");
                             Toasts.show(context, R.string.toast_register_push_handler_error, error.getMessage());
                         }
