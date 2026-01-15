@@ -11,7 +11,8 @@ if [ -n "${PROXY_URL}" ]; then # Allow defining the full proxy URL, e.g. http://
 elif [ -n "${PROXY_PORT}" ]; then # Allow defining only the port if running on the same host, e.g. 1234
   RESOLVED_PROXY_URL="\`\${window.location.protocol}//\${window.location.hostname}:${PROXY_PORT}\`"
 else
-  echo "PROXY_URL or PROXY_PORT must be set"
+  echo "PROXY_URL or PROXY_PORT must be set" >&2
+  exit 1
 fi
 
 cat <<EOF > $CONFIG_FILE
