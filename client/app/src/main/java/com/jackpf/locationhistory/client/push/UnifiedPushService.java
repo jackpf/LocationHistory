@@ -11,9 +11,9 @@ import androidx.annotation.Nullable;
 import com.jackpf.locationhistory.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.R;
+import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
-import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.ui.Notifications;
 import com.jackpf.locationhistory.client.ui.Toasts;
 import com.jackpf.locationhistory.client.util.Logger;
@@ -42,9 +42,13 @@ public class UnifiedPushService extends PushService {
     private final static Logger log = new Logger("UnifiedPushService");
 
     private static BeaconClient createBeaconClient(Context context, ConfigRepository configRepository) throws IOException {
-        return BeaconClientFactory.createClient(
-                configRepository,
-                false,
+        return BeaconClientFactory.createPooledClient(
+                new BeaconClientFactory.BeaconClientParams(
+                        configRepository.getServerHost(),
+                        configRepository.getServerPort(),
+                        false,
+                        BeaconClientFactory.DEFAULT_TIMEOUT
+                ),
                 new TrustedCertStorage(context)
         );
     }
@@ -58,13 +62,6 @@ public class UnifiedPushService extends PushService {
         } catch (IOException e) {
             log.e(e, "Failed to create beacon client for unified push service");
             Toasts.show(getApplicationContext(), R.string.toast_connection_failed, e.getMessage());
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        if (beaconClient != null) {
-            beaconClient.close();
         }
     }
 

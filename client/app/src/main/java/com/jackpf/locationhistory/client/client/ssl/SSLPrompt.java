@@ -1,4 +1,4 @@
-package com.jackpf.locationhistory.client.ssl;
+package com.jackpf.locationhistory.client.client.ssl;
 
 import android.app.Activity;
 

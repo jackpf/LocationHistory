@@ -13,31 +13,33 @@ import com.jackpf.locationhistory.RegisterPushHandlerRequest;
 import com.jackpf.locationhistory.RegisterPushHandlerResponse;
 import com.jackpf.locationhistory.SetLocationRequest;
 import com.jackpf.locationhistory.SetLocationResponse;
-import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
-import com.jackpf.locationhistory.client.ssl.DynamicTrustManager;
+import com.jackpf.locationhistory.client.client.PoolableClient;
+import com.jackpf.locationhistory.client.client.ssl.DynamicTrustManager;
+import com.jackpf.locationhistory.client.client.util.GrpcFutureWrapper;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import io.grpc.ManagedChannel;
 
-public class BeaconClient implements AutoCloseable {
+public class BeaconClient extends PoolableClient {
     private final ManagedChannel channel;
     private final DynamicTrustManager dynamicTrustManager;
     private final BeaconServiceGrpc.BeaconServiceFutureStub beaconService;
     private final long timeoutMillis;
     private final boolean waitForReady;
-    private final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService threadExecutor;
 
     public BeaconClient(
             ManagedChannel channel,
+            ExecutorService threadExecutor,
             DynamicTrustManager dynamicTrustManager,
             boolean waitForReady,
             long timeoutMillis) {
         beaconService = BeaconServiceGrpc
                 .newFutureStub(channel);
         this.channel = channel;
+        this.threadExecutor = threadExecutor;
         this.dynamicTrustManager = dynamicTrustManager;
         this.waitForReady = waitForReady;
         this.timeoutMillis = timeoutMillis;
@@ -135,7 +137,7 @@ public class BeaconClient implements AutoCloseable {
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         threadExecutor.shutdown();
         channel.shutdown();
         dynamicTrustManager.close();

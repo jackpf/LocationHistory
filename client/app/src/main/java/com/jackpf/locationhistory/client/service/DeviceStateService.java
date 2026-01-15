@@ -7,8 +7,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.CheckDeviceResponse;
 import com.jackpf.locationhistory.DeviceStatus;
 import com.jackpf.locationhistory.RegisterDeviceResponse;
+import com.jackpf.locationhistory.client.client.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
-import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.model.DeviceState;
 import com.jackpf.locationhistory.client.util.Logger;
 

@@ -15,16 +15,16 @@ import com.jackpf.locationhistory.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.MainActivity;
 import com.jackpf.locationhistory.client.R;
+import com.jackpf.locationhistory.client.client.ssl.SSLPrompt;
+import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
+import com.jackpf.locationhistory.client.client.ssl.UntrustedCertException;
+import com.jackpf.locationhistory.client.client.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
-import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.push.Ntfy;
 import com.jackpf.locationhistory.client.push.UnifiedPushService;
 import com.jackpf.locationhistory.client.push.UnifiedPushStorage;
-import com.jackpf.locationhistory.client.ssl.SSLPrompt;
-import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
-import com.jackpf.locationhistory.client.ssl.UntrustedCertException;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import org.unifiedpush.android.connector.UnifiedPush;
@@ -99,10 +99,12 @@ public class SettingsFragment extends Fragment {
         try {
             // Create a temp client with current (non-saved) settings
             BeaconClient tempClient = BeaconClientFactory.createClient(
-                    binding.serverHostInput.getText().toString(),
-                    Integer.parseInt(binding.serverPortInput.getText().toString()),
-                    false,
-                    3000, // Smaller timeout for pings
+                    new BeaconClientFactory.BeaconClientParams(
+                            binding.serverHostInput.getText().toString(),
+                            Integer.parseInt(binding.serverPortInput.getText().toString()),
+                            false,
+                            3000 // Smaller timeout for pings
+                    ),
                     new TrustedCertStorage(getActivity())
             );
 

@@ -1,4 +1,4 @@
-package com.jackpf.locationhistory.client.grpc.util;
+package com.jackpf.locationhistory.client.client.util;
 
 import com.jackpf.locationhistory.client.util.Logger;
 

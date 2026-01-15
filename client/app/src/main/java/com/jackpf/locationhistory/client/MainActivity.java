@@ -13,12 +13,12 @@ import com.google.android.material.color.DynamicColors;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.PingResponse;
+import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
+import com.jackpf.locationhistory.client.client.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
-import com.jackpf.locationhistory.client.grpc.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.permissions.PermissionsFlow;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
-import com.jackpf.locationhistory.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.ui.Toasts;
 import com.jackpf.locationhistory.client.util.Logger;
 
@@ -58,9 +58,14 @@ public class MainActivity extends AppCompatActivity {
 
     public void refreshBeaconClient() {
         log.d("Refreshing beacon client");
-        if (beaconClient != null && !beaconClient.isClosed()) beaconClient.close();
         try {
-            beaconClient = BeaconClientFactory.createClient(configRepo, false, new TrustedCertStorage(this));
+            BeaconClientFactory.BeaconClientParams params = new BeaconClientFactory.BeaconClientParams(
+                    configRepo.getServerHost(),
+                    configRepo.getServerPort(),
+                    false,
+                    BeaconClientFactory.DEFAULT_TIMEOUT
+            );
+            beaconClient = BeaconClientFactory.createPooledClient(params, new TrustedCertStorage(this));
         } catch (IOException e) {
             beaconClient = null;
         }
@@ -85,13 +90,6 @@ public class MainActivity extends AppCompatActivity {
 
         configRepo = new ConfigRepository(this);
         refreshBeaconClient();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        if (beaconClient != null) beaconClient.close();
     }
 
     private BeaconClient getBeaconClient() throws IOException {
