@@ -4,19 +4,43 @@
     android:layout_height="match_parent"
     android:fillViewport="true">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="16dp">
+
+        <View
+            android:id="@+id/lineSpine"
+            android:layout_width="2dp"
+            android:layout_height="0dp"
+            android:background="?attr/colorPrimary"
+            android:alpha="0.5"
+            android:layout_marginStart="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/topLink"
+            app:layout_constraintBottom_toBottomOf="@id/pushDesc" />
+
+        <View
+            android:id="@+id/topLink"
+            android:layout_width="16dp"
+            android:layout_height="2dp"
+            android:background="?attr/colorPrimary"
+            android:alpha="0.5"
+            android:layout_marginTop="32dp"
+            app:layout_constraintStart_toEndOf="@id/lineSpine"
+            app:layout_constraintEnd_toStartOf="@id/serverHostInputLayout"
+            app:layout_constraintTop_toTopOf="@id/serverHostInputLayout" />
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/serverHostInputLayout"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:hint="@string/server_host"
-            android:layout_marginBottom="16dp"
-            app:helperText="@string/server_host_hint">
+            app:helperText="@string/server_host_hint"
+            app:layout_constraintStart_toEndOf="@id/topLink"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/serverHostInput"
@@ -25,13 +49,27 @@
                 android:inputType="textUri" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <View
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:background="?attr/colorPrimary"
+            android:alpha="0.5"
+            android:layout_marginTop="32dp"
+            app:layout_constraintStart_toStartOf="@id/topLink"
+            app:layout_constraintEnd_toEndOf="@id/topLink"
+            app:layout_constraintTop_toTopOf="@id/serverPortInputLayout" />
+
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/serverPortInputLayout"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:hint="@string/server_port"
-            android:layout_marginBottom="24dp"
-            app:helperText="@string/server_port_hint">
+            app:helperText="@string/server_port_hint"
+            app:layout_constraintStart_toStartOf="@id/serverHostInputLayout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/serverHostInputLayout">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/serverPortInput"
@@ -40,43 +78,79 @@
                 android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <View
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:background="?attr/colorPrimary"
+            android:alpha="0.5"
+            app:layout_constraintStart_toStartOf="@id/topLink"
+            app:layout_constraintEnd_toEndOf="@id/topLink"
+            app:layout_constraintTop_toTopOf="@id/testButton"
+            app:layout_constraintBottom_toBottomOf="@id/testButton" />
+
         <Button
             android:id="@+id/testButton"
             style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/test" />
+            android:layout_marginTop="24dp"
+            android:text="@string/test"
+            app:layout_constraintStart_toStartOf="@id/serverPortInputLayout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/serverPortInputLayout" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:background="?attr/colorPrimary"
+            android:alpha="0.5"
+            app:layout_constraintStart_toStartOf="@id/topLink"
+            app:layout_constraintEnd_toEndOf="@id/topLink"
+            app:layout_constraintTop_toTopOf="@id/saveButton"
+            app:layout_constraintBottom_toBottomOf="@id/saveButton" />
 
         <Button
             android:id="@+id/saveButton"
             style="@style/Widget.Material3.Button"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            android:text="@string/save" />
+            android:layout_marginTop="8dp"
+            android:text="@string/save"
+            app:layout_constraintStart_toStartOf="@id/testButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/testButton" />
 
         <com.google.android.material.divider.MaterialDivider
-            android:layout_width="match_parent"
+            android:id="@+id/divider"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginTop="32dp"
+            app:layout_constraintStart_toStartOf="@id/saveButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/saveButton" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/pushRegisterSwitch"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:text="@string/enable_unified_push"
-            android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
+            app:layout_constraintStart_toStartOf="@id/divider"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider" />
 
         <TextView
-            android:layout_width="match_parent"
+            android:id="@+id/pushDesc"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/unified_push_description"
             android:textAppearance="@style/TextAppearance.Material3.BodySmall"
             android:textStyle="italic"
-            android:alpha="0.7" />
+            android:alpha="0.7"
+            app:layout_constraintStart_toStartOf="@id/pushRegisterSwitch"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/pushRegisterSwitch" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>
