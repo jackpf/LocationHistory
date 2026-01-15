@@ -67,7 +67,7 @@ export const lineStyle = (cutoffRatio: number) => {
 
         // Clamp the transition end
         if (transitionEnd < 1) {
-            gradientStops.push(1, COLOR_SOLID);
+            gradientStops.push(transitionEnd, COLOR_SOLID);
         }
         gradientStops.push(1, COLOR_SOLID);
     }
