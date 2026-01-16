@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState} from "react";
 import {type Device, DeviceStatus, type StoredDevice} from "../gen/common.ts";
 import {NotificationType, type SendNotificationResponse, type StoredDeviceWithMetadata} from "../gen/admin-service.ts";
 import {formatDistanceToNow} from "date-fns";
@@ -50,12 +50,12 @@ export const DeviceList: React.FC<DeviceListProps> = ({
     const showDeviceStatus = (deviceStatus: DeviceStatus) => {
         switch (deviceStatus) {
             case DeviceStatus.DEVICE_REGISTERED:
-                return <span><span style={{color: 'green'}}>●</span> Registered</span>;
+                return <span><span style={{color: "green"}}>●</span> Registered</span>;
             case DeviceStatus.DEVICE_PENDING:
-                return <span><span style={{color: 'yellow'}}>●</span> Pending Approval</span>;
+                return <span><span style={{color: "yellow"}}>●</span> Pending Approval</span>;
             case DeviceStatus.DEVICE_UNKNOWN:
             default:
-                return <span><span style={{color: 'gray'}}>●</span> Unknown</span>;
+                return <span><span style={{color: "gray"}}>●</span> Unknown</span>;
         }
     }
 
@@ -80,7 +80,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
     return (
         <>
             <button
-                className={`sidebar-toggle ${isOpen ? 'open' : ''}`}
+                className={`sidebar-toggle ${isOpen ? "open" : ""}`}
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label="Toggle Sidebar"
             >
@@ -91,7 +91,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                 </svg>
             </button>
 
-            <aside className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
+            <aside className={`sidebar ${isOpen ? "open" : "closed"}`}>
                 <div className="sidebar-header">
                     <h2>Devices</h2>
                 </div>
@@ -111,7 +111,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                                 setForceRecenter(true);
                                 if (autoClose) setIsOpen(false);
                             }}
-                            className={`device-item ${selectedDeviceId === device.id ? 'selected' : ''}`}
+                            className={`device-item ${selectedDeviceId === device.id ? "selected" : ""}`}
                         >
                             <div
                                 className="device-menu-container"
