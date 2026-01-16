@@ -28,6 +28,15 @@ public class GrantPermissionsActivity extends AppCompatActivity {
     private PermissionsAdapter adapter;
     private final List<AppRequirement> registeredAppRequirements = new ArrayList<>();
 
+    /**
+     * Wrapper class to hold AppRequirement and its granted state for diffing
+     */
+    @Value
+    private static class PermissionItem {
+        AppRequirement requirement;
+        boolean isGranted;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,20 +73,6 @@ public class GrantPermissionsActivity extends AppCompatActivity {
             items.add(new PermissionItem(requirement, requirement.isGranted(this)));
         }
         adapter.submitList(items);
-    }
-
-    /**
-     * Wrapper class to hold AppRequirement and its granted state for diffing
-     */
-    @Value
-    private static class PermissionItem {
-        AppRequirement requirement;
-        boolean isGranted;
-
-        PermissionItem(AppRequirement requirement, boolean isGranted) {
-            this.requirement = requirement;
-            this.isGranted = isGranted;
-        }
     }
 
     private static class PermissionsAdapter extends ListAdapter<PermissionItem, PermissionsAdapter.ViewHolder> {
