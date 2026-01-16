@@ -1,5 +1,6 @@
 package com.jackpf.locationhistory.client;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -86,6 +87,8 @@ public class GrantPermissionsActivity extends AppCompatActivity {
                     }
 
                     @Override
+                    // Lombok generates our equals method, linter doesn't see it
+                    @SuppressLint("DiffUtilEquals")
                     public boolean areContentsTheSame(@NonNull PermissionItem oldItem, @NonNull PermissionItem newItem) {
                         return oldItem.equals(newItem);
                     }
