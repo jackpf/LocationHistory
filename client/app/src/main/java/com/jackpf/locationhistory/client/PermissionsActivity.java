@@ -12,10 +12,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.jackpf.locationhistory.client.permissions.AppRequirement;
 import com.jackpf.locationhistory.client.permissions.AppRequirementsUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PermissionsActivity extends AppCompatActivity {
     private LinearLayout rowsContainer;
+    private List<AppRequirement> registeredAppRequirements = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +34,7 @@ public class PermissionsActivity extends AppCompatActivity {
         List<AppRequirement> requirements = AppRequirements.getRequirements(this);
         for (AppRequirement requirement : requirements) {
             requirement.register(this, this::updateUI);
+            registeredAppRequirements.add(requirement);
         }
     }
 
@@ -39,9 +42,7 @@ public class PermissionsActivity extends AppCompatActivity {
      * Rebuilds table rows based on current permission status
      */
     private void updateUI() {
-        List<AppRequirement> appRequirements = AppRequirements.getRequirements(this);
-
-        if (AppRequirementsUtil.allGranted(this, appRequirements)) {
+        if (AppRequirementsUtil.allGranted(this, registeredAppRequirements)) {
             finish();
             return;
         }
@@ -49,7 +50,7 @@ public class PermissionsActivity extends AppCompatActivity {
         rowsContainer.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(this);
 
-        for (AppRequirement requirement : appRequirements) {
+        for (AppRequirement requirement : registeredAppRequirements) {
             View row = inflater.inflate(R.layout.activity_permissions_item, rowsContainer, false);
             boolean isGranted = requirement.isGranted(this);
 

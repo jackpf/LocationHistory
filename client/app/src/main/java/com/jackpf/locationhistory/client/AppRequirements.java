@@ -37,10 +37,12 @@ public class AppRequirements {
             ));
         }
 
-        requirements.add(new IgnoreBatteryOptimizationsSetting(
-                context.getString(R.string.permission_desc_ignore_optimisations),
-                context.getString(R.string.permission_exp_ignore_optimisations)
-        ));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requirements.add(new IgnoreBatteryOptimizationsSetting(
+                    context.getString(R.string.permission_desc_ignore_optimisations),
+                    context.getString(R.string.permission_exp_ignore_optimisations)
+            ));
+        }
 
         return requirements;
     }
