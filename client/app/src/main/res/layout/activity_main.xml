@@ -18,6 +18,12 @@
         android:layout_marginBottom="24dp" />
 
     <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/permissions_fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:name="com.jackpf.locationhistory.client.ui.PermissionsWarningFragment" />
+
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/settings_fragment_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"

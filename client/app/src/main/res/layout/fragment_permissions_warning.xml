@@ -1,0 +1,68 @@
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.Material3.CardView.Filled"
+    android:id="@+id/warningContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    app:cardBackgroundColor="?attr/colorErrorContainer"
+    app:contentPadding="16dp"
+    android:visibility="gone">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/warningIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_warning"
+            app:tint="?attr/colorOnErrorContainer"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/titleLabel"
+            app:layout_constraintBottom_toBottomOf="@+id/descriptionLabel" />
+
+        <TextView
+            android:id="@+id/titleLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:text="Permissions Missing"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnErrorContainer"
+            android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
+            app:layout_constraintStart_toEndOf="@id/warningIcon"
+            app:layout_constraintEnd_toStartOf="@id/fixButton"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/descriptionLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="The app might not function properly without required permissions."
+            android:textColor="?attr/colorOnErrorContainer"
+            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+            android:alpha="0.8"
+            app:layout_constraintStart_toStartOf="@id/titleLabel"
+            app:layout_constraintEnd_toEndOf="@id/titleLabel"
+            app:layout_constraintTop_toBottomOf="@id/titleLabel"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <Button
+            android:id="@+id/fixButton"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fix"
+            android:textColor="?attr/colorOnErrorContainer"
+            app:backgroundTint="?attr/colorSurface"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

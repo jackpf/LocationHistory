@@ -2,6 +2,16 @@
 
     <string name="app_name">Location History</string>
 
+    <string name="permissions_title">Permissions</string>
+    <string name="permission_desc_fine_location">Fine location</string>
+    <string name="permission_exp_fine_location">Required to access your location</string>
+    <string name="permission_desc_background_location">Background location</string>
+    <string name="permission_exp_background_location">Required to access your location</string>
+    <string name="permission_desc_post_notifications">Send notifications</string>
+    <string name="permission_exp_post_notifications">Required only for \"Locate Device\" to work</string>
+    <string name="permission_desc_ignore_optimisations">Background operation</string>
+    <string name="permission_exp_ignore_optimisations">Required to reliably send location data in the background</string>
+
     <string name="server_host">Server Host</string>
     <string name="server_host_hint">e.g. my-server.com</string>
     <string name="server_port">Server Port</string>

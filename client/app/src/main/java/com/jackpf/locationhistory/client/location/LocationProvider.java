@@ -40,7 +40,6 @@ public class LocationProvider implements AutoCloseable {
         String source;
     }
 
-
     public LocationProvider(Context context, PermissionsManager permissionsManager) {
         this.locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         this.permissionsManager = permissionsManager;

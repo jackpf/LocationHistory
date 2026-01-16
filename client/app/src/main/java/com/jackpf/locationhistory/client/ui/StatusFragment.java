@@ -16,9 +16,10 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.PingResponse;
-import com.jackpf.locationhistory.client.MainActivity;
+import com.jackpf.locationhistory.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.R;
 import com.jackpf.locationhistory.client.client.ssl.SSLPrompt;
+import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.client.ssl.UntrustedCertException;
 import com.jackpf.locationhistory.client.client.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
@@ -26,6 +27,7 @@ import com.jackpf.locationhistory.client.databinding.FragmentStatusBinding;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.util.Logger;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -94,11 +96,23 @@ public class StatusFragment extends Fragment {
         binding = null;
     }
 
+    private BeaconClient getBeaconClient() throws IOException {
+        BeaconClientFactory.BeaconClientParams params = new BeaconClientFactory.BeaconClientParams(
+                configRepository.getServerHost(),
+                configRepository.getServerPort(),
+                false,
+                BeaconClientFactory.DEFAULT_TIMEOUT
+        );
+
+        return BeaconClientFactory.createPooledClient(params, new TrustedCertStorage(requireContext()));
+    }
+
     private ListenableFuture<PingResponse> testConnection() {
-        if (getActivity() instanceof MainActivity) {
-            return ((MainActivity) getActivity()).ping(GrpcFutureWrapper.empty());
+        try {
+            return getBeaconClient().ping(GrpcFutureWrapper.empty());
+        } catch (IOException e) {
+            return Futures.immediateFailedFuture(e);
         }
-        return Futures.immediateFailedFuture(new IllegalStateException("No activity"));
     }
 
     private ListenableFuture<PingResponse> updateConnectionAsync() {
