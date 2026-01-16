@@ -1,5 +1,5 @@
-import './App.css';
-import {useAdminClient} from './hooks/use-admin-client.ts';
+import "./App.css";
+import {useAdminClient} from "./hooks/use-admin-client.ts";
 import {Login} from "./components/Login.tsx";
 import {DeviceList} from "./components/DeviceList.tsx";
 import {useLogin} from "./hooks/use-login.ts";
@@ -50,14 +50,14 @@ const Dashboard = () => {
                 position="top-center"
                 toastOptions={{
                     style: {
-                        background: 'rgba(0, 0, 0, 0.8)',
-                        color: '#fff',
-                        borderRadius: '25px',
-                        border: 'none',
-                        fontSize: '14px',
-                        padding: '10px 20px',
-                        textAlign: 'center',
-                        minWidth: 'fit-content'
+                        background: "rgba(0, 0, 0, 0.8)",
+                        color: "#fff",
+                        borderRadius: "25px",
+                        border: "none",
+                        fontSize: "14px",
+                        padding: "10px 20px",
+                        textAlign: "center",
+                        minWidth: "fit-content"
                     },
                 }}
             />

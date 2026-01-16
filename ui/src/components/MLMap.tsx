@@ -1,13 +1,13 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import Map, {Layer, NavigationControl, Popup, Source} from 'react-map-gl/maplibre';
-import 'maplibre-gl/dist/maplibre-gl.css';
-import {format, formatDistanceToNow} from 'date-fns';
+import React, {useEffect, useMemo, useState} from "react";
+import Map, {Layer, NavigationControl, Popup, Source} from "react-map-gl/maplibre";
+import "maplibre-gl/dist/maplibre-gl.css";
+import {format, formatDistanceToNow} from "date-fns";
 import type {StoredLocation} from "../gen/common.ts";
 import {type MapGeoJSONFeature} from "maplibre-gl";
-import type {Point} from 'geojson';
+import type {Point} from "geojson";
 import {Segmented} from "antd";
 import {useLocalStorage} from "../hooks/use-local-storage.ts";
-import styles from './MLMap.module.css';
+import styles from "./MLMap.module.css";
 import {accuracyCircleStyle, circlePoint, lineStyle, pointStyle} from "./MLMapStyles.tsx";
 import {DEFAULT_CENTER, DEFAULT_ZOOM, getMapUrl, mapStyleOptions, MapType, POINT_LIMIT} from "./MLMapConfig.tsx";
 import {MapUpdater} from "./MLMapUpdater.tsx";
@@ -22,7 +22,7 @@ interface MLMapProps {
 
 export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRecenter, setForceRecenter}) => {
     const [popupInfo, setPopupInfo] = useState<MapGeoJSONFeature | null>(null);
-    const [cursor, setCursor] = useState('');
+    const [cursor, setCursor] = useState("");
     const [mapStyle, setMapStyle] = useLocalStorage("ml_map_style", mapStyleOptions(MAP_TYPE)[0].value);
     const [currentTime, setCurrentTime] = useState(() => Date.now());
 
@@ -43,12 +43,12 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
 
     const pointData = useMemo(() => {
         return {
-            type: 'FeatureCollection',
+            type: "FeatureCollection",
             features: history
                 .filter(h => !!h.location)
                 .slice(-POINT_LIMIT)
                 .map((h, index, locations) => ({
-                    type: 'Feature',
+                    type: "Feature",
                     properties: {
                         lat: h.location!.lat,
                         lon: h.location!.lon,
@@ -58,7 +58,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                         isLatest: index === locations.length - 1
                     },
                     geometry: {
-                        type: 'Point',
+                        type: "Point",
                         coordinates: [h.location!.lon, h.location!.lat]
                     }
                 }))
@@ -67,10 +67,10 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
 
     const lineData = useMemo(() => {
         return {
-            type: 'Feature',
+            type: "Feature",
             properties: {},
             geometry: {
-                type: 'LineString',
+                type: "LineString",
                 coordinates: history
                     .filter(h => !!h.location)
                     .map(h => [h.location!.lon, h.location!.lat])
@@ -129,12 +129,12 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                     latitude: DEFAULT_CENTER[0],
                     zoom: DEFAULT_ZOOM
                 }}
-                style={{width: '100%', height: '100%'}}
+                style={{width: "100%", height: "100%"}}
                 mapStyle={mapUrl as any}
-                interactiveLayerIds={['history-points']}
+                interactiveLayerIds={["history-points"]}
                 cursor={cursor}
-                onMouseEnter={() => setCursor('pointer')}
-                onMouseLeave={() => setCursor('')}
+                onMouseEnter={() => setCursor("pointer")}
+                onMouseLeave={() => setCursor("")}
                 onClick={(event) => {
                     if (event.features && event.features.length > 0) {
                         setPopupInfo(event.features[0]);
@@ -180,7 +180,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                             <strong>Latitude:</strong> {popupInfo.properties.lat}<br/>
                             <strong>Longitude:</strong> {popupInfo.properties.lon}<br/>
                             <strong>Accuracy:</strong> {popupInfo.properties.accuracy}m<br/>
-                            <strong>Time:</strong> {format(new Date(popupInfo.properties.time), 'yyyy-MM-dd HH:mm:ss')}
+                            <strong>Time:</strong> {format(new Date(popupInfo.properties.time), "yyyy-MM-dd HH:mm:ss")}
                         </div>
                     </Popup>
                 )}
