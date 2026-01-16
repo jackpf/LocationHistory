@@ -32,6 +32,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".GrantPermissionsActivity"
+            android:label="@string/permissions_title"
+            android:theme="@style/Theme.LocationHistory" />
+
         <service
             android:name=".push.UnifiedPushService"
             android:enabled="true"

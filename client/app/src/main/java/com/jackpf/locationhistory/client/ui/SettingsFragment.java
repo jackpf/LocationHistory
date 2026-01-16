@@ -142,8 +142,7 @@ public class SettingsFragment extends Fragment {
                 configRepository.setServerHost(binding.serverHostInput.getText().toString());
                 configRepository.setServerPort(Integer.parseInt(binding.serverPortInput.getText().toString()));
 
-                MainActivity activity = (MainActivity) getActivity();
-                activity.refreshBeaconClient();
+                // Run once to trigger device registration immediately
                 BeaconWorkerFactory.runOnce(requireContext());
 
                 Toasts.show(requireContext(), R.string.toast_saved);

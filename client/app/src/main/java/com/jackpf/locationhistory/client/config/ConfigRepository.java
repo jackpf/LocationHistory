@@ -71,7 +71,7 @@ public class ConfigRepository {
     }
 
     public String getServerHost() {
-        return prefs.getString(SERVER_HOST_KEY, "10.0.2.2");
+        return prefs.getString(SERVER_HOST_KEY, "");
     }
 
     public void setServerHost(String host) {
