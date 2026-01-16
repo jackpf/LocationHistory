@@ -5,8 +5,8 @@ import android.content.Context;
 import android.os.Build;
 
 import com.jackpf.locationhistory.client.permissions.AppRequirement;
-import com.jackpf.locationhistory.client.permissions.IgnoreBatteryOptimizationsSetting;
-import com.jackpf.locationhistory.client.permissions.Permission;
+import com.jackpf.locationhistory.client.permissions.BackgroundSetting;
+import com.jackpf.locationhistory.client.permissions.RequiredPermission;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,14 +15,14 @@ public class AppRequirements {
     public static List<AppRequirement> getRequirements(Context context) {
         List<AppRequirement> requirements = new ArrayList<>();
 
-        requirements.add(new Permission(
+        requirements.add(new RequiredPermission(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 context.getString(R.string.permission_desc_fine_location),
                 context.getString(R.string.permission_exp_fine_location)
         ));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            requirements.add(new Permission(
+            requirements.add(new RequiredPermission(
                     Manifest.permission.ACCESS_BACKGROUND_LOCATION,
                     context.getString(R.string.permission_desc_background_location),
                     context.getString(R.string.permission_exp_background_location)
@@ -30,7 +30,7 @@ public class AppRequirements {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            requirements.add(new Permission(
+            requirements.add(new RequiredPermission(
                     Manifest.permission.POST_NOTIFICATIONS,
                     context.getString(R.string.permission_desc_post_notifications),
                     context.getString(R.string.permission_exp_post_notifications)
@@ -38,7 +38,7 @@ public class AppRequirements {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requirements.add(new IgnoreBatteryOptimizationsSetting(
+            requirements.add(new BackgroundSetting(
                     context.getString(R.string.permission_desc_ignore_optimisations),
                     context.getString(R.string.permission_exp_ignore_optimisations)
             ));

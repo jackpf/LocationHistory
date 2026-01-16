@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.jackpf.locationhistory.client.AppRequirements;
-import com.jackpf.locationhistory.client.PermissionsActivity;
+import com.jackpf.locationhistory.client.GrantPermissionsActivity;
 import com.jackpf.locationhistory.client.databinding.FragmentPermissionsWarningBinding;
 import com.jackpf.locationhistory.client.permissions.AppRequirementsUtil;
 
@@ -43,6 +43,6 @@ public class PermissionsWarningFragment extends Fragment {
     }
 
     private void handleFixClick() {
-        startActivity(new Intent(requireContext(), PermissionsActivity.class));
+        startActivity(new Intent(requireContext(), GrantPermissionsActivity.class));
     }
 }

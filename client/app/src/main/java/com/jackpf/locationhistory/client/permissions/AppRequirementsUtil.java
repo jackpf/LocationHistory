@@ -5,7 +5,7 @@ import android.content.Context;
 import java.util.List;
 
 public class AppRequirementsUtil {
-    AppRequirementsUtil() {
+    private AppRequirementsUtil() {
     }
 
     public static boolean allGranted(Context context, List<AppRequirement> requirements) {

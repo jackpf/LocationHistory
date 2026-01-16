@@ -15,9 +15,9 @@ import com.jackpf.locationhistory.client.permissions.AppRequirementsUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PermissionsActivity extends AppCompatActivity {
+public class GrantPermissionsActivity extends AppCompatActivity {
     private LinearLayout rowsContainer;
-    private List<AppRequirement> registeredAppRequirements = new ArrayList<>();
+    private final List<AppRequirement> registeredAppRequirements = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

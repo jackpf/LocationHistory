@@ -5,8 +5,8 @@ import android.os.Build;
 import android.os.PowerManager;
 import android.provider.Settings;
 
-public class IgnoreBatteryOptimizationsSetting extends Setting {
-    public IgnoreBatteryOptimizationsSetting(String description, String explanation) {
+public class BackgroundSetting extends RequiredSetting {
+    public BackgroundSetting(String description, String explanation) {
         super(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, description, explanation);
     }
 
