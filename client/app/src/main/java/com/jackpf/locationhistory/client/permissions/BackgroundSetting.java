@@ -13,7 +13,7 @@ public class BackgroundSetting extends RequiredSetting {
     @Override
     public boolean isGranted(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PowerManager powerManager = (PowerManager) context.getSystemService(android.content.Context.POWER_SERVICE);
+            PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
             return powerManager.isIgnoringBatteryOptimizations(context.getPackageName());
         }
         return true;
