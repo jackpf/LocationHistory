@@ -3,6 +3,10 @@
     <string name="app_name">Location History</string>
 
     <string name="permissions_title">Permissions</string>
+    <string name="permissions_missing">Permissions Missing</string>
+    <string name="permissions_warning">The app might not function properly without required permissions.</string>
+    <string name="grant">Grant</string>
+    <string name="fix">Fix</string>
     <string name="permission_desc_fine_location">Fine location</string>
     <string name="permission_exp_fine_location">Required to access your location</string>
     <string name="permission_desc_background_location">Background location</string>
