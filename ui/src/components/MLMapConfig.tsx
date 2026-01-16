@@ -49,17 +49,29 @@ export const getMapTilerUrl = (style: MapStyle) => {
     }
 
     let mapTilerStyle;
-    if (style === MapStyle.Dark) mapTilerStyle = "base-v4-dark";
-    else if (style === MapStyle.Satellite) mapTilerStyle = "satellite";
-    else /* default light */ mapTilerStyle = "streets-v2";
+    switch (style) {
+        case MapStyle.Dark:
+            mapTilerStyle = "base-v4-dark";
+            break;
+        case MapStyle.Satellite:
+            mapTilerStyle = "satellite";
+            break;
+        default:
+            mapTilerStyle = "streets-v2";
+    }
 
     return `https://api.maptiler.com/maps/${mapTilerStyle}/style.json?key=${MAPTILER_API_KEY}`;
 }
 
 export const getOSMUrl = (style: MapStyle) => {
     let source;
-    if (style === MapStyle.Dark) source = "https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-    else /* default light */ source = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+    switch (style) {
+        case MapStyle.Dark:
+            source = "https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+            break;
+        default:
+            source = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+    }
 
     return {
         version: 8,
