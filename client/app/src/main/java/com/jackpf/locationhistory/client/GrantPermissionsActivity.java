@@ -1,22 +1,31 @@
 package com.jackpf.locationhistory.client;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.jackpf.locationhistory.client.permissions.AppRequirement;
 import com.jackpf.locationhistory.client.permissions.AppRequirementsUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import lombok.Value;
 
 public class GrantPermissionsActivity extends AppCompatActivity {
-    private LinearLayout rowsContainer;
+    private PermissionsAdapter adapter;
     private final List<AppRequirement> registeredAppRequirements = new ArrayList<>();
 
     @Override
@@ -24,7 +33,10 @@ public class GrantPermissionsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_permissions);
 
-        rowsContainer = findViewById(R.id.rowsContainer);
+        adapter = new PermissionsAdapter(this);
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
 
         setupPermissionsList();
         updateUI();
@@ -39,7 +51,7 @@ public class GrantPermissionsActivity extends AppCompatActivity {
     }
 
     /**
-     * Rebuilds table rows based on current permission status
+     * Updates the RecyclerView with current permission status
      */
     private void updateUI() {
         if (AppRequirementsUtil.allGranted(this, registeredAppRequirements)) {
@@ -47,32 +59,89 @@ public class GrantPermissionsActivity extends AppCompatActivity {
             return;
         }
 
-        rowsContainer.removeAllViews();
-        LayoutInflater inflater = LayoutInflater.from(this);
-
+        List<PermissionItem> items = new ArrayList<>();
         for (AppRequirement requirement : registeredAppRequirements) {
-            View row = inflater.inflate(R.layout.activity_permissions_item, rowsContainer, false);
-            boolean isGranted = requirement.isGranted(this);
+            items.add(new PermissionItem(requirement, requirement.isGranted(this)));
+        }
+        adapter.submitList(items);
+    }
 
-            TextView descriptionText = row.findViewById(R.id.descriptionLabel);
-            TextView subDescriptionText = row.findViewById(R.id.subDescriptionLabel);
-            Button grantButton = row.findViewById(R.id.grantButton);
-            View isGrantedLabel = row.findViewById(R.id.grantedLabel);
+    /**
+     * Wrapper class to hold AppRequirement and its granted state for diffing
+     */
+    @Value
+    private static class PermissionItem {
+        AppRequirement requirement;
+        boolean isGranted;
 
-            descriptionText.setText(requirement.getDescription());
-            subDescriptionText.setText(requirement.getExplanation());
+        PermissionItem(AppRequirement requirement, boolean isGranted) {
+            this.requirement = requirement;
+            this.isGranted = isGranted;
+        }
+    }
 
-            if (isGranted) {
-                grantButton.setVisibility(View.GONE);
-                isGrantedLabel.setVisibility(View.VISIBLE);
-            } else {
-                grantButton.setVisibility(View.VISIBLE);
-                isGrantedLabel.setVisibility(View.GONE);
+    private static class PermissionsAdapter extends ListAdapter<PermissionItem, PermissionsAdapter.ViewHolder> {
+        private final Context context;
 
-                grantButton.setOnClickListener(v -> requirement.request(this));
+        private static final DiffUtil.ItemCallback<PermissionItem> diffCallback =
+                new DiffUtil.ItemCallback<PermissionItem>() {
+                    @Override
+                    public boolean areItemsTheSame(@NonNull PermissionItem oldItem, @NonNull PermissionItem newItem) {
+                        return Objects.equals(oldItem.requirement.getName(), newItem.requirement.getName());
+                    }
+
+                    @Override
+                    public boolean areContentsTheSame(@NonNull PermissionItem oldItem, @NonNull PermissionItem newItem) {
+                        return oldItem.equals(newItem);
+                    }
+                };
+
+        PermissionsAdapter(Context context) {
+            super(diffCallback);
+            this.context = context;
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.activity_permissions_item, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            PermissionItem item = getItem(position);
+            holder.bind(item, context);
+        }
+
+        static class ViewHolder extends RecyclerView.ViewHolder {
+            private final TextView descriptionText;
+            private final TextView subDescriptionText;
+            private final Button grantButton;
+            private final View grantedLabel;
+
+            ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                descriptionText = itemView.findViewById(R.id.descriptionLabel);
+                subDescriptionText = itemView.findViewById(R.id.subDescriptionLabel);
+                grantButton = itemView.findViewById(R.id.grantButton);
+                grantedLabel = itemView.findViewById(R.id.grantedLabel);
             }
 
-            rowsContainer.addView(row);
+            void bind(PermissionItem item, Context context) {
+                descriptionText.setText(item.requirement.getDescription());
+                subDescriptionText.setText(item.requirement.getExplanation());
+
+                if (item.isGranted) {
+                    grantButton.setVisibility(View.GONE);
+                    grantedLabel.setVisibility(View.VISIBLE);
+                } else {
+                    grantButton.setVisibility(View.VISIBLE);
+                    grantedLabel.setVisibility(View.GONE);
+                    grantButton.setOnClickListener(v -> item.requirement.request(context));
+                }
+            }
         }
     }
 }
