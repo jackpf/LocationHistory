@@ -244,7 +244,6 @@
             android:layout_marginTop="8dp"
             android:text="@string/unified_push_description"
             android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-            android:textStyle="italic"
             android:alpha="0.7"
             app:layout_constraintStart_toStartOf="@id/pushRegisterSwitch"
             app:layout_constraintEnd_toEndOf="parent"

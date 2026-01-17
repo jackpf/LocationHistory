@@ -59,11 +59,7 @@
     <string name="update_every_hint">Minutes</string>
 
     <string name="enable_unified_push">Enable UnifiedPush</string>
-    <string name="unified_push_description">
-        With UnifiedPush, real-time location updates are requested remotely from the web UI.\n
-        This is optional and requires Ntfy (https://ntfy.sh/) to work.\n
-        Without UnifiedPush, the app will continue to send periodic location updates to your server.\n
-    </string>
+    <string name="unified_push_description">Enables real-time location requests and Find Device in the web UI</string>
 
     <string name="toast_register_push_handler_success">Registered push handler</string>
     <string name="toast_register_push_handler_failed">Registering push handler failed</string>
