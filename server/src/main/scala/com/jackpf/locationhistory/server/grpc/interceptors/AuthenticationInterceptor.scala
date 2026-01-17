@@ -1,5 +1,6 @@
 package com.jackpf.locationhistory.server.grpc.interceptors
 
+import com.jackpf.locationhistory.server.util.Logging
 import io.grpc.*
 
 import scala.util.Failure
@@ -7,7 +8,8 @@ import scala.util.Failure
 class AuthenticationInterceptor(
     tokenService: TokenService,
     ignoredMethodNames: Set[String]
-) extends ServerInterceptor {
+) extends ServerInterceptor
+    with Logging {
   private val AuthKey = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
 
   override def interceptCall[ReqT, RespT](
@@ -20,10 +22,10 @@ class AuthenticationInterceptor(
 
     tokenService.decodeToken(authHeader) match {
       case Failure(exception) if !ignoredMethodNames.contains(methodName) =>
+        log.warn("Authentication failure", exception)
+
         call.close(
-          Status.UNAUTHENTICATED.withDescription(
-            s"Authentication failure: ${exception.getMessage}"
-          ),
+          Status.UNAUTHENTICATED.withDescription(s"Authentication failure"),
           headers
         )
         new ServerCall.Listener[ReqT] {}
