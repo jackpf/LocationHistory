@@ -42,6 +42,24 @@ jobs:
         working-directory: ./client
         run: make lint
 
+      - name: Test
+        working-directory: ./client
+        run: make test
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Integration Test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          working-directory: ./client
+          script: make integration-test
+
       - name: Decode Keystore
         if: inputs.publish
         working-directory: ./client

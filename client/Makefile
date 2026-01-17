@@ -15,3 +15,11 @@ build-debug:
 .PHONY: build-release
 build-release:
 	./gradlew assembleRelease -PversionName=$(VERSION)
+
+.PHONY: test
+test:
+	./gradlew testDebugUnitTest
+
+.PHONY: test-integration
+integration-test:
+	./gradlew connectedDebugAndroidTest
