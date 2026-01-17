@@ -20,6 +20,6 @@ build-release:
 test:
 	./gradlew testDebugUnitTest
 
-.PHONY: test-integration
+.PHONY: integration-test
 integration-test:
 	./gradlew connectedDebugAndroidTest

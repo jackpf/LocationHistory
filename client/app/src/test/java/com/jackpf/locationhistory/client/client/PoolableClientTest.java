@@ -52,11 +52,12 @@ public class PoolableClientTest {
     }
 
     @Test
-    public void close_afterForceClose_stillWorks() {
+    public void close_afterForceClose_doesNotThrow() {
         TestPoolableClient client = new TestPoolableClient();
         client.setPooled(true);
 
         client.forceClose();
+        client.close();
 
         // Should not throw since forceClose sets isPooled to false
         assertTrue(client.wasShutdown());

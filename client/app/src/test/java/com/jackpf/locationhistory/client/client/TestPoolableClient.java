@@ -17,13 +17,4 @@ public class TestPoolableClient extends PoolableClient {
     public boolean wasShutdown() {
         return shutdownCalled;
     }
-
-    public boolean isPooled() {
-        try {
-            close();
-            return false;
-        } catch (IllegalStateException e) {
-            return true;
-        }
-    }
 }
