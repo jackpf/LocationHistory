@@ -1,8 +1,10 @@
 package com.jackpf.locationhistory.client.client;
 
+import lombok.Getter;
 import lombok.Setter;
 
 public abstract class PoolableClient implements AutoCloseable {
+    @Getter
     @Setter
     private volatile boolean isPooled = false;
 
