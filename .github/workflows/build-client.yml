@@ -16,7 +16,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -47,11 +47,11 @@ jobs:
         run: make test
 
       # Enable hardware virtualisation - speeds up emulator
-#      - name: Enable KVM
-#        run: |
-#          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-#          sudo udevadm control --reload-rules
-#          sudo udevadm trigger --name-match=kvm
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
       - name: Integration Test
         uses: reactivecircus/android-emulator-runner@v2
