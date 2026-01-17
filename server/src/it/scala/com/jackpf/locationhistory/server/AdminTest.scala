@@ -156,7 +156,6 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
           RegisterPushHandlerRequest(deviceId = device.id, pushHandler = Some(pushHandler))
         ) === RegisterPushHandlerResponse(success = true)
 
-        // Mock the notification service to return success
         when(
           IntegrationTest.notificationService
             .sendNotification(any(), any())(using any())
