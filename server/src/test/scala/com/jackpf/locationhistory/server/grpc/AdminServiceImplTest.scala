@@ -64,7 +64,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         val result: Future[LoginResponse] = adminService.login(request)
       }
 
-      "return password as token on correct password" >> in(new LoginEndpoint {
+      "return a token on correct password" >> in(new LoginEndpoint {
         override def authenticationResponse: Boolean = true
       }) { context =>
         context.result must beEqualTo(LoginResponse(token = context.token)).await
