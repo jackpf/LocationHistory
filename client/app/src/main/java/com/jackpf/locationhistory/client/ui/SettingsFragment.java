@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -26,8 +27,8 @@ import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.push.Ntfy;
 import com.jackpf.locationhistory.client.push.ObservableUnifiedPushState;
 import com.jackpf.locationhistory.client.push.UnifiedPushService;
-import com.jackpf.locationhistory.client.push.UnifiedPushStorage;
 import com.jackpf.locationhistory.client.util.Logger;
+import com.jackpf.locationhistory.client.util.PermissionException;
 
 import org.unifiedpush.android.connector.UnifiedPush;
 
@@ -59,17 +60,9 @@ public class SettingsFragment extends Fragment {
 
         configRepository = new ConfigRepository(requireContext());
         sslPrompt = new SSLPrompt(getActivity());
-        UnifiedPushStorage unifiedPushStorage = new UnifiedPushStorage(requireContext());
 
-        // Listen to async changes of unified push enabled state
-        isUnifiedPushEnabled().observe(getViewLifecycleOwner(), isEnabled -> {
-            // Prevent infinite loops
-            if (binding.pushRegisterSwitch.isChecked() != isEnabled) {
-                binding.pushRegisterSwitch.setOnCheckedChangeListener(null);
-                binding.pushRegisterSwitch.setChecked(isEnabled);
-            }
-            binding.pushRegisterSwitch.setOnCheckedChangeListener((v, isChecked) -> handleUnifiedPushCheck(isChecked));
-        });
+        setupUpdateFrequency();
+        setupUnifiedPushListener();
     }
 
     @Override
@@ -142,14 +135,76 @@ public class SettingsFragment extends Fragment {
                 configRepository.setServerHost(binding.serverHostInput.getText().toString());
                 configRepository.setServerPort(Integer.parseInt(binding.serverPortInput.getText().toString()));
 
+                // Save update frequency settings
+                String selectedFrequency = binding.updateFrequencyInput.getText().toString();
+                int frequencyValue = selectedFrequency.equals(getString(R.string.update_frequency_high))
+                        ? ConfigRepository.UPDATE_FREQUENCY_HIGH
+                        : ConfigRepository.UPDATE_FREQUENCY_BALANCED;
+                configRepository.setUpdateFrequency(frequencyValue);
+
+                // Save update interval if high frequency is selected
+                if (frequencyValue == ConfigRepository.UPDATE_FREQUENCY_HIGH) {
+                    String intervalText = binding.updateEveryInput.getText().toString();
+                    if (!intervalText.isEmpty()) {
+                        configRepository.setUpdateIntervalMinutes(Integer.parseInt(intervalText));
+                    }
+                }
+
                 // Run once to trigger device registration immediately
                 BeaconWorkerFactory.runOnce(requireContext());
-
-                Toasts.show(requireContext(), R.string.toast_saved);
+                // Re-schedule for updated settings
+                try {
+                    BeaconWorkerFactory.schedule(requireContext(), configRepository);
+                    Toasts.show(requireContext(), R.string.toast_saved);
+                } catch (PermissionException e) {
+                    log.e("Unable to schedule beacon worker", e);
+                    Toasts.show(requireContext(), R.string.schedule_error);
+                }
             } catch (NumberFormatException e) {
                 Toasts.show(requireContext(), R.string.toast_invalid_settings, e.getMessage());
             }
         }
+    }
+
+    private void setupUpdateFrequency() {
+        String[] frequencyOptions = new String[]{
+                getString(R.string.update_frequency_balanced),
+                getString(R.string.update_frequency_high)
+        };
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                frequencyOptions
+        );
+        binding.updateFrequencyInput.setAdapter(adapter);
+
+        int savedFrequency = configRepository.getUpdateFrequency();
+        binding.updateFrequencyInput.setText(frequencyOptions[savedFrequency], false);
+        setUpdateEveryEnabled(savedFrequency == ConfigRepository.UPDATE_FREQUENCY_HIGH);
+        binding.updateFrequencyInput.setOnItemClickListener((parent, v, position, id) -> {
+            boolean enabled = position == ConfigRepository.UPDATE_FREQUENCY_HIGH;
+            setUpdateEveryEnabled(enabled);
+        });
+
+        int savedUpdateInterval = configRepository.getUpdateIntervalMinutes();
+        binding.updateEveryInput.setText(String.valueOf(savedUpdateInterval));
+    }
+
+    private void setUpdateEveryEnabled(boolean enabled) {
+        binding.updateEveryInputLayout.setEnabled(enabled);
+        binding.updateEveryInput.setEnabled(enabled);
+    }
+
+    private void setupUnifiedPushListener() {
+        isUnifiedPushEnabled().observe(getViewLifecycleOwner(), isEnabled -> {
+            // Prevent infinite loops
+            if (binding.pushRegisterSwitch.isChecked() != isEnabled) {
+                binding.pushRegisterSwitch.setOnCheckedChangeListener(null);
+                binding.pushRegisterSwitch.setChecked(isEnabled);
+            }
+            binding.pushRegisterSwitch.setOnCheckedChangeListener((v, isChecked) -> handleUnifiedPushCheck(isChecked));
+        });
     }
 
     private LiveData<Boolean> isUnifiedPushEnabled() {

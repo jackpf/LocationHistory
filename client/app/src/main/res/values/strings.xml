@@ -4,6 +4,7 @@
 
     <string name="permissions_title">Permissions</string>
     <string name="permissions_missing">Permissions Missing</string>
+    <string name="schedule_error">Unable to schedule updates</string>
     <string name="permissions_warning">The app might not function properly without required permissions.</string>
     <string name="grant">Grant</string>
     <string name="fix">Fix</string>
@@ -13,6 +14,8 @@
     <string name="permission_exp_background_location">Required to access your location</string>
     <string name="permission_desc_post_notifications">Send notifications</string>
     <string name="permission_exp_post_notifications">Required only for \"Locate Device\" to work</string>
+    <string name="permission_desc_schedule_alarms">Schedule alarms</string>
+    <string name="permission_exp_schedule_alarms">Required for scheduled location updates</string>
     <string name="permission_desc_ignore_optimisations">Background operation</string>
     <string name="permission_exp_ignore_optimisations">Required to reliably send location data in the background</string>
 
@@ -35,7 +38,7 @@
     <string name="unknown">unknown</string>
     <string name="never">never</string>
 
-    <string name="invalid_response">invalid_response</string>
+    <string name="invalid_response">Invalid response</string>
 
     <string name="toast_permission_denied">Required permission denied - app won\'t function properly</string>
     <string name="toast_connection_successful">Connection successful</string>
@@ -49,12 +52,14 @@
     <string name="trust_always">Trust Always</string>
     <string name="cancel">Cancel</string>
 
+    <string name="update_frequency">Update Frequency</string>
+    <string name="update_frequency_balanced">Balanced</string>
+    <string name="update_frequency_high">Scheduled</string>
+    <string name="update_every">Update Every</string>
+    <string name="update_every_hint">Minutes</string>
+
     <string name="enable_unified_push">Enable UnifiedPush</string>
-    <string name="unified_push_description">
-        With UnifiedPush, real-time location updates are requested remotely from the web UI.\n
-        This is optional and requires Ntfy (https://ntfy.sh/) to work.\n
-        Without UnifiedPush, the app will continue to send periodic location updates to your server.\n
-    </string>
+    <string name="unified_push_description">Enables real-time location requests and Find Device in the web UI</string>
 
     <string name="toast_register_push_handler_success">Registered push handler</string>
     <string name="toast_register_push_handler_failed">Registering push handler failed</string>
