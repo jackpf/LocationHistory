@@ -3,8 +3,8 @@ import Map, {Layer, NavigationControl, Popup, Source} from "react-map-gl/maplibr
 import "maplibre-gl/dist/maplibre-gl.css";
 import {format, formatDistanceToNow} from "date-fns";
 import type {StoredLocation} from "../gen/common.ts";
-import {type MapGeoJSONFeature} from "maplibre-gl";
-import type {Point} from "geojson";
+import type {MapGeoJSONFeature, StyleSpecification} from "maplibre-gl";
+import type {FeatureCollection, Feature, Point, LineString} from "geojson";
 import {Segmented} from "antd";
 import {useLocalStorage} from "../hooks/use-local-storage.ts";
 import styles from "./MLMap.module.css";
@@ -41,14 +41,14 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
         return () => clearInterval(interval);
     }, []);
 
-    const pointData = useMemo(() => {
+    const pointData: FeatureCollection<Point> = useMemo(() => {
         return {
             type: "FeatureCollection",
             features: history
                 .filter(h => !!h.location)
                 .slice(-POINT_LIMIT)
                 .map((h, index, locations) => ({
-                    type: "Feature",
+                    type: "Feature" as const,
                     properties: {
                         lat: h.location!.lat,
                         lon: h.location!.lon,
@@ -58,19 +58,19 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                         isLatest: index === locations.length - 1
                     },
                     geometry: {
-                        type: "Point",
+                        type: "Point" as const,
                         coordinates: [h.location!.lon, h.location!.lat]
                     }
                 }))
         };
     }, [history]);
 
-    const lineData = useMemo(() => {
+    const lineData: Feature<LineString> = useMemo(() => {
         return {
-            type: "Feature",
+            type: "Feature" as const,
             properties: {},
             geometry: {
-                type: "LineString",
+                type: "LineString" as const,
                 coordinates: history
                     .filter(h => !!h.location)
                     .map(h => [h.location!.lon, h.location!.lat])
@@ -130,7 +130,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                     zoom: DEFAULT_ZOOM
                 }}
                 style={{width: "100%", height: "100%"}}
-                mapStyle={mapUrl as any}
+                mapStyle={mapUrl as StyleSpecification | string}
                 interactiveLayerIds={["history-points"]}
                 cursor={cursor}
                 onMouseEnter={() => setCursor("pointer")}
@@ -154,18 +154,18 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                 <NavigationControl position="bottom-right"/>
 
                 {/* Line */}
-                <Source type="geojson" data={lineData as any} lineMetrics={true}>
-                    <Layer {...lineStyle(cutoffRatio) as any} />
+                <Source type="geojson" data={lineData} lineMetrics={true}>
+                    <Layer {...lineStyle(cutoffRatio)} />
                 </Source>
 
                 {/* Points */}
-                <Source type="geojson" data={pointData as any}>
-                    <Layer {...pointStyle as any} />
+                <Source type="geojson" data={pointData}>
+                    <Layer {...pointStyle} />
                 </Source>
 
                 {accuracyCircle && (
                     <Source id="accuracy-zone" type="geojson" data={accuracyCircle}>
-                        <Layer {...accuracyCircleStyle as any} />
+                        <Layer {...accuracyCircleStyle} />
                     </Source>
                 )}
 

@@ -38,7 +38,7 @@ export function useLogin() {
         try {
             const response: LoginResponse = await adminClient.login({
                 password: password
-            } as any);
+            });
 
             updateAndStoreToken(response.token, null);
         } catch (e) {

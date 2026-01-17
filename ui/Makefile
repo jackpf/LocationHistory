@@ -37,7 +37,7 @@ build-protos:
 	mkdir -p ./src/gen
 	protoc \
 		--plugin=protoc-gen-ts_proto=$(CURDIR)/node_modules/.bin/protoc-gen-ts_proto \
-		--ts_proto_out=esModuleInterop=true,outputServices=generic-definitions,outputClientImpl=false:./src/gen \
+		--ts_proto_out=esModuleInterop=true,outputServices=generic-definitions,outputClientImpl=false,useExactTypes=false:./src/gen \
 		--proto_path=../shared/src/main/protobuf \
 		../shared/src/main/protobuf/*.proto
 
