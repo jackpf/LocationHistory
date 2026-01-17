@@ -7,8 +7,8 @@
 
 .mapSettings {
     position: absolute;
-    right: 10px;
-    bottom: 150px;
+    right: calc(10px + env(safe-area-inset-right, 0px));
+    bottom: calc(150px + env(safe-area-inset-bottom, 0px));
     z-index: 1000;
 }
 
