@@ -82,7 +82,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         padding: "0.75rem",
         borderRadius: "6px",
         border: "none",
-        backgroundColor: "#2563eb",
+        backgroundColor: "#1a1a1a",
         color: "white",
         fontSize: "1rem",
         fontWeight: "bold",
