@@ -18,7 +18,7 @@ public class ConfigRepository {
     private static final String SERVER_PORT_KEY = "server-port";
 
     private static final String UPDATE_FREQUENCY_KEY = "update-frequency";
-    private static final String UPDATE_INTERVAL_MINUTES_KEY = "update-interval-minutes";
+    private static final String UPDATE_INTERVAL_KEY = "update-interval";
 
     public static final int UPDATE_FREQUENCY_BALANCED = 0;
     public static final int UPDATE_FREQUENCY_HIGH = 1;
@@ -96,11 +96,11 @@ public class ConfigRepository {
     }
 
     public int getUpdateIntervalMinutes() {
-        return prefs.getInt(UPDATE_INTERVAL_MINUTES_KEY, 15);
+        return prefs.getInt(UPDATE_INTERVAL_KEY, 15);
     }
 
     public void setUpdateIntervalMinutes(int minutes) {
-        prefs.edit().putInt(UPDATE_INTERVAL_MINUTES_KEY, minutes).apply();
+        prefs.edit().putInt(UPDATE_INTERVAL_KEY, minutes).apply();
     }
 
     public void setLastRunTimestamp(long lastRunTime) {
