@@ -7,7 +7,6 @@ console.log("Connecting to proxy: ", PROXY_URL);
 
 const channel = createChannel(PROXY_URL)
 
-// Custom event for auth errors - allows React to handle logout without page reload
 export const AUTH_ERROR_EVENT = "auth-error";
 export type AuthErrorEvent = CustomEvent<{ message: string }>;
 
@@ -25,7 +24,6 @@ const clientFactory = createClientFactory()
             try {
                 return yield* response;
             } catch (error) {
-                // Check for authentication errors (expired token, invalid token, etc.)
                 if (error instanceof ClientError && error.code === Status.UNAUTHENTICATED) {
                     window.dispatchEvent(new CustomEvent(AUTH_ERROR_EVENT, {
                         detail: { message: "Unauthenticated. Please log in again." }
