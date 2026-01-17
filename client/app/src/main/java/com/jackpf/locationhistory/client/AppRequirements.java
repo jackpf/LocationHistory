@@ -30,18 +30,18 @@ public class AppRequirements {
             ));
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            requirements.add(new ScheduleAlarmSetting(
+                    context.getString(R.string.permission_desc_schedule_alarms),
+                    context.getString(R.string.permission_exp_schedule_alarms)
+            ));
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requirements.add(new RequiredPermission(
                     Manifest.permission.POST_NOTIFICATIONS,
                     context.getString(R.string.permission_desc_post_notifications),
                     context.getString(R.string.permission_exp_post_notifications)
-            ));
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            requirements.add(new ScheduleAlarmSetting(
-                    context.getString(R.string.permission_desc_schedule_alarms),
-                    context.getString(R.string.permission_exp_schedule_alarms)
             ));
         }
 
