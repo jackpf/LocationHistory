@@ -9,7 +9,7 @@ junit = "4.13.2"
 mockito = "5.15.2"
 mockitoKotlin = "5.4.0"
 robolectric = "4.14.1"
-junitVersion = "1.3.0"
+junitAndroid = "1.3.0"
 espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.8.7" # Required version for SDK version 22
 activityCompose = "1.9.3" # Required version for SDK version 22
@@ -38,7 +38,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitAndroid" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
