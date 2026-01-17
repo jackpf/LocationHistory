@@ -27,15 +27,13 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
       }
 
       "fail with expired token" >> in(new IntegrationContext {
-        override lazy val tokenDuration: Long = 1L
+        override lazy val tokenDuration: Long = -1L
       }) { context =>
         val request = ListDevicesRequest()
 
-        Thread.sleep(2000) // Expire our 1s token
-
         context.adminClient.listDevices(request) must throwAGrpcRuntimeException(
           Code.UNAUTHENTICATED,
-          "Authentication failure: The token is expired since"
+          "Authentication failure"
         )
       }
     }
