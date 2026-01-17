@@ -22,4 +22,9 @@ test:
 
 .PHONY: integration-test
 integration-test:
-	./gradlew connectedDebugAndroidTest
+	#./gradlew connectedDebugAndroidTest -Pandroid.experimental.androidTest.useUnifiedTestPlatform=false --no-daemon --info
+	./gradlew assembleDebug assembleDebugAndroidTest
+	adb install -t app/build/outputs/apk/debug/app-debug.apk
+	adb install -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+	adb shell am instrument -w -e no-window true com.jackpf.locationhistory.client.test/androidx.test.runner.AndroidJUnitRunner
+

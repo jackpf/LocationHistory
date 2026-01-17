@@ -16,7 +16,7 @@ public class MainActivityTest {
     public void activityLaunches() {
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
             scenario.onActivity(activity ->
-                assertEquals(MainActivity.class, activity.getClass())
+                    assertEquals(MainActivity.class, activity.getClass())
             );
         }
     }
@@ -25,6 +25,14 @@ public class MainActivityTest {
     public void activityReachesResumedState() {
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
             assertEquals(Lifecycle.State.RESUMED, scenario.getState());
+        }
+    }
+
+    @Test
+    public void activityReachesResumedStatef() {
+        try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
+            assertEquals(Lifecycle.State.RESUMED, scenario.getState());
+            assertEquals(1, 2);
         }
     }
 }
