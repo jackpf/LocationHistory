@@ -23,6 +23,4 @@ window.APP_CONFIG = {
 };
 EOF
 
-echo "Runtime config:\n$(cat "${CONFIG_FILE}")"
-
 exec "$@"
