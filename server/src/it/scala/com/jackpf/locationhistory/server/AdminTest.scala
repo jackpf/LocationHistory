@@ -1,10 +1,29 @@
 package com.jackpf.locationhistory.server
 
-import com.jackpf.locationhistory.admin_service.{ListDevicesRequest, LoginRequest}
+import com.jackpf.locationhistory.admin_service.{
+  ApproveDeviceRequest,
+  ApproveDeviceResponse,
+  DeleteDeviceRequest,
+  DeleteDeviceResponse,
+  ListDevicesRequest,
+  LoginRequest
+}
+import com.jackpf.locationhistory.beacon_service.{RegisterDeviceRequest, RegisterDeviceResponse}
+import com.jackpf.locationhistory.common.Device
 import com.jackpf.locationhistory.server.testutil.{GrpcMatchers, IntegrationTest, TestServer}
 import io.grpc.Status.Code
 
 class AdminTest extends IntegrationTest with GrpcMatchers {
+  trait RegisteredDeviceContext extends IntegrationContext {
+    lazy val device: Device = Device(id = "123")
+
+    val registerDeviceRequest: RegisterDeviceRequest =
+      RegisterDeviceRequest(device = Some(device))
+    val registerDeviceResult: RegisterDeviceResponse =
+      client.registerDevice(registerDeviceRequest)
+    registerDeviceResult.success === true
+  }
+
   "Admin" should {
     "login endpoint" >> {
       "login with correct password" >> in(new IntegrationContext {}) { context =>
@@ -53,6 +72,59 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
         context.adminClient.listDevices(request) must throwAGrpcRuntimeException(
           Code.UNAUTHENTICATED,
           "Authentication failure"
+        )
+      }
+    }
+
+    "approve device endpoint" >> {
+      "approve a pending device" >> in(new RegisteredDeviceContext {}) { context =>
+        val request = ApproveDeviceRequest(deviceId = context.device.id)
+
+        val response = context.adminClient.approveDevice(request)
+
+        response === ApproveDeviceResponse(success = true)
+      }
+
+      "fail to approve non-existing device" >> in(new IntegrationContext {}) { context =>
+        val request = ApproveDeviceRequest(deviceId = "non-existing")
+
+        context.adminClient.approveDevice(request) must throwAGrpcRuntimeException(
+          Code.NOT_FOUND,
+          "Device non-existing does not exist"
+        )
+      }
+
+      "fail to approve already approved device" >> in(new RegisteredDeviceContext {}) { context =>
+        // First approval should succeed
+        context.adminClient.approveDevice(
+          ApproveDeviceRequest(deviceId = context.device.id)
+        ) === ApproveDeviceResponse(success = true)
+
+        // Second approval should fail
+        context.adminClient.approveDevice(
+          ApproveDeviceRequest(deviceId = context.device.id)
+        ) must throwAGrpcRuntimeException(
+          Code.PERMISSION_DENIED,
+          "Device 123 has an invalid state"
+        )
+      }
+    }
+
+    "delete device endpoint" >> {
+      "delete an existing device" >> in(new RegisteredDeviceContext {}) { context =>
+        val request = DeleteDeviceRequest(deviceId = context.device.id)
+
+        val response = context.adminClient.deleteDevice(request)
+
+        response === DeleteDeviceResponse(success = true)
+      }
+
+      "fail to delete non-existing device" >> in(new IntegrationContext {}) { context =>
+        val request = DeleteDeviceRequest(deviceId = "non-existing")
+
+        context.adminClient.deleteDevice(request) must throwAGrpcRuntimeException(
+          Code.NOT_FOUND,
+          "Device non-existing does not exist"
         )
       }
     }
