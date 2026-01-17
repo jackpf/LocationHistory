@@ -3,7 +3,7 @@ package com.jackpf.locationhistory.server.testutil
 import com.jackpf.locationhistory.server.AppServer
 import com.jackpf.locationhistory.server.grpc.{AuthenticationManager, Services}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
-import com.jackpf.locationhistory.server.service.NotificationService
+import com.jackpf.locationhistory.server.service.{JwtAuthService, NotificationService}
 import io.grpc.Server
 
 import java.util.concurrent.TimeUnit
@@ -28,6 +28,7 @@ object TestServer {
           sslCertsPath = None,
           (Services.adminServices(
             new AuthenticationManager(TestAdminPassword),
+            new JwtAuthService,
             deviceRepo,
             locationRepo,
             notificationService

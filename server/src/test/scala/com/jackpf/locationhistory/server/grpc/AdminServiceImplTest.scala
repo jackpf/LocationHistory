@@ -7,6 +7,7 @@ import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   DeviceNotFoundException,
   InvalidDeviceStatus
 }
+import com.jackpf.locationhistory.server.grpc.interceptors.TokenService
 import com.jackpf.locationhistory.server.model
 import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
@@ -25,25 +26,39 @@ import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
+import com.jackpf.locationhistory.server.grpc.AdminServiceImpl.DefaultUser
+import com.jackpf.locationhistory.server.grpc.AdminServiceImpl.TokenDuration
 
 class AdminServiceImplTest(implicit ee: ExecutionEnv)
     extends DefaultSpecification
     with GrpcMatchers {
   trait Context extends DefaultScope {
     val authenticationManager: AuthenticationManager = mock(classOf[AuthenticationManager])
+    val tokenService: TokenService = mock(classOf[TokenService])
     val deviceRepo: DeviceRepo = mock(classOf[DeviceRepo])
     val locationRepo: LocationRepo = mock(classOf[LocationRepo])
     val notificationService: NotificationService = mock(classOf[NotificationService])
     val adminService: AdminService =
-      new AdminServiceImpl(authenticationManager, deviceRepo, locationRepo, notificationService)
+      new AdminServiceImpl(
+        authenticationManager,
+        tokenService,
+        deviceRepo,
+        locationRepo,
+        notificationService
+      )
   }
 
   "Admin service" should {
     "login endpoint" >> {
       trait LoginEndpoint extends Context {
         lazy val password: String = "mock-password"
+        lazy val token: String = "mock-token"
+
         def authenticationResponse: Boolean
         when(authenticationManager.isValidPassword(password)).thenReturn(authenticationResponse)
+
+        when(tokenService.encodeToken(TokenService.Content(DefaultUser), TokenDuration))
+          .thenReturn(token)
 
         val request: LoginRequest = LoginRequest(password = password)
         val result: Future[LoginResponse] = adminService.login(request)
@@ -52,7 +67,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       "return password as token on correct password" >> in(new LoginEndpoint {
         override def authenticationResponse: Boolean = true
       }) { context =>
-        context.result must beEqualTo(LoginResponse(token = context.password)).await
+        context.result must beEqualTo(LoginResponse(token = context.token)).await
       }
 
       "return error on incorrect password" >> in(new LoginEndpoint {

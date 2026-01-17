@@ -2,13 +2,14 @@ package com.jackpf.locationhistory.server.testutil
 
 import com.jackpf.locationhistory.admin_service.AdminServiceGrpc
 import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc
+import com.jackpf.locationhistory.server.grpc.interceptors.TokenService
 import com.jackpf.locationhistory.server.repo.{
   DeviceRepo,
   InMemoryDeviceRepo,
   InMemoryLocationRepo,
   LocationRepo
 }
-import com.jackpf.locationhistory.server.service.NotificationService
+import com.jackpf.locationhistory.server.service.{JwtAuthService, NotificationService}
 import com.jackpf.locationhistory.server.testutil.IntegrationTest.{resetState, startServer}
 import io.grpc.stub.MetadataUtils
 import io.grpc.{ManagedChannel, ManagedChannelBuilder, Metadata}
@@ -62,11 +63,18 @@ abstract class IntegrationTest extends DefaultSpecification {
     val client: BeaconServiceGrpc.BeaconServiceBlockingStub =
       BeaconServiceGrpc.blockingStub(channel)
 
+    val tokenService: TokenService = new JwtAuthService
+    lazy val tokenDuration: Long = 600L
+    lazy val token: String = tokenService.encodeToken(
+      TokenService.Content(user = "admin"),
+      expireInSeconds = tokenDuration
+    )
+
     val header: Metadata = new Metadata()
     val key: Metadata.Key[String] =
       Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
-    lazy val adminPassword: String = TestServer.TestAdminPassword
-    header.put(key, s"Bearer ${adminPassword}")
+    header.put(key, s"Bearer ${token}")
+
     val adminClient: AdminServiceGrpc.AdminServiceBlockingStub =
       AdminServiceGrpc
         .blockingStub(channel)

@@ -1,10 +1,11 @@
 package com.jackpf.locationhistory.server
 
 import com.jackpf.locationhistory.server.db.DataSourceFactory
+import com.jackpf.locationhistory.server.grpc.interceptors.TokenService
 import com.jackpf.locationhistory.server.grpc.{AuthenticationManager, Services}
 import com.jackpf.locationhistory.server.model.StorageType
 import com.jackpf.locationhistory.server.repo.*
-import com.jackpf.locationhistory.server.service.NotificationService
+import com.jackpf.locationhistory.server.service.{JwtAuthService, NotificationService}
 import scopt.OptionParser
 import sttp.client4.DefaultFutureBackend
 
@@ -62,6 +63,7 @@ object App {
       .getOrElse(sys.exit(1))
 
     val authenticationManager = new AuthenticationManager(parsedArgs.adminPassword.get)
+    val tokenService: TokenService = new JwtAuthService
 
     val dataSource = new DataSourceFactory(parsedArgs.dataDirectory.get, "database.db")
       .create(parsedArgs.storageType.get)
@@ -93,7 +95,13 @@ object App {
       "Admin service",
       parsedArgs.adminPort.get,
       sslCertsPath = None,
-      Services.adminServices(authenticationManager, deviceRepo, locationRepo, notificationService)*
+      Services.adminServices(
+        authenticationManager,
+        tokenService,
+        deviceRepo,
+        locationRepo,
+        notificationService
+      )*
     ).start()
 
     sys.addShutdownHook {

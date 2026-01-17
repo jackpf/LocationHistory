@@ -3,7 +3,7 @@ package com.jackpf.locationhistory.server.grpc
 import com.jackpf.locationhistory.server.grpc.AuthenticationManager.HashFunction
 
 import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
+import java.security.{MessageDigest, SecureRandom}
 
 object AuthenticationManager {
   private val HashFunction: String = "SHA-256"
@@ -11,7 +11,7 @@ object AuthenticationManager {
 
 class AuthenticationManager(adminPassword: String) {
   private val salt: Array[Byte] = {
-    val random = new java.security.SecureRandom()
+    val random = new SecureRandom()
     val saltBytes = new Array[Byte](16)
     random.nextBytes(saltBytes)
     saltBytes
