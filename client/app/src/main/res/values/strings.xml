@@ -59,6 +59,7 @@
     <string name="update_every_hint">Minutes</string>
 
     <string name="enable_unified_push">Enable UnifiedPush</string>
+    <string name="select_distributor">Select Push Distributor</string>
     <string name="unified_push_description">
         With UnifiedPush, real-time location updates are requested remotely from the web UI.\n
         This is optional and requires Ntfy (https://ntfy.sh/) to work.\n

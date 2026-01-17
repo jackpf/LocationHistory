@@ -34,7 +34,8 @@ public class SettingsViewModel extends AndroidViewModel {
     public enum EventType {
         TOAST,
         SSL_PROMPT,
-        CHECK_UNIFIED_PUSH
+        CHECK_UNIFIED_PUSH,
+        SHOW_DISTRIBUTOR_PICKER
     }
 
     public static class Event {
@@ -132,15 +133,23 @@ public class SettingsViewModel extends AndroidViewModel {
     public void handleUnifiedPushToggle(Context context, boolean isChecked) {
         if (isChecked) {
             List<String> distributors = UnifiedPush.getDistributors(context);
-            if (!distributors.isEmpty()) {
-                log.d("Found distributors: %s", Arrays.toString(distributors.toArray()));
-                UnifiedPushService.register(context, distributors.get(0));
-            } else {
-                log.d("No push distributors");
+            log.d("Found distributors: %s", Arrays.toString(distributors.toArray()));
+
+            if (distributors.isEmpty()) {
                 Ntfy.promptInstall(context);
+                events.postValue(new Event(EventType.CHECK_UNIFIED_PUSH, false));
+            } else if (distributors.size() == 1) {
+                registerUnifiedPush(context, distributors.get(0));
+            } else {
+                events.postValue(new Event(EventType.SHOW_DISTRIBUTOR_PICKER, distributors));
             }
         } else {
             UnifiedPushService.unregister(context);
         }
+    }
+
+    public void registerUnifiedPush(Context context, String distributor) {
+        log.d("Registering with distributor: %s", distributor);
+        UnifiedPushService.register(context, distributor);
     }
 }

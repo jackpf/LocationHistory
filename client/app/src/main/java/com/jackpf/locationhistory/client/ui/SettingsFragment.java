@@ -10,12 +10,15 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.jackpf.locationhistory.client.R;
 import com.jackpf.locationhistory.client.client.ssl.SSLPrompt;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
 import com.jackpf.locationhistory.client.push.ObservableUnifiedPushState;
 import com.jackpf.locationhistory.client.util.Logger;
+
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -137,7 +140,27 @@ public class SettingsFragment extends Fragment {
                 case CHECK_UNIFIED_PUSH:
                     binding.pushRegisterSwitch.setChecked((Boolean) event.args[0]);
                     break;
+                case SHOW_DISTRIBUTOR_PICKER:
+                    showDistributorPicker((List<String>) event.args[0]);
+                    break;
             }
         });
+    }
+
+    private void showDistributorPicker(List<String> distributors) {
+        String[] distributorsArray = distributors.toArray(new String[0]);
+        
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.select_distributor)
+                .setItems(distributorsArray, (dialog, which) ->
+                        viewModel.registerUnifiedPush(requireContext(), distributorsArray[which])
+                )
+                .setNegativeButton(R.string.cancel, (dialog, which) ->
+                        binding.pushRegisterSwitch.setChecked(false)
+                )
+                .setOnCancelListener(dialog ->
+                        binding.pushRegisterSwitch.setChecked(false)
+                )
+                .show();
     }
 }
