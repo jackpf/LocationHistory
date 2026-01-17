@@ -70,7 +70,7 @@ public class BeaconWorkerFactory {
         );
     }
 
-    public static void scheduleFrequent(Context context, int periodMillis) throws PermissionException {
+    public static void scheduleFrequent(Context context, long periodMillis) throws PermissionException {
         log.d("Scheduling frequent beacon worker every %dms", periodMillis);
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -80,7 +80,7 @@ public class BeaconWorkerFactory {
 
         PendingIntent pendingIntent = frequentPendingIntent(context, periodMillis);
         long triggerTime = System.currentTimeMillis() + periodMillis;
-        
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
         } else {
@@ -108,7 +108,7 @@ public class BeaconWorkerFactory {
                 BeaconWorkerFactory.schedulePeriodic(context);
                 break;
             case ConfigRepository.UPDATE_FREQUENCY_HIGH:
-                int updateMillis = configRepository.getUpdateIntervalMinutes() * 60 * 1000;
+                long updateMillis = (long) configRepository.getUpdateIntervalMinutes() * 60 * 1000;
                 BeaconWorkerFactory.scheduleFrequent(context, updateMillis);
                 break;
         }

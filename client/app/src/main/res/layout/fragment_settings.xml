@@ -159,7 +159,7 @@
             app:layout_constraintTop_toBottomOf="@id/divider">
 
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                android:id="@+id/update_frequency_input"
+                android:id="@+id/updateFrequencyInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="none" />

@@ -20,7 +20,7 @@ public class ScheduledReceiver extends BroadcastReceiver {
 
         if (periodMillis > 0L) {
             try {
-                BeaconWorkerFactory.scheduleFrequent(context, (int) periodMillis);
+                BeaconWorkerFactory.scheduleFrequent(context, periodMillis);
             } catch (PermissionException e) {
                 log.e("Unable to re-schedule alarm", e);
             }
