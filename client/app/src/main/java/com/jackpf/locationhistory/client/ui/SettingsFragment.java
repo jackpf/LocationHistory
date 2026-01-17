@@ -189,10 +189,6 @@ public class SettingsFragment extends Fragment {
 
         int savedUpdateInterval = configRepository.getUpdateIntervalMinutes();
         binding.updateEveryInput.setText(String.valueOf(savedUpdateInterval));
-        binding.updateFrequencyInput.setOnItemClickListener((parent, v, position, id) -> {
-            boolean enabled = position == ConfigRepository.UPDATE_FREQUENCY_HIGH;
-            setUpdateEveryEnabled(enabled);
-        });
     }
 
     private void setUpdateEveryEnabled(boolean enabled) {

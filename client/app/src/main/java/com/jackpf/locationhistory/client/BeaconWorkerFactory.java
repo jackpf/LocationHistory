@@ -74,18 +74,17 @@ public class BeaconWorkerFactory {
         log.d("Scheduling frequent beacon worker every %dms", periodMillis);
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        PendingIntent pendingIntent = frequentPendingIntent(context, periodMillis);
-
-        long triggerTime = System.currentTimeMillis() + periodMillis;
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
-            } else {
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
-            }
-        } else {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
             throw new PermissionException("Unable to schedule exact alarm");
+        }
+
+        PendingIntent pendingIntent = frequentPendingIntent(context, periodMillis);
+        long triggerTime = System.currentTimeMillis() + periodMillis;
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+        } else {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
         }
     }
 

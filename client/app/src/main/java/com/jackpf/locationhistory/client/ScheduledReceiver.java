@@ -10,17 +10,17 @@ import com.jackpf.locationhistory.client.util.PermissionException;
 public class ScheduledReceiver extends BroadcastReceiver {
     private final Logger log = new Logger(this);
 
-    public static String PERIOD_MILLIS = "period";
+    public static final String PERIOD_MILLIS = "period";
 
     @Override
     public void onReceive(Context context, Intent intent) {
         BeaconWorkerFactory.runOnce(context);
 
-        int periodMillis = intent.getIntExtra(PERIOD_MILLIS, -1);
+        long periodMillis = intent.getLongExtra(PERIOD_MILLIS, -1L);
 
-        if (periodMillis > 0) {
+        if (periodMillis > 0L) {
             try {
-                BeaconWorkerFactory.scheduleFrequent(context, periodMillis);
+                BeaconWorkerFactory.scheduleFrequent(context, (int) periodMillis);
             } catch (PermissionException e) {
                 log.e("Unable to re-schedule alarm", e);
             }

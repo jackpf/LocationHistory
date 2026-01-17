@@ -7,6 +7,7 @@ import android.os.Build;
 import com.jackpf.locationhistory.client.permissions.AppRequirement;
 import com.jackpf.locationhistory.client.permissions.BackgroundSetting;
 import com.jackpf.locationhistory.client.permissions.RequiredPermission;
+import com.jackpf.locationhistory.client.permissions.ScheduleAlarmSetting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,13 @@ public class AppRequirements {
                     Manifest.permission.POST_NOTIFICATIONS,
                     context.getString(R.string.permission_desc_post_notifications),
                     context.getString(R.string.permission_exp_post_notifications)
+            ));
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            requirements.add(new ScheduleAlarmSetting(
+                    context.getString(R.string.permission_desc_schedule_alarms),
+                    context.getString(R.string.permission_exp_schedule_alarms)
             ));
         }
 
