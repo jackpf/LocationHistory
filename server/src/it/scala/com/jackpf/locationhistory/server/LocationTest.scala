@@ -8,21 +8,62 @@ import com.jackpf.locationhistory.admin_service.{
 import com.jackpf.locationhistory.beacon_service.*
 import com.jackpf.locationhistory.common.*
 import com.jackpf.locationhistory.server.testutil.{GrpcMatchers, IntegrationTest}
+import io.grpc.Status.Code
 
 class LocationTest extends IntegrationTest with GrpcMatchers {
   "With no devices" should {
-    // TODO
+    "fail to set location for non-existing device" >> in(new IntegrationContext {}) { context =>
+      val request = SetLocationRequest(
+        timestamp = System.currentTimeMillis(),
+        deviceId = "non-existing-device",
+        location = Some(Location(lat = 0.1, lon = 0.2, accuracy = 0.3))
+      )
+
+      context.client.setLocation(request) must throwAGrpcRuntimeException(
+        Code.NOT_FOUND,
+        "Device non-existing-device does not exist"
+      )
+    }
+
+    "fail to set location with no location provided" >> in(new IntegrationContext {}) { context =>
+      val request = SetLocationRequest(
+        timestamp = System.currentTimeMillis(),
+        deviceId = "any-device",
+        location = None
+      )
+
+      context.client.setLocation(request) must throwAGrpcRuntimeException(
+        Code.INVALID_ARGUMENT,
+        "No location provided"
+      )
+    }
   }
 
-  trait ApprovedDeviceContext extends IntegrationContext {
+  trait PendingDeviceContext extends IntegrationContext {
     lazy val device = Device(id = "123")
 
-    val registerDeviceRequest =
-      RegisterDeviceRequest(device = Some(device))
+    val registerDeviceRequest = RegisterDeviceRequest(device = Some(device))
     val registerDeviceResult: RegisterDeviceResponse =
       client.registerDevice(registerDeviceRequest)
     registerDeviceResult.success === true
+  }
 
+  "With pending device" should {
+    "fail to set location for pending device" >> in(new PendingDeviceContext {}) { context =>
+      val request = SetLocationRequest(
+        timestamp = System.currentTimeMillis(),
+        deviceId = context.device.id,
+        location = Some(Location(lat = 0.1, lon = 0.2, accuracy = 0.3))
+      )
+
+      context.client.setLocation(request) must throwAGrpcRuntimeException(
+        Code.PERMISSION_DENIED,
+        "Device 123 has an invalid state"
+      )
+    }
+  }
+
+  trait ApprovedDeviceContext extends PendingDeviceContext {
     val approveDeviceRequest = ApproveDeviceRequest(deviceId = device.id)
     val approveDeviceResponse: ApproveDeviceResponse =
       adminClient.approveDevice(approveDeviceRequest)
@@ -30,6 +71,16 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
   }
 
   "With approved device" should {
+    "list locations returns empty when no locations set" >> in(
+      new ApprovedDeviceContext {}
+    ) { context =>
+      val request = ListLocationsRequest(deviceId = context.device.id)
+
+      val response = context.adminClient.listLocations(request)
+
+      response.locations === Seq.empty
+    }
+
     "set a location" >> in(
       new ApprovedDeviceContext {}
     ) { context =>

@@ -75,9 +75,11 @@ abstract class IntegrationTest extends DefaultSpecification {
       Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
     header.put(key, s"Bearer ${token}")
 
+    val unauthenticatedAdminClient: AdminServiceGrpc.AdminServiceBlockingStub =
+      AdminServiceGrpc.blockingStub(channel)
+
     val adminClient: AdminServiceGrpc.AdminServiceBlockingStub =
-      AdminServiceGrpc
-        .blockingStub(channel)
+      unauthenticatedAdminClient
         .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(header))
 
     override def after: Any = {

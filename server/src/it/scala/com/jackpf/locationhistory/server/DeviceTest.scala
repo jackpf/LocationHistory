@@ -112,4 +112,21 @@ class DeviceTest extends IntegrationTest with GrpcMatchers {
       result === RegisterPushHandlerResponse(success = true)
     }
   }
+
+  trait ApprovedDeviceContext extends RegisteredDeviceContext {
+    val approveDeviceRequest = ApproveDeviceRequest(deviceId = device.id)
+    val approveDeviceResponse: ApproveDeviceResponse =
+      adminClient.approveDevice(approveDeviceRequest)
+    approveDeviceResponse.success === true
+  }
+
+  "With approved device" should {
+    "check the device with status registered" >> in(new ApprovedDeviceContext {}) { context =>
+      val request = CheckDeviceRequest(deviceId = context.device.id)
+
+      val response = context.client.checkDevice(request)
+
+      response === CheckDeviceResponse(status = DeviceStatus.DEVICE_REGISTERED)
+    }
+  }
 }
