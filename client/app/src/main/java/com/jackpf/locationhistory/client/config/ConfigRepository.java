@@ -13,10 +13,15 @@ public class ConfigRepository {
     private static final String DEVICE_ID_KEY = "device-id";
     private static final String DEVICE_READY_KEY = "device-ready";
     private static final String DEVICE_STATUS_KEY = "device-status";
-    private static final String PRIVATE_KEY_KEY = "private-key";
 
     private static final String SERVER_HOST_KEY = "server-host";
     private static final String SERVER_PORT_KEY = "server-port";
+
+    private static final String UPDATE_FREQUENCY_KEY = "update-frequency";
+    private static final String UPDATE_INTERVAL_MINUTES_KEY = "update-interval-minutes";
+
+    public static final int UPDATE_FREQUENCY_BALANCED = 0;
+    public static final int UPDATE_FREQUENCY_HIGH = 1;
 
     private static final String LAST_RUN_TIMESTAMP_KEY = "last-run-timestamp";
 
@@ -62,14 +67,6 @@ public class ConfigRepository {
         return prefs.getString(DEVICE_STATUS_KEY, "unknown");
     }
 
-    public String getPrivateKey() {
-        return prefs.getString(PRIVATE_KEY_KEY, "");
-    }
-
-    public void setPrivateKey(String privateKey) {
-        prefs.edit().putString(PRIVATE_KEY_KEY, privateKey).apply();
-    }
-
     public String getServerHost() {
         return prefs.getString(SERVER_HOST_KEY, "");
     }
@@ -86,11 +83,27 @@ public class ConfigRepository {
         prefs.edit().putInt(SERVER_PORT_KEY, port).apply();
     }
 
-    public void setLastRunTimestamp(long lastRunTime) {
-        prefs.edit().putLong(LAST_RUN_TIMESTAMP_KEY, lastRunTime).apply();
-    }
-
     public long getLastRunTimestamp() {
         return prefs.getLong(LAST_RUN_TIMESTAMP_KEY, 0L);
+    }
+
+    public int getUpdateFrequency() {
+        return prefs.getInt(UPDATE_FREQUENCY_KEY, UPDATE_FREQUENCY_BALANCED);
+    }
+
+    public void setUpdateFrequency(int frequency) {
+        prefs.edit().putInt(UPDATE_FREQUENCY_KEY, frequency).apply();
+    }
+
+    public int getUpdateIntervalMinutes() {
+        return prefs.getInt(UPDATE_INTERVAL_MINUTES_KEY, 15);
+    }
+
+    public void setUpdateIntervalMinutes(int minutes) {
+        prefs.edit().putInt(UPDATE_INTERVAL_MINUTES_KEY, minutes).apply();
+    }
+
+    public void setLastRunTimestamp(long lastRunTime) {
+        prefs.edit().putLong(LAST_RUN_TIMESTAMP_KEY, lastRunTime).apply();
     }
 }

@@ -4,6 +4,7 @@
 
     <string name="permissions_title">Permissions</string>
     <string name="permissions_missing">Permissions Missing</string>
+    <string name="schedule_error">Unable to schedule updates</string>
     <string name="permissions_warning">The app might not function properly without required permissions.</string>
     <string name="grant">Grant</string>
     <string name="fix">Fix</string>
@@ -35,7 +36,7 @@
     <string name="unknown">unknown</string>
     <string name="never">never</string>
 
-    <string name="invalid_response">invalid_response</string>
+    <string name="invalid_response">Invalid response</string>
 
     <string name="toast_permission_denied">Required permission denied - app won\'t function properly</string>
     <string name="toast_connection_successful">Connection successful</string>
@@ -48,6 +49,12 @@
     <string name="message_ssl_prompt">"Please verify this fingerprint against your server's logs.\nOnly click trust if they match.\n\nFingerprint:\n%s"</string>
     <string name="trust_always">Trust Always</string>
     <string name="cancel">Cancel</string>
+
+    <string name="update_frequency">Update Frequency</string>
+    <string name="update_frequency_balanced">Balanced</string>
+    <string name="update_frequency_high">Scheduled</string>
+    <string name="update_every">Update Every</string>
+    <string name="update_every_hint">Minutes</string>
 
     <string name="enable_unified_push">Enable UnifiedPush</string>
     <string name="unified_push_description">
