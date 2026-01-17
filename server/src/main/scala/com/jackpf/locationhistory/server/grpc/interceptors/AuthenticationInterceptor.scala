@@ -22,7 +22,7 @@ class AuthenticationInterceptor(
 
     tokenService.decodeToken(authHeader) match {
       case Failure(exception) if !ignoredMethodNames.contains(methodName) =>
-        log.warn("Authentication failure", exception)
+        log.warn(s"Authentication failure: ${exception.getMessage}")
 
         call.close(
           Status.UNAUTHENTICATED.withDescription(s"Authentication failure"),
