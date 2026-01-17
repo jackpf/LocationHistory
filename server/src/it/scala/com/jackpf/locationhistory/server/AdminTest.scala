@@ -15,14 +15,25 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
         response.devices === Seq.empty
       }
 
-      "fail with invalid password" >> in(new IntegrationContext {
-        override lazy val adminPassword: String = "invalid"
+      "fail with invalid token" >> in(new IntegrationContext {
+        override lazy val token: String = "invalid"
       }) { context =>
         val request = ListDevicesRequest()
 
         context.adminClient.listDevices(request) must throwAGrpcRuntimeException(
           Code.UNAUTHENTICATED,
-          "Invalid password"
+          "Authentication failure"
+        )
+      }
+
+      "fail with expired token" >> in(new IntegrationContext {
+        override lazy val tokenDuration: Long = -1L
+      }) { context =>
+        val request = ListDevicesRequest()
+
+        context.adminClient.listDevices(request) must throwAGrpcRuntimeException(
+          Code.UNAUTHENTICATED,
+          "Authentication failure"
         )
       }
     }

@@ -15,7 +15,7 @@ else
   exit 1
 fi
 
-cat <<EOF > $CONFIG_FILE
+cat <<EOF > "${CONFIG_FILE}"
 window.APP_CONFIG = {
   PROXY_URL: ${RESOLVED_PROXY_URL},
   MAP_TYPE: "${MAP_TYPE:-}",

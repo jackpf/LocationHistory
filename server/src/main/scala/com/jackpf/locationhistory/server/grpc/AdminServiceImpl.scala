@@ -3,6 +3,8 @@ package com.jackpf.locationhistory.server.grpc
 import com.jackpf.locationhistory.admin_service.*
 import com.jackpf.locationhistory.admin_service.AdminServiceGrpc.AdminService
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.*
+import com.jackpf.locationhistory.server.grpc.AdminServiceImpl.{DefaultUser, TokenDuration}
+import com.jackpf.locationhistory.server.grpc.interceptors.TokenService
 import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.service.NotificationService
@@ -14,8 +16,14 @@ import com.jackpf.locationhistory.server.util.ResponseMapper.*
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
+object AdminServiceImpl {
+  val DefaultUser: String = "admin"
+  val TokenDuration: Long = 3600
+}
+
 class AdminServiceImpl(
     authenticationManager: AuthenticationManager,
+    tokenService: TokenService,
     deviceRepo: DeviceRepo,
     locationRepo: LocationRepo,
     notificationService: NotificationService
@@ -24,12 +32,17 @@ class AdminServiceImpl(
     with Logging {
   override def login(request: LoginRequest): Future[LoginResponse] = {
     Future {
-      // TODO Replace with proper tokens
-      if (authenticationManager.isValidPassword(request.password))
-        Success(())
+      if (authenticationManager.isValidPassword(request.password)) Success(())
       else Failure(InvalidPassword())
     }
-  }.toResponse(_ => LoginResponse(token = request.password))
+  }.toResponse(_ =>
+    LoginResponse(token =
+      tokenService.encodeToken(
+        TokenService.Content(user = DefaultUser),
+        expireInSeconds = TokenDuration
+      )
+    )
+  )
 
   override def listDevices(
       request: ListDevicesRequest

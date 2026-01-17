@@ -12,6 +12,8 @@ lazy val versions = new {
   val sqlite = "3.51.1.0"
   val scalasql = "0.2.3"
   val sttp = "4.0.13"
+  val jwt = "11.0.3"
+  val circe = "0.14.15"
 }
 
 lazy val IntegrationTest = config("it") extend Test
@@ -35,6 +37,8 @@ lazy val root = (project in file("."))
       "org.xerial" % "sqlite-jdbc" % versions.sqlite,
       "com.lihaoyi" %% "scalasql-namedtuples" % versions.scalasql,
       "com.softwaremill.sttp.client4" %% "core" % versions.sttp,
+      "com.github.jwt-scala" %% "jwt-circe" % versions.jwt,
+      "io.circe" %% "circe-generic" % versions.circe,
     ),
     // Test Dependencies
     libraryDependencies ++= Seq(
