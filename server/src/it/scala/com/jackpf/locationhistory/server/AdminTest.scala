@@ -6,12 +6,25 @@ import com.jackpf.locationhistory.admin_service.{
   DeleteDeviceRequest,
   DeleteDeviceResponse,
   ListDevicesRequest,
-  LoginRequest
+  LoginRequest,
+  NotificationType,
+  SendNotificationRequest,
+  SendNotificationResponse
 }
-import com.jackpf.locationhistory.beacon_service.{RegisterDeviceRequest, RegisterDeviceResponse}
-import com.jackpf.locationhistory.common.Device
+import com.jackpf.locationhistory.beacon_service.{
+  RegisterDeviceRequest,
+  RegisterDeviceResponse,
+  RegisterPushHandlerRequest,
+  RegisterPushHandlerResponse
+}
+import com.jackpf.locationhistory.common.{Device, PushHandler}
 import com.jackpf.locationhistory.server.testutil.{GrpcMatchers, IntegrationTest, TestServer}
 import io.grpc.Status.Code
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+
+import scala.concurrent.Future
+import scala.util.Success
 
 class AdminTest extends IntegrationTest with GrpcMatchers {
   trait RegisteredDeviceContext extends IntegrationContext {
@@ -125,6 +138,66 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
         context.adminClient.deleteDevice(request) must throwAGrpcRuntimeException(
           Code.NOT_FOUND,
           "Device non-existing does not exist"
+        )
+      }
+    }
+
+    "send notification endpoint" >> {
+      trait ApprovedDeviceContext extends RegisteredDeviceContext {
+        adminClient.approveDevice(
+          ApproveDeviceRequest(deviceId = device.id)
+        ) === ApproveDeviceResponse(success = true)
+      }
+
+      trait DeviceWithPushHandlerContext extends ApprovedDeviceContext {
+        val pushHandler: PushHandler = PushHandler(name = "test-handler", url = "http://test.url")
+
+        client.registerPushHandler(
+          RegisterPushHandlerRequest(deviceId = device.id, pushHandler = Some(pushHandler))
+        ) === RegisterPushHandlerResponse(success = true)
+
+        // Mock the notification service to return success
+        when(
+          IntegrationTest.notificationService
+            .sendNotification(any(), any())(using any())
+        ).thenReturn(Future.successful(Success(())))
+      }
+
+      "send a notification" >> in(new DeviceWithPushHandlerContext {}) { context =>
+        val request = SendNotificationRequest(
+          deviceId = context.device.id,
+          notificationType = NotificationType.REQUEST_BEACON
+        )
+
+        val response = context.adminClient.sendNotification(request)
+
+        response === SendNotificationResponse(success = true)
+      }
+
+      "fail to send notification for non-existing device" >> in(new IntegrationContext {}) {
+        context =>
+          val request = SendNotificationRequest(
+            deviceId = "non-existing",
+            notificationType = NotificationType.REQUEST_BEACON
+          )
+
+          context.adminClient.sendNotification(request) must throwAGrpcRuntimeException(
+            Code.NOT_FOUND,
+            "Device non-existing does not exist"
+          )
+      }
+
+      "fail to send notification when no push handler registered" >> in(
+        new ApprovedDeviceContext {}
+      ) { context =>
+        val request = SendNotificationRequest(
+          deviceId = context.device.id,
+          notificationType = NotificationType.REQUEST_BEACON
+        )
+
+        context.adminClient.sendNotification(request) must throwAGrpcRuntimeException(
+          Code.INVALID_ARGUMENT,
+          "Device 123 has no registered push handler"
         )
       }
     }

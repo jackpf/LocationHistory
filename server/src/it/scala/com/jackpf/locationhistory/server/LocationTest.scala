@@ -71,6 +71,16 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
   }
 
   "With approved device" should {
+    "list locations returns empty when no locations set" >> in(
+      new ApprovedDeviceContext {}
+    ) { context =>
+      val request = ListLocationsRequest(deviceId = context.device.id)
+
+      val response = context.adminClient.listLocations(request)
+
+      response.locations === Seq.empty
+    }
+
     "set a location" >> in(
       new ApprovedDeviceContext {}
     ) { context =>
