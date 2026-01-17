@@ -2,7 +2,6 @@ package com.jackpf.locationhistory.client.client.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
@@ -11,7 +10,6 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.grpc.Status;
@@ -41,9 +39,12 @@ public class GrpcWrapperTest {
 
         try {
             GrpcWrapper.executeWrapped(
-                    () -> { throw grpcError; },
+                    () -> {
+                        throw grpcError;
+                    },
                     "Connection failed",
-                    e -> {}
+                    e -> {
+                    }
             );
             fail("Expected IOException");
         } catch (IOException e) {
@@ -61,7 +62,9 @@ public class GrpcWrapperTest {
 
         try {
             GrpcWrapper.executeWrapped(
-                    () -> { throw grpcError; },
+                    () -> {
+                        throw grpcError;
+                    },
                     "Connection failed",
                     captured::set
             );
@@ -78,9 +81,12 @@ public class GrpcWrapperTest {
 
         try {
             GrpcWrapper.executeWrapped(
-                    () -> { throw execError; },
+                    () -> {
+                        throw execError;
+                    },
                     "Operation failed",
-                    e -> {}
+                    e -> {
+                    }
             );
             fail("Expected IOException");
         } catch (IOException e) {
@@ -99,7 +105,9 @@ public class GrpcWrapperTest {
 
         try {
             GrpcWrapper.executeWrapped(
-                    () -> { throw execError; },
+                    () -> {
+                        throw execError;
+                    },
                     "Operation failed",
                     captured::set
             );
@@ -115,9 +123,12 @@ public class GrpcWrapperTest {
 
         try {
             GrpcWrapper.executeWrapped(
-                    () -> { throw interruptedError; },
+                    () -> {
+                        throw interruptedError;
+                    },
                     "Operation interrupted",
-                    e -> {}
+                    e -> {
+                    }
             );
             fail("Expected IOException");
         } catch (IOException e) {

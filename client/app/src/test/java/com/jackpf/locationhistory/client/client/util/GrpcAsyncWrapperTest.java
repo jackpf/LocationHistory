@@ -3,7 +3,6 @@ package com.jackpf.locationhistory.client.client.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -97,7 +96,8 @@ public class GrpcAsyncWrapperTest {
         AtomicReference<Integer> callCount = new AtomicReference<>(0);
         GrpcAsyncWrapper<String> countingWrapper = new GrpcAsyncWrapper<>(
                 v -> callCount.updateAndGet(c -> c + 1),
-                e -> {}
+                e -> {
+                }
         );
 
         countingWrapper.onNext("first");
