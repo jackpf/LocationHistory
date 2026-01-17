@@ -59,6 +59,7 @@
     <string name="update_every_hint">Minutes</string>
 
     <string name="enable_unified_push">Enable UnifiedPush</string>
+    <string name="select_distributor">Select Push Distributor</string>
     <string name="unified_push_description">Enables real-time location requests and Find Device in the web UI</string>
 
     <string name="toast_register_push_handler_success">Registered push handler</string>
