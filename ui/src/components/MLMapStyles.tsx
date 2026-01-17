@@ -1,4 +1,5 @@
 import circle from "@turf/circle";
+import type {CircleLayerSpecification, FillLayerSpecification, LineLayerSpecification} from "maplibre-gl";
 
 export const circlePoint = (lat: number, lon: number, accuracy: number) => {
     if (!accuracy || accuracy < 1) return null;
@@ -9,7 +10,7 @@ export const circlePoint = (lat: number, lon: number, accuracy: number) => {
     });
 };
 
-export const pointStyle = {
+export const pointStyle: Omit<CircleLayerSpecification, "source"> = {
     id: "history-points",
     type: "circle",
     paint: {
@@ -26,7 +27,7 @@ export const pointStyle = {
     }
 };
 
-export const accuracyCircleStyle = {
+export const accuracyCircleStyle: Omit<FillLayerSpecification, "source"> = {
     id: "accuracy-fill",
     type: "fill",
     paint: {
@@ -36,13 +37,13 @@ export const accuracyCircleStyle = {
     }
 };
 
-export const lineStyle = (cutoffRatio: number) => {
+export const lineStyle = (cutoffRatio: number): Omit<LineLayerSpecification, "source"> => {
     const COLOR_FADED = "rgba(0, 0, 255, 0.05)";
     const COLOR_TRANSITION = "rgba(0, 0, 255, 0.2)";
     const COLOR_SOLID = "rgba(0, 0, 255, 0.3)";
     const FADE_LENGTH = 0.1;
 
-    let gradientStops;
+    let gradientStops: (number | string)[];
 
     if (cutoffRatio <= 0) {
         // Full solid
@@ -84,5 +85,5 @@ export const lineStyle = (cutoffRatio: number) => {
                 ...gradientStops
             ]
         }
-    }
+    };
 };
