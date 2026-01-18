@@ -41,16 +41,6 @@ public class LocationService implements AutoCloseable {
         this.optimisedProvider = new OptimisedProvider(locationManager, threadExecutor);
     }
 
-    private String getBestProvider() {
-        if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            return LocationManager.NETWORK_PROVIDER;
-        } else if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            return LocationManager.GPS_PROVIDER;
-        } else {
-            return null;
-        }
-    }
-
     private int getTimeout() {
         return 30_000;
     }
@@ -78,12 +68,11 @@ public class LocationService implements AutoCloseable {
             throw new SecurityException("No location permissions");
         }
 
-        String source = getBestProvider();
-        int timeout = getTimeout();
-
         List<SourceAndProvider> providers = new ArrayList<>();
 
         if (optimisedProvider.isSupported()) {
+            /* Optimised provider will automatically use the location cache if available
+             * and return a fresh (< ~30s) location if available */
             if (accuracy == RequestedAccuracy.HIGH) {
                 providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, optimisedProvider));
                 providers.add(new SourceAndProvider(LocationManager.NETWORK_PROVIDER, optimisedProvider));
@@ -92,6 +81,8 @@ public class LocationService implements AutoCloseable {
                 providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, optimisedProvider));
             }
         } else {
+            /* The legacy provider will directly request location from the hardware,
+             * so we've  gotta implement our own cache checks (unless we're on high accuracy) */
             if (accuracy == RequestedAccuracy.HIGH) {
                 providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, legacyHighAccuracyProvider));
                 providers.add(new SourceAndProvider(LocationManager.NETWORK_PROVIDER, legacyHighAccuracyProvider));
@@ -104,6 +95,7 @@ public class LocationService implements AutoCloseable {
                 providers.add(new SourceAndProvider(LocationManager.NETWORK_PROVIDER, legacyHighAccuracyProvider));
             }
         }
+
         callProvider(providers.iterator(), consumer);
     }
 
