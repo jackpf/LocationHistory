@@ -4,6 +4,8 @@ import android.Manifest;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.CancellationSignal;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.RequiresPermission;
 
@@ -34,12 +36,16 @@ public class OptimisedProvider implements LocationProvider {
         if (!isSupported())
             throw new RuntimeException("getLiveLocation requires Android R or above");
         CancellationSignal cancellationSignal = new CancellationSignal();
+        new Handler(Looper.getMainLooper()).postDelayed(cancellationSignal::cancel, timeout);
 
         locationManager.getCurrentLocation(
                 source,
                 cancellationSignal,
                 threadExecutor,
-                location -> consumer.accept(new LocationData(location, source))
+                location -> {
+                    if (location != null) consumer.accept(new LocationData(location, source));
+                    else consumer.accept(null);
+                }
         );
     }
 }
