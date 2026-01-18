@@ -6,7 +6,7 @@ import com.jackpf.locationhistory.SetLocationResponse;
 import com.jackpf.locationhistory.client.client.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.grpc.BeaconRequest;
-import com.jackpf.locationhistory.client.location.LocationProvider;
+import com.jackpf.locationhistory.client.location.LocationData;
 import com.jackpf.locationhistory.client.model.DeviceState;
 import com.jackpf.locationhistory.client.util.Logger;
 
@@ -25,7 +25,7 @@ public class LocationUpdateService {
         this.backgroundExecutor = backgroundExecutor;
     }
 
-    public ListenableFuture<SetLocationResponse> setLocation(DeviceState deviceState, LocationProvider.LocationData locationData) {
+    public ListenableFuture<SetLocationResponse> setLocation(DeviceState deviceState, LocationData locationData) {
         ListenableFuture<SetLocationResponse> setLocation = beaconClient.sendLocation(
                 deviceState.getDeviceId(),
                 BeaconRequest.fromLocation(locationData.getLocation()),

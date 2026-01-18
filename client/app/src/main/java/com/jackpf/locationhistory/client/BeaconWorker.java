@@ -18,7 +18,8 @@ import com.jackpf.locationhistory.SetLocationResponse;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
-import com.jackpf.locationhistory.client.location.LocationProvider;
+import com.jackpf.locationhistory.client.location.LocationService;
+import com.jackpf.locationhistory.client.location.RequestedAccuracy;
 import com.jackpf.locationhistory.client.model.DeviceState;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.service.DeviceStateService;
@@ -32,7 +33,7 @@ import java.util.concurrent.Executors;
 public class BeaconWorker extends ListenableWorker {
     private final ConfigRepository configRepository;
     private final DeviceState deviceState;
-    private final LocationProvider locationProvider;
+    private final LocationService locationService;
     private BeaconClient beaconClient;
     private final PermissionsManager permissionsManager;
     private final ExecutorService backgroundExecutor;
@@ -55,7 +56,7 @@ public class BeaconWorker extends ListenableWorker {
         log.i("Created device state with device ID: %s", deviceState.getDeviceId());
 
         permissionsManager = new PermissionsManager(getApplicationContext());
-        locationProvider = new LocationProvider(getApplicationContext(), permissionsManager);
+        locationService = LocationService.create(getApplicationContext(), permissionsManager);
         backgroundExecutor = Executors.newSingleThreadExecutor();
     }
 
@@ -167,7 +168,8 @@ public class BeaconWorker extends ListenableWorker {
     private void handleLocationUpdate(CallbackToFutureAdapter.Completer<Result> completer) {
         log.d("Updating location");
 
-        locationProvider.getLocation(locationData -> {
+        // TODO Make RequestedAccuracy configurable, or trigger high accuracy at least every hour or something
+        locationService.getLocation(RequestedAccuracy.BALANCED, locationData -> {
             if (locationData != null) {
                 log.d("Received location data: %s", locationData.toString());
 
@@ -211,7 +213,7 @@ public class BeaconWorker extends ListenableWorker {
     private void close() {
         log.d("Closing resources");
         try {
-            locationProvider.close();
+            locationService.close();
             backgroundExecutor.shutdown();
         } catch (Exception e) {
             log.e("Error closing resources", e);

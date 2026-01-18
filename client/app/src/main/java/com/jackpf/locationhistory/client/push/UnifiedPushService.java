@@ -8,6 +8,8 @@ import android.content.Intent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.jackpf.locationhistory.Notification;
 import com.jackpf.locationhistory.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.R;
@@ -92,15 +94,23 @@ public class UnifiedPushService extends PushService {
 
     @Override
     public void onMessage(@NonNull PushMessage pushMessage, @NonNull String instance) {
-        String message = new String(pushMessage.getContent());
-        log.i("UnifiedPush: onMessage: %s", message);
+        try {
+            Notification notification = Notification.parseFrom(pushMessage.getContent());
+            log.i("UnifiedPush: onMessage: %s", notification.toString());
 
-        if (BEACON_MESSAGE.equals(message)) {
-            log.d("Triggering on-demand beacon");
-            BeaconWorkerFactory.runOnce(getApplicationContext());
-        } else if (ALARM_MESSAGE.equals(message)) {
-            log.d("Triggering on-demand alarm");
-            new Notifications(getApplicationContext()).triggerAlarm();
+            if (notification.hasTriggerLocation()) {
+                log.d("Triggering on-demand beacon");
+                // TODO Handle accuracy request
+//                LocationNotification locationNotification = notification.getTriggerLocation();
+                BeaconWorkerFactory.runOnce(getApplicationContext());
+            }
+
+            if (notification.hasTriggerAlarm()) {
+                log.d("Triggering on-demand alarm");
+                new Notifications(getApplicationContext()).triggerAlarm();
+            }
+        } catch (InvalidProtocolBufferException e) {
+            log.e("Failed to parse notification", e);
         }
     }
 
