@@ -31,29 +31,12 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SettingsViewModel extends AndroidViewModel {
-    public enum EventType {
-        TOAST,
-        SSL_PROMPT,
-        CHECK_UNIFIED_PUSH,
-        SHOW_DISTRIBUTOR_PICKER
-    }
-
-    public static class Event {
-        public final EventType type;
-        public final Object[] args;
-
-        public Event(EventType type, Object... args) {
-            this.type = type;
-            this.args = args;
-        }
-    }
-
     private final Logger log = new Logger(this);
 
     private final ConfigRepository configRepository;
     private final TrustedCertStorage trustedCertStorage;
 
-    private final MutableLiveData<Event> events = new MutableLiveData<>();
+    private final MutableLiveData<SettingsViewEvent> events = new MutableLiveData<>();
 
     public SettingsViewModel(@NonNull Application application) {
         super(application);
@@ -61,7 +44,7 @@ public class SettingsViewModel extends AndroidViewModel {
         this.trustedCertStorage = new TrustedCertStorage(application);
     }
 
-    public LiveData<Event> getEvents() {
+    public LiveData<SettingsViewEvent> getEvents() {
         return events;
     }
 
@@ -81,24 +64,24 @@ public class SettingsViewModel extends AndroidViewModel {
             ListenableFuture<PingResponse> pingResponse = tempClient.ping(new GrpcFutureWrapper<>(
                     response -> {
                         if (BeaconClient.isPongResponse(response)) {
-                            events.postValue(new Event(EventType.TOAST, R.string.toast_connection_successful));
+                            events.postValue(new SettingsViewEvent.Toast(R.string.toast_connection_successful));
                         } else {
-                            events.postValue(new Event(EventType.TOAST, R.string.toast_invalid_response, response.getMessage()));
+                            events.postValue(new SettingsViewEvent.Toast(R.string.toast_invalid_response, response.getMessage()));
                         }
                     },
                     e -> {
                         if (UntrustedCertException.isCauseOf(e)) {
                             String fingerprint = UntrustedCertException.getCauseFrom(e).getFingerprint();
-                            events.postValue(new Event(EventType.SSL_PROMPT, fingerprint));
+                            events.postValue(new SettingsViewEvent.SslPrompt(fingerprint));
                         } else {
-                            events.postValue(new Event(EventType.TOAST, R.string.toast_connection_failed, e.getMessage()));
+                            events.postValue(new SettingsViewEvent.Toast(R.string.toast_connection_failed, e.getMessage()));
                         }
                     }
             ));
 
             pingResponse.addListener(tempClient::close, MoreExecutors.directExecutor());
         } catch (NumberFormatException | IOException e) {
-            events.postValue(new Event(EventType.TOAST, R.string.toast_invalid_settings, e.getMessage()));
+            events.postValue(new SettingsViewEvent.Toast(R.string.toast_invalid_settings, e.getMessage()));
         }
     }
 
@@ -120,13 +103,13 @@ public class SettingsViewModel extends AndroidViewModel {
 
             try {
                 BeaconWorkerFactory.schedule(getApplication(), configRepository);
-                events.postValue(new Event(EventType.TOAST, R.string.toast_saved));
+                events.postValue(new SettingsViewEvent.Toast(R.string.toast_saved));
             } catch (PermissionException e) {
                 log.e("Unable to schedule beacon worker", e);
-                events.postValue(new Event(EventType.TOAST, R.string.schedule_error));
+                events.postValue(new SettingsViewEvent.Toast(R.string.schedule_error));
             }
         } catch (NumberFormatException e) {
-            events.postValue(new Event(EventType.TOAST, R.string.toast_invalid_settings, e.getMessage()));
+            events.postValue(new SettingsViewEvent.Toast(R.string.toast_invalid_settings, e.getMessage()));
         }
     }
 
@@ -137,11 +120,11 @@ public class SettingsViewModel extends AndroidViewModel {
 
             if (distributors.isEmpty()) {
                 Ntfy.promptInstall(context);
-                events.postValue(new Event(EventType.CHECK_UNIFIED_PUSH, false));
+                events.postValue(new SettingsViewEvent.SetUnifiedPushChecked(false));
             } else if (distributors.size() == 1) {
                 registerUnifiedPush(context, distributors.get(0));
             } else {
-                events.postValue(new Event(EventType.SHOW_DISTRIBUTOR_PICKER, distributors));
+                events.postValue(new SettingsViewEvent.ShowDistributorPicker(distributors));
             }
         } else {
             UnifiedPushService.unregister(context);

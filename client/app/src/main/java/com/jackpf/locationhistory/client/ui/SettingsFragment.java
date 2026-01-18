@@ -128,21 +128,22 @@ public class SettingsFragment extends Fragment {
         viewModel.getEvents().observe(getViewLifecycleOwner(), event -> {
             if (event == null) return;
 
-            switch (event.type) {
+            switch (event.getType()) {
                 case TOAST:
-                    int resId = (int) event.args[0];
-                    if (event.args.length > 1)
-                        Toasts.show(requireContext(), resId, (String) event.args[1]);
-                    else Toasts.show(requireContext(), resId);
+                    SettingsViewEvent.Toast toast = (SettingsViewEvent.Toast) event;
+                    Toasts.show(requireContext(), toast.getMessageResId(), toast.getFormatArgs());
                     break;
                 case SSL_PROMPT:
-                    if (sslPrompt != null) sslPrompt.show((String) event.args[0], true);
+                    SettingsViewEvent.SslPrompt sslPromptEvent = (SettingsViewEvent.SslPrompt) event;
+                    if (sslPrompt != null) sslPrompt.show(sslPromptEvent.getFingerprint(), true);
                     break;
-                case CHECK_UNIFIED_PUSH:
-                    binding.pushRegisterSwitch.setChecked((Boolean) event.args[0]);
+                case SET_UNIFIED_PUSH_CHECKED:
+                    SettingsViewEvent.SetUnifiedPushChecked checkedEvent = (SettingsViewEvent.SetUnifiedPushChecked) event;
+                    binding.pushRegisterSwitch.setChecked(checkedEvent.isChecked());
                     break;
                 case SHOW_DISTRIBUTOR_PICKER:
-                    showDistributorPicker((List<String>) event.args[0]);
+                    SettingsViewEvent.ShowDistributorPicker pickerEvent = (SettingsViewEvent.ShowDistributorPicker) event;
+                    showDistributorPicker(pickerEvent.getDistributors());
                     break;
             }
         });
@@ -150,7 +151,7 @@ public class SettingsFragment extends Fragment {
 
     private void showDistributorPicker(List<String> distributors) {
         String[] distributorsArray = distributors.toArray(new String[0]);
-        
+
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.select_distributor)
                 .setItems(distributorsArray, (dialog, which) ->
