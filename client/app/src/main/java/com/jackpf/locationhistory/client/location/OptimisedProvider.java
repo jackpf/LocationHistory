@@ -33,8 +33,6 @@ public class OptimisedProvider implements LocationProvider {
     public void provide(String source, int timeout, Consumer<LocationData> consumer) {
         if (!isSupported())
             throw new RuntimeException("getLiveLocation requires Android R or above");
-        log.d("Using updated location manager");
-
         CancellationSignal cancellationSignal = new CancellationSignal();
 
         locationManager.getCurrentLocation(

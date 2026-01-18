@@ -37,8 +37,6 @@ public class LegacyCachedProvider implements LocationProvider {
     @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     @Override
     public void provide(String source, int timeout, Consumer<LocationData> consumer) {
-        log.d("Using legacy cached location manager");
-
         LocationData cachedLocation = getCachedLocation(source);
         if (isFresh(cachedLocation)) {
             log.d("Using fresh cached location: %s", cachedLocation);

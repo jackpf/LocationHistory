@@ -26,10 +26,20 @@ public class LocationService implements AutoCloseable {
 
     private final Logger log = new Logger(this);
 
+    /**
+     * GPS takes a bit longer to wake up (~15s for radio wakeup)
+     */
+    private static final int GPS_TIMEOUT = 30_000;
+    /**
+     * Network should be relatively fast (~5s for radio wakeup or near instant if using WiFi location)
+     */
+    private static final int NETWORK_TIMEOUT = 10_000;
+
     @Getter
     @AllArgsConstructor
-    private static class SourceAndProvider {
+    private static class ProviderRequest {
         String source;
+        int timeout;
         LocationProvider provider;
     }
 
@@ -41,20 +51,16 @@ public class LocationService implements AutoCloseable {
         this.optimisedProvider = new OptimisedProvider(locationManager, threadExecutor);
     }
 
-    private int getTimeout() {
-        return 30_000;
-    }
-
-    private void callProvider(Iterator<SourceAndProvider> providers, Consumer<LocationData> consumer) {
+    private void callProvider(Iterator<ProviderRequest> providers, Consumer<LocationData> consumer) {
         if (!providers.hasNext()) {
             consumer.accept(null); // All providers failed
             return;
         }
 
-        SourceAndProvider nextEntry = providers.next();
+        ProviderRequest nextProvider = providers.next();
 
-        if (locationManager.isProviderEnabled(nextEntry.getSource())) {
-            nextEntry.getProvider().provide(nextEntry.getSource(), getTimeout(), location -> {
+        if (locationManager.isProviderEnabled(nextProvider.getSource())) {
+            nextProvider.getProvider().provide(nextProvider.getSource(), nextProvider.getTimeout(), location -> {
                 if (location != null) consumer.accept(location);
                 else callProvider(providers, consumer);
             });
@@ -63,36 +69,45 @@ public class LocationService implements AutoCloseable {
         }
     }
 
+    /**
+     * @param accuracy Defines priority of accuracy vs battery use (GPS v.s. network v.s. cached location sources)
+     * @param consumer Callback for location data
+     * @throws SecurityException If we're missing location permissions
+     */
     public void getLocation(RequestedAccuracy accuracy, Consumer<LocationData> consumer) throws SecurityException {
         if (!permissionsManager.hasLocationPermissions()) {
             throw new SecurityException("No location permissions");
         }
 
-        List<SourceAndProvider> providers = new ArrayList<>();
+        List<ProviderRequest> providers = new ArrayList<>();
 
         if (optimisedProvider.isSupported()) {
             /* Optimised provider will automatically use the location cache if available
              * and return a fresh (< ~30s) location if available */
+            log.d("Using optimised location manager");
+
             if (accuracy == RequestedAccuracy.HIGH) {
-                providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, optimisedProvider));
-                providers.add(new SourceAndProvider(LocationManager.NETWORK_PROVIDER, optimisedProvider));
+                providers.add(new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, optimisedProvider));
+                providers.add(new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, optimisedProvider));
             } else {
-                providers.add(new SourceAndProvider(LocationManager.NETWORK_PROVIDER, optimisedProvider));
-                providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, optimisedProvider));
+                providers.add(new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, optimisedProvider));
+                providers.add(new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, optimisedProvider));
             }
         } else {
             /* The legacy provider will directly request location from the hardware,
              * so we've  gotta implement our own cache checks */
+            log.d("Using legacy location manager");
+
             if (accuracy == RequestedAccuracy.HIGH) {
-                providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, legacyHighAccuracyProvider));
-                providers.add(new SourceAndProvider(LocationManager.NETWORK_PROVIDER, legacyHighAccuracyProvider));
-                providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, legacyCachedProvider));
-                providers.add(new SourceAndProvider(LocationManager.NETWORK_PROVIDER, legacyCachedProvider));
+                providers.add(new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, legacyHighAccuracyProvider));
+                providers.add(new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, legacyHighAccuracyProvider));
+                providers.add(new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, legacyCachedProvider));
+                providers.add(new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, legacyCachedProvider));
             } else {
-                providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, legacyCachedProvider));
-                providers.add(new SourceAndProvider(LocationManager.NETWORK_PROVIDER, legacyCachedProvider));
-                providers.add(new SourceAndProvider(LocationManager.NETWORK_PROVIDER, legacyHighAccuracyProvider));
-                providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, legacyHighAccuracyProvider));
+                providers.add(new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, legacyCachedProvider));
+                providers.add(new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, legacyCachedProvider));
+                providers.add(new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, legacyHighAccuracyProvider));
+                providers.add(new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, legacyHighAccuracyProvider));
             }
         }
 

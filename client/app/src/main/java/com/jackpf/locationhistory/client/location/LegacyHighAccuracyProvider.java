@@ -28,8 +28,6 @@ public class LegacyHighAccuracyProvider implements LocationProvider {
     @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     @Override
     public void provide(String source, int timeout, Consumer<LocationData> consumer) {
-        log.d("Using legacy high accuracy location manager");
-
         final AtomicBoolean resultHandled = new AtomicBoolean(false);
 
         LocationListener listener = new LocationListener() {
