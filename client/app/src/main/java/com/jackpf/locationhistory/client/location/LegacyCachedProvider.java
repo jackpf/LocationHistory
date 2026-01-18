@@ -8,6 +8,7 @@ import androidx.annotation.RequiresPermission;
 
 import com.jackpf.locationhistory.client.util.Logger;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -15,11 +16,14 @@ public class LegacyCachedProvider implements LocationProvider {
     private final Logger log = new Logger(this);
 
     private final LocationManager locationManager;
+    private final ExecutorService threadExecutor;
 
     private static final long FRESHNESS_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(5);
 
-    public LegacyCachedProvider(LocationManager locationManager) {
+    public LegacyCachedProvider(LocationManager locationManager,
+                                ExecutorService threadExecutor) {
         this.locationManager = locationManager;
+        this.threadExecutor = threadExecutor;
     }
 
     private boolean isFresh(LocationData data) {
@@ -41,10 +45,10 @@ public class LegacyCachedProvider implements LocationProvider {
         LocationData cachedLocation = getCachedLocation(source);
         if (isFresh(cachedLocation)) {
             log.d("Using fresh cached location: %s", cachedLocation);
-            consumer.accept(cachedLocation);
+            threadExecutor.execute(() -> consumer.accept(cachedLocation));
         } else {
             log.d("No cached location available");
-            consumer.accept(null);
+            threadExecutor.execute(() -> consumer.accept(null));
         }
     }
 }

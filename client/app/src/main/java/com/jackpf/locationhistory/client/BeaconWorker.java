@@ -56,7 +56,7 @@ public class BeaconWorker extends ListenableWorker {
         log.i("Created device state with device ID: %s", deviceState.getDeviceId());
 
         permissionsManager = new PermissionsManager(getApplicationContext());
-        locationService = new LocationService(getApplicationContext(), permissionsManager);
+        locationService = LocationService.create(getApplicationContext(), permissionsManager);
         backgroundExecutor = Executors.newSingleThreadExecutor();
     }
 
