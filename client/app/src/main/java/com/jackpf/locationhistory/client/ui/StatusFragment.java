@@ -78,17 +78,14 @@ public class StatusFragment extends Fragment {
             if (event == null) return;
 
             switch (event.getType()) {
-                case UPDATE_STATUS:
-                    StatusViewEvent.UpdateStatus statusEvent = (StatusViewEvent.UpdateStatus) event;
+                case UPDATE_CONNECTION_STATUS:
+                    StatusViewEvent.UpdateConnectionStatus statusEvent = (StatusViewEvent.UpdateConnectionStatus) event;
                     binding.statusTextView.setText(statusEvent.getStatusResId());
                     break;
                 case UPDATE_DEVICE_STATE:
-                    StatusViewEvent.UpdateDeviceState deviceEvent = (StatusViewEvent.UpdateDeviceState) event;
-                    binding.deviceStateTextView.setText(deviceEvent.getDeviceState());
-                    break;
-                case UPDATE_LAST_PING:
-                    StatusViewEvent.UpdateLastPing pingEvent = (StatusViewEvent.UpdateLastPing) event;
-                    binding.lastPingTextView.setText(pingEvent.getLastPing());
+                    StatusViewEvent.UpdateDeviceState uiEvent = (StatusViewEvent.UpdateDeviceState) event;
+                    binding.deviceStateTextView.setText(uiEvent.getDeviceState());
+                    binding.lastPingTextView.setText(uiEvent.getLastPing());
                     break;
                 case SHOW_SSL_PROMPT:
                     StatusViewEvent.ShowSslPrompt sslEvent = (StatusViewEvent.ShowSslPrompt) event;

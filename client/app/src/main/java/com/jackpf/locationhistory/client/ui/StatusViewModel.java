@@ -35,7 +35,7 @@ public class StatusViewModel extends AndroidViewModel {
     private final SingleLiveEvent<StatusViewEvent> events = new SingleLiveEvent<>();
 
     private final SharedPreferences.OnSharedPreferenceChangeListener preferenceListener =
-            (sharedPreferences, key) -> updateUI();
+            (sharedPreferences, key) -> updateDeviceState();
 
     public StatusViewModel(@NonNull Application application) {
         super(application);
@@ -49,7 +49,7 @@ public class StatusViewModel extends AndroidViewModel {
 
     public void startListening() {
         configRepository.registerOnSharedPreferenceChangeListener(preferenceListener);
-        updateUI();
+        updateDeviceState();
     }
 
     public void stopListening() {
@@ -63,9 +63,9 @@ public class StatusViewModel extends AndroidViewModel {
             @Override
             public void onSuccess(PingResponse result) {
                 if (BeaconClient.isPongResponse(result)) {
-                    events.postValue(new StatusViewEvent.UpdateStatus(R.string.connected));
+                    events.postValue(new StatusViewEvent.UpdateConnectionStatus(R.string.connected));
                 } else {
-                    events.postValue(new StatusViewEvent.UpdateStatus(R.string.invalid_response));
+                    events.postValue(new StatusViewEvent.UpdateConnectionStatus(R.string.invalid_response));
                 }
             }
 
@@ -75,7 +75,7 @@ public class StatusViewModel extends AndroidViewModel {
                     String fingerprint = UntrustedCertException.getCauseFrom(t).getFingerprint();
                     events.postValue(new StatusViewEvent.ShowSslPrompt(fingerprint));
                 } else {
-                    events.postValue(new StatusViewEvent.UpdateStatus(R.string.disconnected));
+                    events.postValue(new StatusViewEvent.UpdateConnectionStatus(R.string.disconnected));
                 }
             }
         }, MoreExecutors.directExecutor());
@@ -100,13 +100,11 @@ public class StatusViewModel extends AndroidViewModel {
         }
     }
 
-    private void updateUI() {
-        log.d("Updating status");
+    private void updateDeviceState() {
+        log.d("Updating device state");
 
-        // Device state
-        events.postValue(new StatusViewEvent.UpdateDeviceState(configRepository.getDeviceStatus()));
+        String deviceState = configRepository.getDeviceStatus();
 
-        // Last ping time
         long lastRunTimestamp = configRepository.getLastRunTimestamp();
         String lastPing;
         if (lastRunTimestamp > 0) {
@@ -115,6 +113,7 @@ public class StatusViewModel extends AndroidViewModel {
         } else {
             lastPing = getApplication().getString(R.string.never);
         }
-        events.postValue(new StatusViewEvent.UpdateLastPing(lastPing));
+
+        events.postValue(new StatusViewEvent.UpdateDeviceState(deviceState, lastPing));
     }
 }
