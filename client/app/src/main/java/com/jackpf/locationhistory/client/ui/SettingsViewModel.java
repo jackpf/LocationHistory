@@ -6,7 +6,6 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -36,7 +35,7 @@ public class SettingsViewModel extends AndroidViewModel {
     private final ConfigRepository configRepository;
     private final TrustedCertStorage trustedCertStorage;
 
-    private final MutableLiveData<SettingsViewEvent> events = new MutableLiveData<>();
+    private final SingleLiveEvent<SettingsViewEvent> events = new SingleLiveEvent<>();
 
     public SettingsViewModel(@NonNull Application application) {
         super(application);
