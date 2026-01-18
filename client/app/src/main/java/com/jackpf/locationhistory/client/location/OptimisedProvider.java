@@ -4,8 +4,6 @@ import android.Manifest;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.CancellationSignal;
-import android.os.Handler;
-import android.os.Looper;
 
 import androidx.annotation.RequiresPermission;
 
@@ -43,11 +41,7 @@ public class OptimisedProvider implements LocationProvider {
                 source,
                 cancellationSignal,
                 threadExecutor,
-                location -> {
-                    new Handler(Looper.getMainLooper()).post(() -> {
-                        consumer.accept(new LocationData(location, source));
-                    });
-                }
+                location -> consumer.accept(new LocationData(location, source))
         );
     }
 }
