@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package com.jackpf.locationhistory;
+
+option java_multiple_files = true;
+
+enum LocationAccuracyRequest {
+  BALANCED = 0;
+  HIGH = 1;
+}
+
+/* Request a location update */
+message LocationNotification {
+    LocationAccuracyRequest request_accuracy = 1;
+}
+
+/* Request an alarm notification (play sound) */
+message AlarmNotification {
+
+}
+
+message Notification {
+  oneof message {
+    LocationNotification trigger_location = 1;
+    AlarmNotification trigger_alarm = 2;
+  }
+}

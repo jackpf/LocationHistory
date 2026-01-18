@@ -1,6 +1,13 @@
 package com.jackpf.locationhistory.server.service
 
 import com.jackpf.locationhistory.admin_service.NotificationType
+import com.jackpf.locationhistory.notifications.Notification.Message.{TriggerAlarm, TriggerLocation}
+import com.jackpf.locationhistory.notifications.{
+  LocationAccuracyRequest,
+  AlarmNotification,
+  LocationNotification,
+  Notification as NotificationMessage
+}
 import com.jackpf.locationhistory.server.service.NotificationService.Notification
 import sttp.client4.*
 
@@ -20,7 +27,21 @@ object NotificationService {
   enum Notification {
     case TRIGGER_BEACON, TRIGGER_ALARM
 
-    def message: String = toString
+    def toMessage: NotificationMessage = this match {
+      case Notification.TRIGGER_BEACON =>
+        // TODO Allow high accuracy
+        NotificationMessage(
+          TriggerLocation(
+            LocationNotification(requestAccuracy = LocationAccuracyRequest.BALANCED)
+          )
+        )
+      case Notification.TRIGGER_ALARM =>
+        NotificationMessage(
+          TriggerAlarm(
+            AlarmNotification()
+          )
+        )
+    }
   }
 }
 
@@ -30,7 +51,7 @@ class NotificationService(backend: Backend[Future]) {
   ): Future[Try[Unit]] = {
     val request = quickRequest
       .header("content-type", "text/plain")
-      .body(notification.message)
+      .body(notification.toMessage.toByteArray)
       .post(uri"${url}")
 
     for {
