@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import android.location.Location;
 import android.location.LocationManager;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 
 import org.junit.Before;
@@ -21,7 +22,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -30,7 +30,6 @@ public class LocationServiceTest {
 
     private LocationManager locationManager;
     private PermissionsManager permissionsManager;
-    private ExecutorService executorService;
     private LegacyHighAccuracyProvider legacyHighAccuracyProvider;
     private LegacyCachedProvider legacyCachedProvider;
     private OptimisedProvider optimisedProvider;
@@ -43,15 +42,9 @@ public class LocationServiceTest {
     public void setUp() {
         locationManager = mock(LocationManager.class);
         permissionsManager = mock(PermissionsManager.class);
-        executorService = mock(ExecutorService.class);
         legacyHighAccuracyProvider = mock(LegacyHighAccuracyProvider.class);
         legacyCachedProvider = mock(LegacyCachedProvider.class);
         optimisedProvider = mock(OptimisedProvider.class);
-
-        doAnswer(invocation -> {
-            ((Runnable) invocation.getArgument(0)).run();
-            return null;
-        }).when(executorService).execute(any(Runnable.class));
 
         when(permissionsManager.hasLocationPermissions()).thenReturn(true);
         when(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)).thenReturn(true);
@@ -60,7 +53,7 @@ public class LocationServiceTest {
         locationService = new LocationService(
                 locationManager,
                 permissionsManager,
-                executorService,
+                MoreExecutors.newDirectExecutorService(),
                 legacyHighAccuracyProvider,
                 legacyCachedProvider,
                 optimisedProvider

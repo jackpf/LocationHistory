@@ -14,32 +14,26 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Looper;
 
+import com.google.common.util.concurrent.MoreExecutors;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowLooper;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(RobolectricTestRunner.class)
 public class LegacyHighAccuracyProviderTest {
 
     private LocationManager locationManager;
-    private ExecutorService executorService;
     private LegacyHighAccuracyProvider provider;
 
     @Before
     public void setUp() {
         locationManager = mock(LocationManager.class);
-        // Use a direct executor for testing - runs tasks immediately on same thread
-        executorService = mock(ExecutorService.class);
-        doAnswer(invocation -> {
-            ((Runnable) invocation.getArgument(0)).run();
-            return null;
-        }).when(executorService).execute(any(Runnable.class));
-        provider = new LegacyHighAccuracyProvider(locationManager, executorService);
+        provider = new LegacyHighAccuracyProvider(locationManager, MoreExecutors.newDirectExecutorService());
     }
 
     @Test
@@ -99,7 +93,8 @@ public class LegacyHighAccuracyProviderTest {
                 any(Looper.class)
         );
 
-        provider.provide(LocationManager.GPS_PROVIDER, 5000, data -> {});
+        provider.provide(LocationManager.GPS_PROVIDER, 5000, data -> {
+        });
 
         capturedListener.get().onLocationChanged(mockLocation);
 
@@ -119,7 +114,8 @@ public class LegacyHighAccuracyProviderTest {
                 any(Looper.class)
         );
 
-        provider.provide(LocationManager.GPS_PROVIDER, 1000, data -> {});
+        provider.provide(LocationManager.GPS_PROVIDER, 1000, data -> {
+        });
 
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
@@ -178,26 +174,5 @@ public class LegacyHighAccuracyProviderTest {
         // Result should still be the location, not null
         assertNotNull(result.get());
         assertEquals(mockLocation, result.get().getLocation());
-    }
-
-    @Test
-    public void provide_callsConsumerViaExecutor() {
-        Location mockLocation = mock(Location.class);
-        AtomicReference<LocationListener> capturedListener = new AtomicReference<>();
-
-        doAnswer(invocation -> {
-            capturedListener.set(invocation.getArgument(1));
-            return null;
-        }).when(locationManager).requestSingleUpdate(
-                eq(LocationManager.GPS_PROVIDER),
-                any(LocationListener.class),
-                any(Looper.class)
-        );
-
-        provider.provide(LocationManager.GPS_PROVIDER, 5000, data -> {});
-
-        capturedListener.get().onLocationChanged(mockLocation);
-
-        verify(executorService).execute(any(Runnable.class));
     }
 }

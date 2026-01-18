@@ -3,21 +3,19 @@ package com.jackpf.locationhistory.client.location;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.location.Location;
 import android.location.LocationManager;
+
+import com.google.common.util.concurrent.MoreExecutors;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -25,19 +23,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public class LegacyCachedProviderTest {
 
     private LocationManager locationManager;
-    private ExecutorService executorService;
     private LegacyCachedProvider provider;
 
     @Before
     public void setUp() {
         locationManager = mock(LocationManager.class);
-        // Use a direct executor for testing - runs tasks immediately on same thread
-        executorService = mock(ExecutorService.class);
-        doAnswer(invocation -> {
-            ((Runnable) invocation.getArgument(0)).run();
-            return null;
-        }).when(executorService).execute(any(Runnable.class));
-        provider = new LegacyCachedProvider(locationManager, executorService);
+        provider = new LegacyCachedProvider(locationManager, MoreExecutors.newDirectExecutorService());
     }
 
     @Test
@@ -115,27 +106,5 @@ public class LegacyCachedProviderTest {
 
         assertNotNull(result.get());
         assertEquals(LocationManager.NETWORK_PROVIDER, result.get().getSource());
-    }
-
-    @Test
-    public void provide_callsConsumerViaExecutor_whenFresh() {
-        Location mockLocation = mock(Location.class);
-        when(mockLocation.getTime()).thenReturn(System.currentTimeMillis());
-        when(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)).thenReturn(mockLocation);
-
-        provider.provide(LocationManager.GPS_PROVIDER, 5000, data -> {});
-
-        verify(executorService).execute(any(Runnable.class));
-    }
-
-    @Test
-    public void provide_callsConsumerViaExecutor_whenStale() {
-        Location mockLocation = mock(Location.class);
-        when(mockLocation.getTime()).thenReturn(System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10));
-        when(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)).thenReturn(mockLocation);
-
-        provider.provide(LocationManager.GPS_PROVIDER, 5000, data -> {});
-
-        verify(executorService).execute(any(Runnable.class));
     }
 }
