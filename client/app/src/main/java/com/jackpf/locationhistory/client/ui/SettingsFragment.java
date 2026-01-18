@@ -27,7 +27,6 @@ public class SettingsFragment extends Fragment {
 
     private FragmentSettingsBinding binding;
     private SettingsViewModel viewModel;
-    private ConfigRepository.UpdateFrequency selectedFrequency;
 
     @Nullable
     private SSLPrompt sslPrompt;
@@ -72,7 +71,7 @@ public class SettingsFragment extends Fragment {
         binding.saveButton.setOnClickListener(v -> viewModel.saveSettings(
                 binding.serverHostInput.getText().toString(),
                 binding.serverPortInput.getText().toString(),
-                selectedFrequency,
+                (ConfigRepository.UpdateFrequency) binding.updateFrequencyInput.getTag(),
                 binding.updateEveryInput.getText().toString()
         ));
     }
@@ -91,16 +90,18 @@ public class SettingsFragment extends Fragment {
         binding.updateFrequencyInput.setAdapter(adapter);
 
         // Set initial values
-        selectedFrequency = viewModel.getConfig().getUpdateFrequency();
-        binding.updateFrequencyInput.setText(frequencyOptions[selectedFrequency.ordinal()], false);
-        setUpdateEveryEnabled(selectedFrequency == ConfigRepository.UpdateFrequency.SCHEDULED);
+        ConfigRepository.UpdateFrequency savedFrequency = viewModel.getConfig().getUpdateFrequency();
+        binding.updateFrequencyInput.setTag(savedFrequency);
+        binding.updateFrequencyInput.setText(frequencyOptions[savedFrequency.ordinal()], false);
+        setUpdateEveryEnabled(savedFrequency == ConfigRepository.UpdateFrequency.SCHEDULED);
 
         binding.updateEveryInput.setText(String.valueOf(viewModel.getConfig().getUpdateIntervalMinutes()));
 
         // Listen for changes
         binding.updateFrequencyInput.setOnItemClickListener((parent, v, position, id) -> {
-            selectedFrequency = ConfigRepository.UpdateFrequency.values()[position];
-            setUpdateEveryEnabled(selectedFrequency == ConfigRepository.UpdateFrequency.SCHEDULED);
+            ConfigRepository.UpdateFrequency frequency = ConfigRepository.UpdateFrequency.values()[position];
+            binding.updateFrequencyInput.setTag(frequency);
+            setUpdateEveryEnabled(frequency == ConfigRepository.UpdateFrequency.SCHEDULED);
         });
     }
 
