@@ -31,8 +31,6 @@ import java.io.IOException;
 public class UnifiedPushService extends PushService {
     private static final String NAME = "UnifiedPush";
     private static final String CUSTOM_UNREGISTER_ACTION = "com.jackpf.locationhistory.client.MANUAL_UNREGISTER";
-    private static final String BEACON_MESSAGE = "TRIGGER_BEACON";
-    private static final String ALARM_MESSAGE = "TRIGGER_ALARM";
 
     @Nullable
     private ConfigRepository configRepository;
@@ -89,6 +87,9 @@ public class UnifiedPushService extends PushService {
         if (configRepository != null && beaconClient != null) {
             new PushRegistration(getApplicationContext(), configRepository, unifiedPushStorage, beaconClient)
                     .register(NAME, pushEndpoint.getUrl());
+        } else {
+            // Register failed, make sure we keep the old state
+            unifiedPushStorage.setEnabled(false);
         }
     }
 
@@ -128,6 +129,9 @@ public class UnifiedPushService extends PushService {
         if (configRepository != null && beaconClient != null) {
             new PushRegistration(getApplicationContext(), configRepository, unifiedPushStorage, beaconClient)
                     .unregister();
+        } else {
+            // Un-register failed, make sure we keep the old state
+            unifiedPushStorage.setEnabled(true);
         }
     }
 
