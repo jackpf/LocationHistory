@@ -82,7 +82,7 @@ public class LocationService implements AutoCloseable {
             }
         } else {
             /* The legacy provider will directly request location from the hardware,
-             * so we've  gotta implement our own cache checks (unless we're on high accuracy) */
+             * so we've  gotta implement our own cache checks */
             if (accuracy == RequestedAccuracy.HIGH) {
                 providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, legacyHighAccuracyProvider));
                 providers.add(new SourceAndProvider(LocationManager.NETWORK_PROVIDER, legacyHighAccuracyProvider));
@@ -91,8 +91,8 @@ public class LocationService implements AutoCloseable {
             } else {
                 providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, legacyCachedProvider));
                 providers.add(new SourceAndProvider(LocationManager.NETWORK_PROVIDER, legacyCachedProvider));
-                providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, legacyHighAccuracyProvider));
                 providers.add(new SourceAndProvider(LocationManager.NETWORK_PROVIDER, legacyHighAccuracyProvider));
+                providers.add(new SourceAndProvider(LocationManager.GPS_PROVIDER, legacyHighAccuracyProvider));
             }
         }
 
