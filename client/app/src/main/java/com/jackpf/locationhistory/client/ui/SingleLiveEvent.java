@@ -14,6 +14,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * This avoids a common problem with events: on configuration change (like rotation)
  * an update can be emitted if the observer is active. This LiveData only calls the
  * observable if there's an explicit call to setValue() or postValue().
+ * <p>
+ * Note that rapid calls to postValue may drop events due to the internal
+ * implementation of MutableLiveData (single volatile state)
+ * Only use this for sending single events to the UI
  */
 public class SingleLiveEvent<T> extends MutableLiveData<T> {
     private final AtomicBoolean pending = new AtomicBoolean(false);
