@@ -7,6 +7,7 @@ import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -86,28 +87,28 @@ public class LocationService implements AutoCloseable {
              * and return a fresh (< ~30s) location if available */
             log.d("Using optimised location manager");
 
+            ProviderRequest gpsRequest = new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, optimisedProvider);
+            ProviderRequest networkRequest = new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, optimisedProvider);
+
             if (accuracy == RequestedAccuracy.HIGH) {
-                providers.add(new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, optimisedProvider));
-                providers.add(new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, optimisedProvider));
+                providers.addAll(Arrays.asList(gpsRequest, networkRequest));
             } else {
-                providers.add(new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, optimisedProvider));
-                providers.add(new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, optimisedProvider));
+                providers.addAll(Arrays.asList(networkRequest, gpsRequest));
             }
         } else {
             /* The legacy provider will directly request location from the hardware,
              * so we've  gotta implement our own cache checks */
             log.d("Using legacy location manager");
 
+            ProviderRequest highGps = new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, legacyHighAccuracyProvider);
+            ProviderRequest highNetwork = new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, legacyHighAccuracyProvider);
+            ProviderRequest cachedGps = new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, legacyCachedProvider);
+            ProviderRequest cachedNetwork = new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, legacyCachedProvider);
+
             if (accuracy == RequestedAccuracy.HIGH) {
-                providers.add(new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, legacyHighAccuracyProvider));
-                providers.add(new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, legacyHighAccuracyProvider));
-                providers.add(new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, legacyCachedProvider));
-                providers.add(new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, legacyCachedProvider));
+                providers.addAll(Arrays.asList(highGps, highNetwork, cachedGps, cachedNetwork));
             } else {
-                providers.add(new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, legacyCachedProvider));
-                providers.add(new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, legacyCachedProvider));
-                providers.add(new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, legacyHighAccuracyProvider));
-                providers.add(new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, legacyHighAccuracyProvider));
+                providers.addAll(Arrays.asList(cachedGps, cachedNetwork, highNetwork, highGps));
             }
         }
 

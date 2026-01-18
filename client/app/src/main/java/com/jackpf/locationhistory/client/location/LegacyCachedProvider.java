@@ -8,6 +8,7 @@ import androidx.annotation.RequiresPermission;
 
 import com.jackpf.locationhistory.client.util.Logger;
 
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class LegacyCachedProvider implements LocationProvider {
@@ -15,7 +16,7 @@ public class LegacyCachedProvider implements LocationProvider {
 
     private final LocationManager locationManager;
 
-    private static final long FRESHNESS_THRESHOLD_MS = (long) 1000 * 60 * 5; // 5 Minutes
+    private static final long FRESHNESS_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(5);
 
     public LegacyCachedProvider(LocationManager locationManager) {
         this.locationManager = locationManager;
