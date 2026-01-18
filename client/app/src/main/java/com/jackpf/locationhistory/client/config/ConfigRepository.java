@@ -91,6 +91,9 @@ public class ConfigRepository {
 
     public UpdateFrequency getUpdateFrequency() {
         int ordinal = prefs.getInt(UPDATE_FREQUENCY_KEY, UpdateFrequency.BALANCED.ordinal());
+        if (ordinal < 0 || ordinal >= UpdateFrequency.values().length) {
+            return UpdateFrequency.BALANCED;
+        }
         return UpdateFrequency.values()[ordinal];
     }
 
