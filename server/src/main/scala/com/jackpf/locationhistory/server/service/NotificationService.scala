@@ -50,7 +50,7 @@ class NotificationService(backend: Backend[Future]) {
       ec: ExecutionContext
   ): Future[Try[Unit]] = {
     val request = quickRequest
-      .header("content-type", "text/plain")
+      .header("content-type", "application/octet-stream")
       .body(notification.toMessage.toByteArray)
       .post(uri"${url}")
 
