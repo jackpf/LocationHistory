@@ -104,10 +104,10 @@ public class BeaconWorkerFactory {
 
         // Start new worker!
         switch (configRepository.getUpdateFrequency()) {
-            case ConfigRepository.UPDATE_FREQUENCY_BALANCED:
+            case BALANCED:
                 BeaconWorkerFactory.schedulePeriodic(context);
                 break;
-            case ConfigRepository.UPDATE_FREQUENCY_HIGH:
+            case SCHEDULED:
                 long updateMillis = (long) configRepository.getUpdateIntervalMinutes() * 60 * 1000;
                 BeaconWorkerFactory.scheduleFrequent(context, updateMillis);
                 break;
