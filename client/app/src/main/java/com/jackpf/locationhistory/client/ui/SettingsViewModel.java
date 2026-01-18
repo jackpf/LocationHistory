@@ -53,10 +53,8 @@ public class SettingsViewModel extends AndroidViewModel {
 
     public void testConnection(String host, String portText) {
         try {
-            int port = Integer.parseInt(portText);
-
             BeaconClient tempClient = BeaconClientFactory.createClient(
-                    new BeaconClientFactory.BeaconClientParams(host, port, false, 3000),
+                    new BeaconClientFactory.BeaconClientParams(host, Integer.parseInt(portText), false, 3000),
                     trustedCertStorage
             );
 
@@ -86,20 +84,17 @@ public class SettingsViewModel extends AndroidViewModel {
 
     public void saveSettings(String host, String portText, ConfigRepository.UpdateFrequency frequency, String intervalText) {
         try {
-            int port = Integer.parseInt(portText);
-
             configRepository.setServerHost(host);
-            configRepository.setServerPort(port);
+            configRepository.setServerPort(Integer.parseInt(portText));
             configRepository.setUpdateFrequency(frequency);
 
-            // Save interval if scheduled frequency
             if (frequency == ConfigRepository.UpdateFrequency.SCHEDULED && !intervalText.isEmpty()) {
                 configRepository.setUpdateIntervalMinutes(Integer.parseInt(intervalText));
             }
 
-            // Run once and reschedule
+            // Run once to trigger device registration
             BeaconWorkerFactory.runOnce(getApplication());
-
+            // Schedule regular worker
             try {
                 BeaconWorkerFactory.schedule(getApplication(), configRepository);
                 events.postValue(new SettingsViewEvent.Toast(R.string.toast_saved));
