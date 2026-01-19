@@ -49,8 +49,10 @@ public class BeaconClient extends PoolableClient {
         BeaconServiceGrpc.BeaconServiceFutureStub stub = beaconService
                 .withDeadlineAfter(timeoutMillis, TimeUnit.MILLISECONDS);
 
-        if (waitForReady) return stub.withWaitForReady();
-        else return stub;
+        // TODO Set properly
+//        if (waitForReady) return stub.withWaitForReady();
+//        else return stub;
+        return stub;
     }
 
     public static boolean isPongResponse(PingResponse response) {
