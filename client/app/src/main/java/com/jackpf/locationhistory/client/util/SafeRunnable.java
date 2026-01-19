@@ -32,8 +32,6 @@ public class SafeRunnable implements Runnable {
         }
     }
 
-    public static void runStatic()
-
     private void handleCrash(Throwable t) {
         log.e("Runnable error", t);
         log.appendEventToFile(context, "Runnable error: %s", Log.getStackTraceString(t));

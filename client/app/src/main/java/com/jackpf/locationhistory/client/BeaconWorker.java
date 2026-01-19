@@ -73,48 +73,56 @@ public class BeaconWorker extends ListenableWorker {
     private void completeNoConnection(CallbackToFutureAdapter.Completer<Result> completer, Throwable t) {
         String message = "Completing with failure: no connection available";
         log.e(t, message);
+        log.appendEventToFile(getApplicationContext(), message);
         finish(completer, Result.failure(completeData(message, false)));
     }
 
     private void completeNoLocationPermissions(CallbackToFutureAdapter.Completer<Result> completer) {
         String message = "Completing with failure: no location permissions";
         log.e(message);
+        log.appendEventToFile(getApplicationContext(), message);
         finish(completer, Result.failure(completeData(message, false)));
     }
 
     private void completeDeviceNotReady(CallbackToFutureAdapter.Completer<Result> completer) {
         String message = "Completing with retry: device not ready";
         log.w(message);
+        log.appendEventToFile(getApplicationContext(), message);
         finish(completer, Result.retry());
     }
 
     private void completeDeviceCheckError(CallbackToFutureAdapter.Completer<Result> completer, Throwable t) {
         String message = "Completing with failure: device check error";
         log.e(t, message);
+        log.appendEventToFile(getApplicationContext(), message);
         finish(completer, Result.failure(completeData(message, false)));
     }
 
     private void completeEmptyLocationData(CallbackToFutureAdapter.Completer<Result> completer) {
         String message = "Completing with failure: empty location data";
         log.e(message);
+        log.appendEventToFile(getApplicationContext(), message);
         finish(completer, Result.failure(completeData(message, false)));
     }
 
     private void completeSetLocationSuccess(CallbackToFutureAdapter.Completer<Result> completer) {
         String message = "Completing with success: location updated";
         log.i(message);
+        log.appendEventToFile(getApplicationContext(), message);
         finish(completer, Result.success(completeData(message, true)));
     }
 
     private void completeSetLocationFailure(CallbackToFutureAdapter.Completer<Result> completer) {
         String message = "Completing with failure: location update failed";
         log.e(message);
+        log.appendEventToFile(getApplicationContext(), message);
         finish(completer, Result.failure(completeData(message, false)));
     }
 
     private void completeSetLocationError(CallbackToFutureAdapter.Completer<Result> completer, Throwable t) {
         String message = "Completing with failure: set location error";
         log.e(t, message);
+        log.appendEventToFile(getApplicationContext(), message);
         finish(completer, Result.failure(completeData(message, false)));
     }
 
@@ -171,7 +179,6 @@ public class BeaconWorker extends ListenableWorker {
     private void handleLocationUpdate(CallbackToFutureAdapter.Completer<Result> completer) {
         log.d("Updating location");
 
-        // TODO Make RequestedAccuracy configurable, or trigger high accuracy at least every hour or something
         locationService.getLocation(RequestedAccuracy.BALANCED, locationData ->
                 new SafeRunnable(completer, getApplicationContext(), () -> {
                     if (locationData != null) {
@@ -200,18 +207,6 @@ public class BeaconWorker extends ListenableWorker {
     }
 
     private void finish(CallbackToFutureAdapter.Completer<Result> completer, Result result) {
-        if (result instanceof ListenableWorker.Result.Success) {
-            Data data = result.getOutputData();
-            log.appendEventToFile(getApplicationContext(), "Finished with result: %s", data);
-        } else if (result instanceof ListenableWorker.Result.Failure) {
-            Data data = result.getOutputData();
-            log.appendEventToFile(getApplicationContext(), "Finished with error: %s", data);
-        } else if (result instanceof ListenableWorker.Result.Retry) {
-            log.appendEventToFile(getApplicationContext(), "Finished with retry");
-        } else {
-            log.appendEventToFile(getApplicationContext(), "Finished with unknown result: %s", result.getClass());
-        }
-
         try {
             close();
         } finally {
