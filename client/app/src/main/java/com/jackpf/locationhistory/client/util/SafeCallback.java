@@ -9,15 +9,15 @@ import androidx.work.ListenableWorker.Result;
 import com.google.common.util.concurrent.FutureCallback;
 
 public abstract class SafeCallback<T> implements FutureCallback<T> {
+    private final Logger log = new Logger(this);
     private final Completer<Result> completer;
-    private final Context context; // For logging
+    private final Context context;
 
     public SafeCallback(Completer<Result> completer, Context context) {
         this.completer = completer;
         this.context = context;
     }
 
-    // You implement this instead of onSuccess
     public abstract void onSafeSuccess(T result) throws Exception;
 
     @Override
@@ -30,8 +30,8 @@ public abstract class SafeCallback<T> implements FutureCallback<T> {
     }
 
     private void handleCrash(Throwable t) {
-        FileLogger.appendLog(context, "WORKER FAILURE: " + Log.getStackTraceString(t));
-        // Ensure the worker doesn't hang!
+        log.e("Callback exception", t);
+        log.appendEventToFile(context, "Callback exception: %s", Log.getStackTraceString(t));
         completer.set(Result.failure());
     }
 }

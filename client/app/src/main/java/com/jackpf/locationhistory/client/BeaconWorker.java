@@ -24,7 +24,6 @@ import com.jackpf.locationhistory.client.model.DeviceState;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.service.DeviceStateService;
 import com.jackpf.locationhistory.client.service.LocationUpdateService;
-import com.jackpf.locationhistory.client.util.FileLogger;
 import com.jackpf.locationhistory.client.util.Logger;
 import com.jackpf.locationhistory.client.util.SafeCallback;
 import com.jackpf.locationhistory.client.util.SafeRunnable;
@@ -122,8 +121,8 @@ public class BeaconWorker extends ListenableWorker {
     @NonNull
     @Override
     public ListenableFuture<Result> startWork() {
-        log.d("BeaconWorker doing work...");
-        FileLogger.appendLog(getApplicationContext(), "Beacon triggered");
+        log.d("Beacon triggered");
+        log.appendEventToFile(getApplicationContext(), "Beacon triggered");
 
         return CallbackToFutureAdapter.getFuture(completer -> {
             backgroundExecutor.execute(new SafeRunnable(completer, getApplicationContext(), () -> {
@@ -203,14 +202,14 @@ public class BeaconWorker extends ListenableWorker {
     private void finish(CallbackToFutureAdapter.Completer<Result> completer, Result result) {
         if (result instanceof ListenableWorker.Result.Success) {
             Data data = result.getOutputData();
-            FileLogger.appendLog(getApplicationContext(), "Finished with result: " + data);
+            log.appendEventToFile(getApplicationContext(), "Finished with result: %s", data);
         } else if (result instanceof ListenableWorker.Result.Failure) {
             Data data = result.getOutputData();
-            FileLogger.appendLog(getApplicationContext(), "Finished with error: " + data);
+            log.appendEventToFile(getApplicationContext(), "Finished with error: %s", data);
         } else if (result instanceof ListenableWorker.Result.Retry) {
-            FileLogger.appendLog(getApplicationContext(), "Finished with retry");
+            log.appendEventToFile(getApplicationContext(), "Finished with retry");
         } else {
-            FileLogger.appendLog(getApplicationContext(), "Finished with unknown: " + result.getClass());
+            log.appendEventToFile(getApplicationContext(), "Finished with unknown result: %s", result.getClass());
         }
 
         try {
@@ -224,12 +223,14 @@ public class BeaconWorker extends ListenableWorker {
     @Override
     public void onStopped() {
         super.onStopped();
-        log.d("Worker stopped");
+
         int stopReason = -1;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             stopReason = getStopReason();
         }
-        FileLogger.appendLog(getApplicationContext(), "Finished with onStopped, reason: " + stopReason);
+        log.d("Worker stopped");
+        log.appendEventToFile(getApplicationContext(), "Finished with onStopped, reason: %s", stopReason);
+
         close();
     }
 

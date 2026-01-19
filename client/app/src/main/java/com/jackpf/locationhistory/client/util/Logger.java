@@ -1,8 +1,17 @@
 package com.jackpf.locationhistory.client.util;
 
+import android.content.Context;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 public class Logger {
+    private static final String EVENT_LOG_FILE = "event_log.txt";
+
     private final String tag;
 
     public Logger(String tag) {
@@ -50,5 +59,19 @@ public class Logger {
 
     public void e(Throwable t, String msg, Object... args) {
         android.util.Log.e(tag, format(msg, args), t);
+    }
+
+    public void appendEventToFile(Context context, String msg, Object... args) {
+        File logFile = new File(context.getFilesDir(), EVENT_LOG_FILE);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        String timestamp = sdf.format(new Date());
+        String entry = timestamp + ": " + format(msg, args) + "\n";
+
+        try (FileOutputStream fos = new FileOutputStream(logFile, true)) {
+            fos.write(entry.getBytes());
+        } catch (IOException e) {
+            e("Logger", e);
+        }
     }
 }

@@ -7,6 +7,8 @@ import androidx.concurrent.futures.CallbackToFutureAdapter.Completer;
 import androidx.work.ListenableWorker.Result;
 
 public class SafeRunnable implements Runnable {
+    private final Logger log = new Logger(this);
+
     private final Completer<Result> completer;
     private final Context context;
     private final ThrowingRunnable task;
@@ -26,7 +28,8 @@ public class SafeRunnable implements Runnable {
         try {
             task.run();
         } catch (Throwable t) {
-            FileLogger.appendLog(context, "WORKER INIT CRASH: " + Log.getStackTraceString(t));
+            log.e("Runnable error", t);
+            log.appendEventToFile(context, "Runnable error: %s", Log.getStackTraceString(t));
             completer.set(Result.failure());
         }
     }
