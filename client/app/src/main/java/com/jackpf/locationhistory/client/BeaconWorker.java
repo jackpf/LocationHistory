@@ -3,6 +3,7 @@ package com.jackpf.locationhistory.client;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresPermission;
@@ -224,7 +225,11 @@ public class BeaconWorker extends ListenableWorker {
     public void onStopped() {
         super.onStopped();
         log.d("Worker stopped");
-        FileLogger.appendLog(getApplicationContext(), "Finished onStopped call");
+        int stopReason = -1;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            stopReason = getStopReason();
+        }
+        FileLogger.appendLog(getApplicationContext(), "Finished with onStopped, reason: " + stopReason);
         close();
     }
 
