@@ -51,18 +51,6 @@ public class BeaconWorker extends ListenableWorker {
 
     private final Logger log = new Logger(this);
 
-    public BeaconWorker(@NonNull Context context, @NonNull WorkerParameters params) {
-        super(context, params);
-
-        configRepository = new ConfigRepository(getApplicationContext());
-        deviceState = DeviceState.fromConfig(configRepository);
-        log.i("Created device state with device ID: %s", deviceState.getDeviceId());
-
-        permissionsManager = new PermissionsManager(getApplicationContext());
-        locationService = LocationService.create(getApplicationContext(), permissionsManager);
-        backgroundExecutor = Executors.newSingleThreadExecutor();
-    }
-
     private enum CompleteReason {
         LOCATION_UPDATED("Location updated"),
         NO_CONNECTION("No connection available"),
@@ -78,6 +66,18 @@ public class BeaconWorker extends ListenableWorker {
         CompleteReason(String message) {
             this.message = message;
         }
+    }
+
+    public BeaconWorker(@NonNull Context context, @NonNull WorkerParameters params) {
+        super(context, params);
+
+        configRepository = new ConfigRepository(getApplicationContext());
+        deviceState = DeviceState.fromConfig(configRepository);
+        log.i("Created device state with device ID: %s", deviceState.getDeviceId());
+
+        permissionsManager = new PermissionsManager(getApplicationContext());
+        locationService = LocationService.create(getApplicationContext(), permissionsManager);
+        backgroundExecutor = Executors.newSingleThreadExecutor();
     }
 
     private Data completeData(String message, boolean updateRunTimestamp) {
@@ -135,7 +135,7 @@ public class BeaconWorker extends ListenableWorker {
                 locationUpdateService = new LocationUpdateService(beaconClient, backgroundExecutor);
 
                 if (!permissionsManager.hasLocationPermissions()) {
-                    completeWithFailure(completer, CompleteReason.NO_LOCATION_PERMISSIONS);
+                    completeWithFailure(completer, CompleteReason.NO_LOCATION_PERMISSIONS, null);
                     return;
                 }
 
@@ -176,8 +176,9 @@ public class BeaconWorker extends ListenableWorker {
                                 if (response.getSuccess()) {
                                     deviceState.setLastRunTimestamp(System.currentTimeMillis());
                                     completeWithSuccess(completer, CompleteReason.LOCATION_UPDATED);
-                                } else
-                                    completeWithFailure(completer, CompleteReason.SET_LOCATION_FAILED);
+                                } else {
+                                    completeWithFailure(completer, CompleteReason.SET_LOCATION_FAILED, null);
+                                }
                             }
 
                             @Override
@@ -185,7 +186,7 @@ public class BeaconWorker extends ListenableWorker {
                                 completeWithFailure(completer, CompleteReason.SET_LOCATION_ERROR, t);
                             }
                         }, backgroundExecutor);
-                    } else completeWithFailure(completer, CompleteReason.EMPTY_LOCATION_DATA);
+                    } else completeWithFailure(completer, CompleteReason.EMPTY_LOCATION_DATA, null);
                 }).run()
         );
     }
