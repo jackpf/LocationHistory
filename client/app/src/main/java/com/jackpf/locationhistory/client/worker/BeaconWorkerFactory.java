@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
+import androidx.core.content.ContextCompat;
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
@@ -14,6 +15,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.jackpf.locationhistory.client.BeaconService;
 import com.jackpf.locationhistory.client.ScheduledReceiver;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.util.Logger;
@@ -101,7 +103,9 @@ public class BeaconWorkerFactory {
     public static void schedule(Context context, ConfigRepository configRepository) throws PermissionException {
         // Cancel any existing workers
         BeaconWorkerFactory.cancelFrequent(context);
-        BeaconWorkerFactory.cancelPeriodic(context);
+//        BeaconWorkerFactory.cancelPeriodic(context);
+        Intent beaconServiceIntent = new Intent(context, BeaconService.class);
+        context.stopService(beaconServiceIntent);
 
         // Start new worker!
         switch (configRepository.getUpdateFrequency()) {
@@ -109,8 +113,9 @@ public class BeaconWorkerFactory {
                 BeaconWorkerFactory.schedulePeriodic(context);
                 break;
             case ConfigRepository.UPDATE_FREQUENCY_HIGH:
-                long updateMillis = (long) configRepository.getUpdateIntervalMinutes() * 60 * 1000;
-                BeaconWorkerFactory.scheduleFrequent(context, updateMillis);
+//                long updateMillis = (long) configRepository.getUpdateIntervalMinutes() * 60 * 1000;
+//                BeaconWorkerFactory.scheduleFrequent(context, updateMillis);
+                ContextCompat.startForegroundService(context, new Intent(context, BeaconService.class));
                 break;
         }
     }

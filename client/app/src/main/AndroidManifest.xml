@@ -43,6 +43,12 @@
             android:exported="false" />
 
         <service
+            android:name=".BeaconService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
+        <service
             android:name=".push.UnifiedPushService"
             android:enabled="true"
             android:exported="true">

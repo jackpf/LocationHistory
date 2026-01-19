@@ -8,14 +8,22 @@ import androidx.work.ListenableWorker.Result;
 
 import com.google.common.util.concurrent.FutureCallback;
 
+import javax.annotation.Nullable;
+
 public abstract class SafeCallback<T> implements FutureCallback<T> {
     private final Logger log = new Logger(this);
-    private final Completer<Result> completer;
-    private final Context context;
 
-    public SafeCallback(Completer<Result> completer, Context context) {
-        this.completer = completer;
+    private final Context context;
+    @Nullable
+    private final Completer<Result> completer;
+
+    public SafeCallback(Context context, @Nullable Completer<Result> completer) {
         this.context = context;
+        this.completer = completer;
+    }
+
+    public SafeCallback(Context context) {
+        this(context, null);
     }
 
     public abstract void onSafeSuccess(T result) throws Exception;
@@ -32,6 +40,6 @@ public abstract class SafeCallback<T> implements FutureCallback<T> {
     private void handleCrash(Throwable t) {
         log.e("Callback exception", t);
         log.appendEventToFile(context, "Callback exception: %s", Log.getStackTraceString(t));
-        completer.set(Result.failure());
+        if (completer != null) completer.set(Result.failure());
     }
 }
