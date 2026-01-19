@@ -10,15 +10,15 @@ import androidx.annotation.Nullable;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.jackpf.locationhistory.Notification;
-import com.jackpf.locationhistory.client.BeaconClientFactory;
-import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.R;
+import com.jackpf.locationhistory.client.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.ui.Notifications;
 import com.jackpf.locationhistory.client.ui.Toasts;
 import com.jackpf.locationhistory.client.util.Logger;
+import com.jackpf.locationhistory.client.worker.BeaconWorkerFactory;
 
 import org.unifiedpush.android.connector.FailedReason;
 import org.unifiedpush.android.connector.PushService;
