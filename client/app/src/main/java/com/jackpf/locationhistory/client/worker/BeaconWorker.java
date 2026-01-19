@@ -1,4 +1,4 @@
-package com.jackpf.locationhistory.client;
+package com.jackpf.locationhistory.client.worker;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -15,6 +15,7 @@ import androidx.work.WorkerParameters;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.SetLocationResponse;
+import com.jackpf.locationhistory.client.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
@@ -62,6 +63,23 @@ public class BeaconWorker extends ListenableWorker {
         backgroundExecutor = Executors.newSingleThreadExecutor();
     }
 
+    private enum CompleteReason {
+        LOCATION_UPDATED("Location updated"),
+        NO_CONNECTION("No connection available"),
+        NO_LOCATION_PERMISSIONS("No location permissions"),
+        DEVICE_NOT_READY("Device not ready"),
+        DEVICE_CHECK_ERROR("Device check error"),
+        EMPTY_LOCATION_DATA("Empty location data"),
+        SET_LOCATION_FAILED("Location update failed"),
+        SET_LOCATION_ERROR("Set location error");
+
+        private final String message;
+
+        CompleteReason(String message) {
+            this.message = message;
+        }
+    }
+
     private Data completeData(String message, boolean updateRunTimestamp) {
         Data.Builder builder = new Data.Builder();
         builder.putString(WORKER_DATA_MESSAGE, message);
@@ -70,57 +88,22 @@ public class BeaconWorker extends ListenableWorker {
         return builder.build();
     }
 
-    private void completeNoConnection(CallbackToFutureAdapter.Completer<Result> completer, Throwable t) {
-        String message = "Completing with failure: no connection available";
-        log.e(t, message);
-        log.appendEventToFile(getApplicationContext(), message);
-        finish(completer, Result.failure(completeData(message, false)));
-    }
-
-    private void completeNoLocationPermissions(CallbackToFutureAdapter.Completer<Result> completer) {
-        String message = "Completing with failure: no location permissions";
-        log.e(message);
-        log.appendEventToFile(getApplicationContext(), message);
-        finish(completer, Result.failure(completeData(message, false)));
-    }
-
-    private void completeDeviceNotReady(CallbackToFutureAdapter.Completer<Result> completer) {
-        String message = "Completing with retry: device not ready";
-        log.w(message);
-        log.appendEventToFile(getApplicationContext(), message);
-        finish(completer, Result.retry());
-    }
-
-    private void completeDeviceCheckError(CallbackToFutureAdapter.Completer<Result> completer, Throwable t) {
-        String message = "Completing with failure: device check error";
-        log.e(t, message);
-        log.appendEventToFile(getApplicationContext(), message);
-        finish(completer, Result.failure(completeData(message, false)));
-    }
-
-    private void completeEmptyLocationData(CallbackToFutureAdapter.Completer<Result> completer) {
-        String message = "Completing with failure: empty location data";
-        log.e(message);
-        log.appendEventToFile(getApplicationContext(), message);
-        finish(completer, Result.failure(completeData(message, false)));
-    }
-
-    private void completeSetLocationSuccess(CallbackToFutureAdapter.Completer<Result> completer) {
-        String message = "Completing with success: location updated";
+    private void completeWithSuccess(CallbackToFutureAdapter.Completer<Result> completer, CompleteReason reason) {
+        String message = String.format("Completing with success: %s", reason.message);
         log.i(message);
         log.appendEventToFile(getApplicationContext(), message);
         finish(completer, Result.success(completeData(message, true)));
     }
 
-    private void completeSetLocationFailure(CallbackToFutureAdapter.Completer<Result> completer) {
-        String message = "Completing with failure: location update failed";
-        log.e(message);
+    private void completeWithRetry(CallbackToFutureAdapter.Completer<Result> completer, CompleteReason reason) {
+        String message = String.format("Completing with retry: %s", reason.message);
+        log.w(message);
         log.appendEventToFile(getApplicationContext(), message);
-        finish(completer, Result.failure(completeData(message, false)));
+        finish(completer, Result.retry());
     }
 
-    private void completeSetLocationError(CallbackToFutureAdapter.Completer<Result> completer, Throwable t) {
-        String message = "Completing with failure: set location error";
+    private void completeWithFailure(CallbackToFutureAdapter.Completer<Result> completer, CompleteReason reason, Throwable t) {
+        String message = String.format("Completing with failure: %s", reason.message);
         log.e(t, message);
         log.appendEventToFile(getApplicationContext(), message);
         finish(completer, Result.failure(completeData(message, false)));
@@ -144,7 +127,7 @@ public class BeaconWorker extends ListenableWorker {
 
                     beaconClient = BeaconClientFactory.createPooledClient(params, new TrustedCertStorage(getApplicationContext()));
                 } catch (IOException e) {
-                    completeNoConnection(completer, e);
+                    completeWithFailure(completer, CompleteReason.NO_CONNECTION, e);
                     return;
                 }
 
@@ -152,7 +135,7 @@ public class BeaconWorker extends ListenableWorker {
                 locationUpdateService = new LocationUpdateService(beaconClient, backgroundExecutor);
 
                 if (!permissionsManager.hasLocationPermissions()) {
-                    completeNoLocationPermissions(completer);
+                    completeWithFailure(completer, CompleteReason.NO_LOCATION_PERMISSIONS);
                     return;
                 }
 
@@ -161,12 +144,12 @@ public class BeaconWorker extends ListenableWorker {
                     @SuppressLint("MissingPermission")
                     public void onSafeSuccess(DeviceState state) {
                         if (state.isReady()) handleLocationUpdate(completer);
-                        else completeDeviceNotReady(completer);
+                        else completeWithRetry(completer, CompleteReason.DEVICE_NOT_READY);
                     }
 
                     @Override
                     public void onFailure(@NonNull Throwable t) {
-                        completeDeviceCheckError(completer, t);
+                        completeWithFailure(completer, CompleteReason.DEVICE_CHECK_ERROR, t);
                     }
                 }, backgroundExecutor);
             }));
@@ -192,16 +175,17 @@ public class BeaconWorker extends ListenableWorker {
                             public void onSafeSuccess(SetLocationResponse response) {
                                 if (response.getSuccess()) {
                                     deviceState.setLastRunTimestamp(System.currentTimeMillis());
-                                    completeSetLocationSuccess(completer);
-                                } else completeSetLocationFailure(completer);
+                                    completeWithSuccess(completer, CompleteReason.LOCATION_UPDATED);
+                                } else
+                                    completeWithFailure(completer, CompleteReason.SET_LOCATION_FAILED);
                             }
 
                             @Override
                             public void onFailure(@NonNull Throwable t) {
-                                completeSetLocationError(completer, t);
+                                completeWithFailure(completer, CompleteReason.SET_LOCATION_ERROR, t);
                             }
                         }, backgroundExecutor);
-                    } else completeEmptyLocationData(completer);
+                    } else completeWithFailure(completer, CompleteReason.EMPTY_LOCATION_DATA);
                 }).run()
         );
     }

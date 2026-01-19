@@ -1,4 +1,4 @@
-package com.jackpf.locationhistory.client;
+package com.jackpf.locationhistory.client.worker;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -14,6 +14,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.jackpf.locationhistory.client.ScheduledReceiver;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.util.Logger;
 import com.jackpf.locationhistory.client.util.PermissionException;

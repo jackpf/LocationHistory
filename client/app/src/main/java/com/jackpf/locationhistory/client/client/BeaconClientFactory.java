@@ -1,7 +1,5 @@
-package com.jackpf.locationhistory.client;
+package com.jackpf.locationhistory.client.client;
 
-import com.jackpf.locationhistory.client.client.ClientPool;
-import com.jackpf.locationhistory.client.client.SecureChannel;
 import com.jackpf.locationhistory.client.client.ssl.DynamicTrustManager;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;

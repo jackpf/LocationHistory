@@ -13,10 +13,9 @@ import androidx.lifecycle.LiveData;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.PingResponse;
-import com.jackpf.locationhistory.client.BeaconClientFactory;
-import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.MainActivity;
 import com.jackpf.locationhistory.client.R;
+import com.jackpf.locationhistory.client.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.client.ssl.SSLPrompt;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.client.ssl.UntrustedCertException;
@@ -29,6 +28,7 @@ import com.jackpf.locationhistory.client.push.ObservableUnifiedPushState;
 import com.jackpf.locationhistory.client.push.UnifiedPushService;
 import com.jackpf.locationhistory.client.util.Logger;
 import com.jackpf.locationhistory.client.util.PermissionException;
+import com.jackpf.locationhistory.client.worker.BeaconWorkerFactory;
 
 import org.unifiedpush.android.connector.UnifiedPush;
 
