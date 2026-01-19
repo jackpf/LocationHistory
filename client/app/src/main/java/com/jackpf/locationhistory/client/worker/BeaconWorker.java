@@ -169,7 +169,7 @@ public class BeaconWorker extends ListenableWorker {
         log.d("Updating location");
 
         locationService.getLocation(RequestedAccuracy.BALANCED, locationData ->
-                new SafeRunnable(completer, getApplicationContext(), () -> onResult.accept(completer, locationData))
+                new SafeRunnable(completer, getApplicationContext(), () -> onResult.accept(completer, locationData)).run()
         );
     }
 
