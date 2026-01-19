@@ -11,7 +11,6 @@ import androidx.work.Data;
 import androidx.work.ListenableWorker;
 import androidx.work.WorkerParameters;
 
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.SetLocationResponse;
@@ -24,7 +23,10 @@ import com.jackpf.locationhistory.client.model.DeviceState;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.service.DeviceStateService;
 import com.jackpf.locationhistory.client.service.LocationUpdateService;
+import com.jackpf.locationhistory.client.util.FileLogger;
 import com.jackpf.locationhistory.client.util.Logger;
+import com.jackpf.locationhistory.client.util.SafeCallback;
+import com.jackpf.locationhistory.client.util.SafeRunnable;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -120,9 +122,10 @@ public class BeaconWorker extends ListenableWorker {
     @Override
     public ListenableFuture<Result> startWork() {
         log.d("BeaconWorker doing work...");
+        FileLogger.appendLog(getApplicationContext(), "Beacon triggered");
 
         return CallbackToFutureAdapter.getFuture(completer -> {
-            backgroundExecutor.execute(() -> {
+            backgroundExecutor.execute(new SafeRunnable(completer, getApplicationContext(), () -> {
                 try {
                     BeaconClientFactory.BeaconClientParams params = new BeaconClientFactory.BeaconClientParams(
                             configRepository.getServerHost(),
@@ -145,10 +148,10 @@ public class BeaconWorker extends ListenableWorker {
                     return;
                 }
 
-                Futures.addCallback(deviceStateService.onDeviceStateReady(deviceState), new FutureCallback<DeviceState>() {
+                Futures.addCallback(deviceStateService.onDeviceStateReady(deviceState), new SafeCallback<DeviceState>(completer, getApplicationContext()) {
                     @Override
                     @SuppressLint("MissingPermission")
-                    public void onSuccess(DeviceState state) {
+                    public void onSafeSuccess(DeviceState state) {
                         if (state.isReady()) handleLocationUpdate(completer);
                         else completeDeviceNotReady(completer);
                     }
@@ -158,7 +161,7 @@ public class BeaconWorker extends ListenableWorker {
                         completeDeviceCheckError(completer, t);
                     }
                 }, backgroundExecutor);
-            });
+            }));
 
             return WORKER_FUTURE_NAME;
         });
@@ -169,32 +172,46 @@ public class BeaconWorker extends ListenableWorker {
         log.d("Updating location");
 
         // TODO Make RequestedAccuracy configurable, or trigger high accuracy at least every hour or something
-        locationService.getLocation(RequestedAccuracy.BALANCED, locationData -> {
-            if (locationData != null) {
-                log.d("Received location data: %s", locationData.toString());
+        locationService.getLocation(RequestedAccuracy.BALANCED, locationData ->
+                new SafeRunnable(completer, getApplicationContext(), () -> {
+                    if (locationData != null) {
+                        log.d("Received location data: %s", locationData.toString());
 
-                Futures.addCallback(locationUpdateService.setLocation(
-                        deviceState,
-                        locationData
-                ), new FutureCallback<SetLocationResponse>() {
-                    @Override
-                    public void onSuccess(SetLocationResponse response) {
-                        if (response.getSuccess()) {
-                            deviceState.setLastRunTimestamp(System.currentTimeMillis());
-                            completeSetLocationSuccess(completer);
-                        } else completeSetLocationFailure(completer);
-                    }
+                        Futures.addCallback(locationUpdateService.setLocation(
+                                deviceState,
+                                locationData
+                        ), new SafeCallback<SetLocationResponse>(completer, getApplicationContext()) {
+                            @Override
+                            public void onSafeSuccess(SetLocationResponse response) {
+                                if (response.getSuccess()) {
+                                    deviceState.setLastRunTimestamp(System.currentTimeMillis());
+                                    completeSetLocationSuccess(completer);
+                                } else completeSetLocationFailure(completer);
+                            }
 
-                    @Override
-                    public void onFailure(@NonNull Throwable t) {
-                        completeSetLocationError(completer, t);
-                    }
-                }, backgroundExecutor);
-            } else completeEmptyLocationData(completer);
-        });
+                            @Override
+                            public void onFailure(@NonNull Throwable t) {
+                                completeSetLocationError(completer, t);
+                            }
+                        }, backgroundExecutor);
+                    } else completeEmptyLocationData(completer);
+                }).run()
+        );
     }
 
     private void finish(CallbackToFutureAdapter.Completer<Result> completer, Result result) {
+        if (result instanceof ListenableWorker.Result.Success) {
+            Data data = result.getOutputData();
+            FileLogger.appendLog(getApplicationContext(), "Finished with result: " + data);
+        } else if (result instanceof ListenableWorker.Result.Failure) {
+            Data data = result.getOutputData();
+            FileLogger.appendLog(getApplicationContext(), "Finished with error: " + data);
+        } else if (result instanceof ListenableWorker.Result.Retry) {
+            FileLogger.appendLog(getApplicationContext(), "Finished with retry");
+        } else {
+            FileLogger.appendLog(getApplicationContext(), "Finished with unknown: " + result.getClass());
+        }
+
         try {
             close();
         } finally {
@@ -207,6 +224,7 @@ public class BeaconWorker extends ListenableWorker {
     public void onStopped() {
         super.onStopped();
         log.d("Worker stopped");
+        FileLogger.appendLog(getApplicationContext(), "Finished onStopped call");
         close();
     }
 
