@@ -19,6 +19,7 @@ import com.jackpf.locationhistory.client.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
+import com.jackpf.locationhistory.client.location.LocationData;
 import com.jackpf.locationhistory.client.location.LocationService;
 import com.jackpf.locationhistory.client.location.RequestedAccuracy;
 import com.jackpf.locationhistory.client.model.DeviceState;
@@ -32,6 +33,7 @@ import com.jackpf.locationhistory.client.util.SafeRunnable;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BiConsumer;
 
 public class BeaconWorker extends ListenableWorker {
     private final ConfigRepository configRepository;
@@ -143,7 +145,10 @@ public class BeaconWorker extends ListenableWorker {
                     @Override
                     @SuppressLint("MissingPermission")
                     public void onSafeSuccess(DeviceState state) {
-                        if (state.isReady()) handleLocationUpdate(completer);
+                        if (state.isReady()) requestLocationUpdate(
+                                completer,
+                                BeaconWorker.this::handleLocationUpdate
+                        );
                         else completeWithRetry(completer, CompleteReason.DEVICE_NOT_READY);
                     }
 
@@ -159,36 +164,39 @@ public class BeaconWorker extends ListenableWorker {
     }
 
     @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
-    private void handleLocationUpdate(CallbackToFutureAdapter.Completer<Result> completer) {
+    private void requestLocationUpdate(CallbackToFutureAdapter.Completer<Result> completer,
+                                       BiConsumer<CallbackToFutureAdapter.Completer<Result>, LocationData> onResult) {
         log.d("Updating location");
 
         locationService.getLocation(RequestedAccuracy.BALANCED, locationData ->
-                new SafeRunnable(completer, getApplicationContext(), () -> {
-                    if (locationData != null) {
-                        log.d("Received location data: %s", locationData.toString());
-
-                        Futures.addCallback(locationUpdateService.setLocation(
-                                deviceState,
-                                locationData
-                        ), new SafeCallback<SetLocationResponse>(completer, getApplicationContext()) {
-                            @Override
-                            public void onSafeSuccess(SetLocationResponse response) {
-                                if (response.getSuccess()) {
-                                    deviceState.setLastRunTimestamp(System.currentTimeMillis());
-                                    completeWithSuccess(completer, CompleteReason.LOCATION_UPDATED);
-                                } else {
-                                    completeWithFailure(completer, CompleteReason.SET_LOCATION_FAILED, null);
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(@NonNull Throwable t) {
-                                completeWithFailure(completer, CompleteReason.SET_LOCATION_ERROR, t);
-                            }
-                        }, backgroundExecutor);
-                    } else completeWithFailure(completer, CompleteReason.EMPTY_LOCATION_DATA, null);
-                }).run()
+                new SafeRunnable(completer, getApplicationContext(), () -> onResult.accept(completer, locationData))
         );
+    }
+
+    private void handleLocationUpdate(CallbackToFutureAdapter.Completer<Result> completer, LocationData locationData) {
+        if (locationData != null) {
+            log.d("Received location data: %s", locationData.toString());
+
+            Futures.addCallback(locationUpdateService.setLocation(
+                    deviceState,
+                    locationData
+            ), new SafeCallback<SetLocationResponse>(completer, getApplicationContext()) {
+                @Override
+                public void onSafeSuccess(SetLocationResponse response) {
+                    if (response.getSuccess()) {
+                        deviceState.setLastRunTimestamp(System.currentTimeMillis());
+                        completeWithSuccess(completer, CompleteReason.LOCATION_UPDATED);
+                    } else {
+                        completeWithFailure(completer, CompleteReason.SET_LOCATION_FAILED, null);
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Throwable t) {
+                    completeWithFailure(completer, CompleteReason.SET_LOCATION_ERROR, t);
+                }
+            }, backgroundExecutor);
+        } else completeWithFailure(completer, CompleteReason.EMPTY_LOCATION_DATA, null);
     }
 
     private void finish(CallbackToFutureAdapter.Completer<Result> completer, Result result) {
