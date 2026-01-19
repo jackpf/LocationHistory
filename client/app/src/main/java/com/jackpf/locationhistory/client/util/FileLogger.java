@@ -11,12 +11,12 @@ import java.util.Locale;
 
 public class FileLogger {
     private static final Logger log = new Logger("FileLogger");
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
     private static final String DEBUG_FILE = "debug_log.txt";
 
     public static void appendLog(Context context, String text) {
         File logFile = new File(context.getFilesDir(), DEBUG_FILE);
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         String timestamp = sdf.format(new Date());
         String entry = timestamp + ": " + text + "\n";
 
