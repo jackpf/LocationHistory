@@ -65,8 +65,7 @@ public class Logger {
         File logFile = new File(context.getFilesDir(), EVENT_LOG_FILE);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        String timestamp = sdf.format(new Date());
-        String entry = timestamp + ": " + format(msg, args) + "\n";
+        String entry = sdf.format(new Date()) + ": " + format(msg, args) + "\n";
 
         try (FileOutputStream fos = new FileOutputStream(logFile, true)) {
             fos.write(entry.getBytes());
