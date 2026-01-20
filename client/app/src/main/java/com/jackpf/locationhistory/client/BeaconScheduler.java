@@ -23,7 +23,7 @@ public class BeaconScheduler {
     private final long wakelockTimeout;
 
     private static final String WAKELOCK_TAG = "BeaconScheduler:wakelock";
-    public static final long DEFAULT_WAKELOCK_TIMEOUT = TimeUnit.MINUTES.toMillis(10);
+    public static final long DEFAULT_WAKELOCK_TIMEOUT = TimeUnit.MINUTES.toMillis(1);
 
     public BeaconScheduler(AlarmManager alarmManager,
                            PowerManager.WakeLock wakeLock,
