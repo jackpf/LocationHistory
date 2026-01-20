@@ -82,7 +82,7 @@ public class SettingsViewModel extends AndroidViewModel {
         try {
             configRepository.setServerHost(host);
             configRepository.setServerPort(Integer.parseInt(portText));
-            configRepository.setUpdateIntervalMinutes(Integer.parseInt(updateInterval));
+            configRepository.setUpdateIntervalMinutes(Long.parseLong(updateInterval));
 
             events.postValue(new SettingsViewEvent.Toast(R.string.toast_saved));
         } catch (NumberFormatException e) {

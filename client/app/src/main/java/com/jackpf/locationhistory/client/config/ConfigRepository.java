@@ -83,13 +83,12 @@ public class ConfigRepository {
         return prefs.getLong(LAST_RUN_TIMESTAMP_KEY, 0L);
     }
 
-    // TODO Long
-    public int getUpdateIntervalMinutes() {
-        return prefs.getInt(UPDATE_INTERVAL_KEY, 15);
+    public long getUpdateIntervalMinutes() {
+        return prefs.getLong(UPDATE_INTERVAL_KEY, 15L);
     }
 
-    public void setUpdateIntervalMinutes(int minutes) {
-        prefs.edit().putInt(UPDATE_INTERVAL_KEY, minutes).apply();
+    public void setUpdateIntervalMinutes(long minutes) {
+        prefs.edit().putLong(UPDATE_INTERVAL_KEY, minutes).apply();
     }
 
     public void setLastRunTimestamp(long lastRunTime) {

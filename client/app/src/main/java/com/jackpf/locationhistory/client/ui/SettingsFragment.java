@@ -66,7 +66,7 @@ public class SettingsFragment extends Fragment {
     private void setupInputs() {
         binding.serverHostInput.setText(viewModel.getConfig().getServerHost());
         binding.serverPortInput.setText(String.valueOf(viewModel.getConfig().getServerPort()));
-        binding.updateFrequencyInput.setText(Integer.toString(viewModel.getConfig().getUpdateIntervalMinutes()));
+        binding.updateFrequencyInput.setText(Long.toString(viewModel.getConfig().getUpdateIntervalMinutes()));
 
         binding.testButton.setOnClickListener(v -> viewModel.testConnection(
                 binding.serverHostInput.getText().toString(),

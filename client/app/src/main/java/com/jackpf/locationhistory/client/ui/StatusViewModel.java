@@ -49,6 +49,7 @@ public class StatusViewModel extends AndroidViewModel {
 
     public void startListening() {
         configRepository.registerOnSharedPreferenceChangeListener(preferenceListener);
+        // TODO Could probably do with de-bouncing
         updateDeviceState();
     }
 
