@@ -14,6 +14,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.jackpf.locationhistory.client.util.Logger;
 
+import java.util.concurrent.TimeUnit;
+
 public class BeaconScheduler {
     private final Logger log = new Logger(this);
     private final AlarmManager alarmManager;
@@ -21,6 +23,7 @@ public class BeaconScheduler {
     private final long wakelockTimeout;
 
     private static final String WAKELOCK_TAG = "BeaconScheduler:wakelock";
+    public static final long DEFAULT_WAKELOCK_TIMEOUT = TimeUnit.MINUTES.toMillis(1);
 
     public BeaconScheduler(AlarmManager alarmManager,
                            PowerManager.WakeLock wakeLock,
