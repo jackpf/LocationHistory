@@ -57,8 +57,8 @@ public class LocationServiceTest {
                 optimisedProvider
         );
 
-        mockGpsLocation = new LocationData(mock(Location.class), LocationManager.GPS_PROVIDER);
-        mockNetworkLocation = new LocationData(mock(Location.class), LocationManager.NETWORK_PROVIDER);
+        mockGpsLocation = new LocationData(mock(Location.class), LocationManager.GPS_PROVIDER, "mock-provider");
+        mockNetworkLocation = new LocationData(mock(Location.class), LocationManager.NETWORK_PROVIDER, "mock-provider");
     }
 
     @Test(expected = SecurityException.class)

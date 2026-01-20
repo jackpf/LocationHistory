@@ -59,7 +59,7 @@ public class BeaconTask {
         );
     }
 
-    public ListenableFuture<Void> run() {
+    public ListenableFuture<BeaconResult> run() {
         return Futures.submitAsync(() -> {
             if (!permissionsManager.hasLocationPermissions()) {
                 return Futures.immediateFailedFuture(new NoLocationPermissionsException());
@@ -68,7 +68,9 @@ public class BeaconTask {
             BeaconContext beaconContext = beaconContextFactory.call();
             return onDeviceReady(beaconContext, () ->
                     requestLocationUpdate(beaconContext, (locationData) ->
-                            handleLocationUpdate(beaconContext, locationData, Futures::immediateVoidFuture)
+                            handleLocationUpdate(beaconContext, locationData, () ->
+                                    Futures.immediateFuture(new BeaconResult(beaconContext.getDeviceState(), locationData))
+                            )
                     )
             );
         }, executor);
@@ -120,7 +122,7 @@ public class BeaconTask {
         );
     }
 
-    public static ListenableFuture<Void> runSafe(Context context, ExecutorService executor) {
+    public static ListenableFuture<BeaconResult> runSafe(Context context, ExecutorService executor) {
         try {
             return BeaconTask.create(context, executor).run();
         } catch (IOException e) {
