@@ -61,7 +61,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
           .thenReturn(token)
 
         val request: LoginRequest = LoginRequest(password = password)
-        val result: Future[LoginResponse] = adminService.login(request)
+        lazy val result: Future[LoginResponse] = adminService.login(request)
       }
 
       "return a token on correct password" >> in(new LoginEndpoint {
@@ -90,7 +90,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         }
 
         val request: ListDevicesRequest = ListDevicesRequest()
-        val result: Future[ListDevicesResponse] = adminService.listDevices(request)
+        lazy val result: Future[ListDevicesResponse] = adminService.listDevices(request)
       }
 
       "get all devices" >> in(new ListDevicesContext {
@@ -160,7 +160,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
           .thenReturn(updateResponse)
 
         val request: ApproveDeviceRequest = ApproveDeviceRequest(deviceId = deviceId)
-        val result: Future[ApproveDeviceResponse] = adminService.approveDevice(request)
+        lazy val result: Future[ApproveDeviceResponse] = adminService.approveDevice(request)
       }
 
       "approve a device" >> in(new ApproveDeviceContext {
@@ -229,7 +229,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         when(locationRepo.getForDevice(DeviceId(deviceId), limit = None)).thenReturn(getResponse)
 
         val request: ListLocationsRequest = ListLocationsRequest(deviceId = deviceId)
-        val result: Future[ListLocationsResponse] = adminService.listLocations(request)
+        lazy val result: Future[ListLocationsResponse] = adminService.listLocations(request)
       }
 
       "list locations for the given device" >> in(new ListLocationsContext {
@@ -286,7 +286,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
 
         val request: SendNotificationRequest =
           SendNotificationRequest(deviceId = deviceId, notification = notification)
-        val result: Future[SendNotificationResponse] = adminService.sendNotification(request)
+        lazy val result: Future[SendNotificationResponse] = adminService.sendNotification(request)
       }
 
       "send a notification" >> in(new SendNotificationContext {
