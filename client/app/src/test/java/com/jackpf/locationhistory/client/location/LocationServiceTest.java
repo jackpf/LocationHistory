@@ -14,7 +14,6 @@ import static org.mockito.Mockito.when;
 import android.location.Location;
 import android.location.LocationManager;
 
-import com.google.common.util.concurrent.MoreExecutors;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 
 import org.junit.Before;
@@ -53,14 +52,13 @@ public class LocationServiceTest {
         locationService = new LocationService(
                 locationManager,
                 permissionsManager,
-                MoreExecutors.newDirectExecutorService(),
                 legacyHighAccuracyProvider,
                 legacyCachedProvider,
                 optimisedProvider
         );
 
-        mockGpsLocation = new LocationData(mock(Location.class), LocationManager.GPS_PROVIDER);
-        mockNetworkLocation = new LocationData(mock(Location.class), LocationManager.NETWORK_PROVIDER);
+        mockGpsLocation = new LocationData(mock(Location.class), LocationManager.GPS_PROVIDER, "mock-provider");
+        mockNetworkLocation = new LocationData(mock(Location.class), LocationManager.NETWORK_PROVIDER, "mock-provider");
     }
 
     @Test(expected = SecurityException.class)

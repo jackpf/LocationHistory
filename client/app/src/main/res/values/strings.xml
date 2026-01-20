@@ -2,6 +2,9 @@
 
     <string name="app_name">Location History</string>
 
+    <string name="persistent_notification_title" />
+    <string name="persistent_notification_message">Beacon Active</string>
+
     <string name="permissions_title">Permissions</string>
     <string name="permissions_missing">Permissions Missing</string>
     <string name="schedule_error">Unable to schedule updates</string>
@@ -13,7 +16,7 @@
     <string name="permission_desc_background_location">Background location</string>
     <string name="permission_exp_background_location">Required to access your location</string>
     <string name="permission_desc_post_notifications">Send notifications</string>
-    <string name="permission_exp_post_notifications">Required only for \"Locate Device\" to work</string>
+    <string name="permission_exp_post_notifications">Required for persistent notification</string>
     <string name="permission_desc_schedule_alarms">Schedule alarms</string>
     <string name="permission_exp_schedule_alarms">Required for scheduled location updates</string>
     <string name="permission_desc_ignore_optimisations">Background operation</string>
@@ -53,10 +56,7 @@
     <string name="cancel">Cancel</string>
 
     <string name="update_frequency">Update Frequency</string>
-    <string name="update_frequency_balanced">Balanced</string>
-    <string name="update_frequency_high">Scheduled</string>
-    <string name="update_every">Update Every</string>
-    <string name="update_every_hint">Minutes</string>
+    <string name="update_frequency_hint">Minutes</string>
 
     <string name="enable_unified_push">Enable UnifiedPush</string>
     <string name="select_distributor">Select a push distributor</string>

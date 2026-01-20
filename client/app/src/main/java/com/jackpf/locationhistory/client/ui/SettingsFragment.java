@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -13,7 +12,6 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.jackpf.locationhistory.client.R;
 import com.jackpf.locationhistory.client.client.ssl.SSLPrompt;
-import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
 import com.jackpf.locationhistory.client.push.ObservableUnifiedPushState;
 import com.jackpf.locationhistory.client.util.Logger;
@@ -45,10 +43,18 @@ public class SettingsFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
         sslPrompt = new SSLPrompt(requireActivity());
 
-        setupServerInputs();
-        setupUpdateFrequency();
-        setupUnifiedPush();
-        observeEvents();
+        setupInputs();
+        setupUnifiedPushListener();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
     }
 
     @Override
@@ -57,12 +63,11 @@ public class SettingsFragment extends Fragment {
         binding = null;
     }
 
-    private void setupServerInputs() {
-        // Load saved values
+    private void setupInputs() {
         binding.serverHostInput.setText(viewModel.getConfig().getServerHost());
         binding.serverPortInput.setText(String.valueOf(viewModel.getConfig().getServerPort()));
+        binding.updateFrequencyInput.setText(Integer.toString(viewModel.getConfig().getUpdateIntervalMinutes()));
 
-        // Button handlers
         binding.testButton.setOnClickListener(v -> viewModel.testConnection(
                 binding.serverHostInput.getText().toString(),
                 binding.serverPortInput.getText().toString()
@@ -71,46 +76,11 @@ public class SettingsFragment extends Fragment {
         binding.saveButton.setOnClickListener(v -> viewModel.saveSettings(
                 binding.serverHostInput.getText().toString(),
                 binding.serverPortInput.getText().toString(),
-                (ConfigRepository.UpdateFrequency) binding.updateFrequencyInput.getTag(),
-                binding.updateEveryInput.getText().toString()
+                binding.updateFrequencyInput.getText().toString()
         ));
     }
 
-    private void setupUpdateFrequency() {
-        String[] frequencyOptions = new String[]{
-                getString(R.string.update_frequency_balanced),
-                getString(R.string.update_frequency_high)
-        };
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_dropdown_item_1line,
-                frequencyOptions
-        );
-        binding.updateFrequencyInput.setAdapter(adapter);
-
-        // Set initial values
-        ConfigRepository.UpdateFrequency savedFrequency = viewModel.getConfig().getUpdateFrequency();
-        binding.updateFrequencyInput.setTag(savedFrequency);
-        binding.updateFrequencyInput.setText(frequencyOptions[savedFrequency.ordinal()], false);
-        setUpdateEveryEnabled(savedFrequency == ConfigRepository.UpdateFrequency.SCHEDULED);
-
-        binding.updateEveryInput.setText(String.valueOf(viewModel.getConfig().getUpdateIntervalMinutes()));
-
-        // Listen for changes
-        binding.updateFrequencyInput.setOnItemClickListener((parent, v, position, id) -> {
-            ConfigRepository.UpdateFrequency frequency = ConfigRepository.UpdateFrequency.values()[position];
-            binding.updateFrequencyInput.setTag(frequency);
-            setUpdateEveryEnabled(frequency == ConfigRepository.UpdateFrequency.SCHEDULED);
-        });
-    }
-
-    private void setUpdateEveryEnabled(boolean enabled) {
-        binding.updateEveryInputLayout.setEnabled(enabled);
-        binding.updateEveryInput.setEnabled(enabled);
-    }
-
-    private void setupUnifiedPush() {
+    private void setupUnifiedPushListener() {
         ObservableUnifiedPushState.getInstance(requireContext())
                 .observeEnabled()
                 .observe(getViewLifecycleOwner(), isEnabled -> {

@@ -36,7 +36,7 @@ public class LegacyCachedProvider implements LocationProvider {
     private LocationData getCachedLocation(String source) {
         Location location = locationManager.getLastKnownLocation(source);
 
-        return new LocationData(location, source);
+        return new LocationData(location, source, getClass().getName());
     }
 
     @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})

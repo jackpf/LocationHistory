@@ -11,16 +11,14 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-public class LocationService implements AutoCloseable {
+public class LocationService {
     private final LocationManager locationManager;
     private final PermissionsManager permissionsManager;
-    private final ExecutorService threadExecutor;
     private final LegacyHighAccuracyProvider legacyHighAccuracyProvider;
     private final LegacyCachedProvider legacyCachedProvider;
     private final OptimisedProvider optimisedProvider;
@@ -50,26 +48,23 @@ public class LocationService implements AutoCloseable {
 
     LocationService(LocationManager locationManager,
                     PermissionsManager permissionsManager,
-                    ExecutorService threadExecutor,
                     LegacyHighAccuracyProvider legacyHighAccuracyProvider,
                     LegacyCachedProvider legacyCachedProvider,
                     OptimisedProvider optimisedProvider) {
         this.locationManager = locationManager;
         this.permissionsManager = permissionsManager;
-        this.threadExecutor = threadExecutor;
         this.legacyHighAccuracyProvider = legacyHighAccuracyProvider;
         this.legacyCachedProvider = legacyCachedProvider;
         this.optimisedProvider = optimisedProvider;
     }
 
-    public static LocationService create(Context context, PermissionsManager permissionsManager) {
+    public static LocationService create(Context context,
+                                         ExecutorService threadExecutor) {
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
 
         return new LocationService(
                 locationManager,
-                permissionsManager,
-                threadExecutor,
+                new PermissionsManager(context),
                 new LegacyHighAccuracyProvider(locationManager, threadExecutor),
                 new LegacyCachedProvider(locationManager, threadExecutor),
                 new OptimisedProvider(locationManager, threadExecutor)
@@ -137,10 +132,5 @@ public class LocationService implements AutoCloseable {
         }
 
         callProvider(providers.iterator(), consumer);
-    }
-
-    @Override
-    public void close() {
-        threadExecutor.shutdown();
     }
 }

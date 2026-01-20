@@ -10,9 +10,8 @@ import androidx.lifecycle.LiveData;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.jackpf.locationhistory.PingResponse;
-import com.jackpf.locationhistory.client.BeaconClientFactory;
-import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.R;
+import com.jackpf.locationhistory.client.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.client.ssl.UntrustedCertException;
 import com.jackpf.locationhistory.client.client.util.GrpcFutureWrapper;
@@ -21,7 +20,6 @@ import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.push.Ntfy;
 import com.jackpf.locationhistory.client.push.UnifiedPushService;
 import com.jackpf.locationhistory.client.util.Logger;
-import com.jackpf.locationhistory.client.util.PermissionException;
 
 import org.unifiedpush.android.connector.UnifiedPush;
 
@@ -82,26 +80,11 @@ public class SettingsViewModel extends AndroidViewModel {
         }
     }
 
-    public void saveSettings(String host, String portText, ConfigRepository.UpdateFrequency frequency, String intervalText) {
+    public void saveSettings(String host, String portText, String updateInterval) {
         try {
             configRepository.setServerHost(host);
             configRepository.setServerPort(Integer.parseInt(portText));
-            configRepository.setUpdateFrequency(frequency);
-
-            if (frequency == ConfigRepository.UpdateFrequency.SCHEDULED && !intervalText.isEmpty()) {
-                configRepository.setUpdateIntervalMinutes(Integer.parseInt(intervalText));
-            }
-
-            // Run once to trigger device registration
-            BeaconWorkerFactory.runOnce(getApplication());
-            // Schedule regular worker
-            try {
-                BeaconWorkerFactory.schedule(getApplication(), configRepository);
-                events.postValue(new SettingsViewEvent.Toast(R.string.toast_saved));
-            } catch (PermissionException e) {
-                log.e("Unable to schedule beacon worker", e);
-                events.postValue(new SettingsViewEvent.Toast(R.string.schedule_error));
-            }
+            configRepository.setUpdateIntervalMinutes(Integer.parseInt(updateInterval));
         } catch (NumberFormatException e) {
             events.postValue(new SettingsViewEvent.Toast(R.string.toast_invalid_settings, e.getMessage()));
         }

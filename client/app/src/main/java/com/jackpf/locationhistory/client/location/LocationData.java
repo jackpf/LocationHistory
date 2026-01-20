@@ -8,4 +8,5 @@ import lombok.Value;
 public class LocationData {
     Location location;
     String source;
+    String provider;
 }

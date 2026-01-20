@@ -10,15 +10,15 @@ import androidx.annotation.Nullable;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.jackpf.locationhistory.Notification;
-import com.jackpf.locationhistory.client.BeaconClientFactory;
-import com.jackpf.locationhistory.client.BeaconWorkerFactory;
 import com.jackpf.locationhistory.client.R;
+import com.jackpf.locationhistory.client.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.ui.Notifications;
 import com.jackpf.locationhistory.client.ui.Toasts;
 import com.jackpf.locationhistory.client.util.Logger;
+import com.jackpf.locationhistory.client.worker.BeaconTask;
 
 import org.unifiedpush.android.connector.FailedReason;
 import org.unifiedpush.android.connector.PushService;
@@ -27,11 +27,16 @@ import org.unifiedpush.android.connector.data.PushEndpoint;
 import org.unifiedpush.android.connector.data.PushMessage;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class UnifiedPushService extends PushService {
     private static final String NAME = "UnifiedPush";
     private static final String CUSTOM_UNREGISTER_ACTION = "com.jackpf.locationhistory.client.MANUAL_UNREGISTER";
+    private static final int ALARM_NOTIFICATION_ID = 1;
 
+    @Nullable
+    private ExecutorService executor;
     @Nullable
     private ConfigRepository configRepository;
     @Nullable
@@ -55,6 +60,9 @@ public class UnifiedPushService extends PushService {
 
     @Override
     public void onCreate() {
+        super.onCreate();
+
+        executor = Executors.newSingleThreadExecutor();
         configRepository = new ConfigRepository(getApplicationContext());
         unifiedPushStorage = new UnifiedPushStorage(getApplicationContext());
         try {
@@ -71,6 +79,8 @@ public class UnifiedPushService extends PushService {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
+
         if (intent != null && CUSTOM_UNREGISTER_ACTION.equals(intent.getAction())) {
             String instance = intent.getStringExtra("instance");
             onUnregistered(instance != null ? instance : "");
@@ -78,6 +88,13 @@ public class UnifiedPushService extends PushService {
             return START_NOT_STICKY;
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (executor != null) executor.shutdown();
     }
 
     @Override
@@ -103,12 +120,13 @@ public class UnifiedPushService extends PushService {
                 log.d("Triggering on-demand beacon");
                 // TODO Handle accuracy request
 //                LocationNotification locationNotification = notification.getTriggerLocation();
-                BeaconWorkerFactory.runOnce(getApplicationContext());
+                BeaconTask.runSafe(getApplicationContext(), executor);
             }
 
             if (notification.hasTriggerAlarm()) {
                 log.d("Triggering on-demand alarm");
-                new Notifications(getApplicationContext()).triggerAlarm();
+                Notifications notifications = new Notifications(getApplicationContext());
+                notifications.show(ALARM_NOTIFICATION_ID, notifications.createAlarmNotification());
             }
         } catch (InvalidProtocolBufferException e) {
             log.e("Failed to parse notification", e);
