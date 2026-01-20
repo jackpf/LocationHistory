@@ -35,6 +35,7 @@ public class BeaconService extends Service {
     private BeaconScheduler beaconScheduler;
     private static final int PERSISTENT_NOTIFICATION_ID = 1;
     private static final String ACTION_RUN_TASK = "com.jackpf.locationhistory.client.ACTION_BEACON_SERVICE";
+    private static final long WAKELOCK_TIMEOUT = TimeUnit.MINUTES.toMillis(10);
 
     private static final String START_MESSAGE = "Beacon task started";
     private static final String SUCCESS_MESSAGE = "Beacon task completed successfully";
@@ -111,7 +112,7 @@ public class BeaconService extends Service {
         configRepository = new ConfigRepository(this);
         configRepository.registerOnSharedPreferenceChangeListener(configChangeListener);
 
-        beaconScheduler = BeaconScheduler.create(this);
+        beaconScheduler = BeaconScheduler.create(this, WAKELOCK_TIMEOUT);
     }
 
     @Override

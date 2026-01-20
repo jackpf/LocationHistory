@@ -14,23 +14,23 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.jackpf.locationhistory.client.util.Logger;
 
-import java.util.concurrent.TimeUnit;
-
 public class BeaconScheduler {
     private final Logger log = new Logger(this);
     private final AlarmManager alarmManager;
     private final PowerManager.WakeLock wakeLock;
+    private final long wakelockTimeout;
 
-    private static final String WAKELOCK_TAG = "BeaconScheduler";
-    private static final long WAKELOCK_TIMEOUT = TimeUnit.MINUTES.toMillis(10);
+    private static final String WAKELOCK_TAG = "BeaconScheduler:wakelock";
 
     public BeaconScheduler(AlarmManager alarmManager,
-                           PowerManager.WakeLock wakeLock) {
+                           PowerManager.WakeLock wakeLock,
+                           long wakelockTimeout) {
         this.alarmManager = alarmManager;
         this.wakeLock = wakeLock;
+        this.wakelockTimeout = wakelockTimeout;
     }
 
-    public static BeaconScheduler create(Context context) {
+    public static BeaconScheduler create(Context context, long wakelockTimeout) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
@@ -39,7 +39,8 @@ public class BeaconScheduler {
 
         return new BeaconScheduler(
                 alarmManager,
-                wakeLock
+                wakeLock,
+                wakelockTimeout
         );
     }
 
@@ -96,7 +97,7 @@ public class BeaconScheduler {
 
     private void acquireLock() {
         if (!wakeLock.isHeld()) {
-            wakeLock.acquire(WAKELOCK_TIMEOUT);
+            wakeLock.acquire(wakelockTimeout);
         }
     }
 
