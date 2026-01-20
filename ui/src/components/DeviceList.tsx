@@ -1,7 +1,10 @@
 import React, {useState} from "react";
 import {type Device, DeviceStatus, type StoredDevice} from "../gen/common.ts";
-import {NotificationType, type SendNotificationResponse, type StoredDeviceWithMetadata} from "../gen/admin-service.ts";
+import {type SendNotificationResponse, type StoredDeviceWithMetadata} from "../gen/admin-service.ts";
+import {LocationAccuracyRequest, type Notification} from "../gen/notifications.ts";
 import {formatDistanceToNow} from "date-fns";
+import {Tooltip} from "react-tooltip";
+import {toast} from "sonner"
 
 interface DeviceListProps {
     devices: StoredDeviceWithMetadata[];
@@ -10,7 +13,7 @@ interface DeviceListProps {
     setForceRecenter: (force: boolean) => void;
     approveDevice: (deviceId: string) => void;
     deleteDevice: (deviceId: string) => void;
-    sendNotification: (deviceId: string, notificationType: NotificationType) => Promise<SendNotificationResponse | undefined>;
+    sendNotification: (deviceId: string, notification: Notification) => Promise<SendNotificationResponse | undefined>;
     logout: () => void;
 }
 
@@ -35,13 +38,25 @@ export const DeviceList: React.FC<DeviceListProps> = ({
         setOpenMenuId(null);
     };
 
-    const handleRing = async (storedDevice: StoredDevice) => {
+    const handlePlaySound = async (storedDevice: StoredDevice) => {
         const device = storedDevice.device;
         if (!device || !storedDevice.pushHandler) return;
 
-        sendNotification(device.id, NotificationType.REQUEST_ALARM)
+        sendNotification(device.id, {triggerAlarm: {}})
             .then(r => {
-                if (r && r.success) console.log(`Sent alarm notification to ${device.id}`);
+                if (r && r.success) toast(`Sent alarm request to ${device.id}`);
+            });
+
+        setOpenMenuId(null);
+    };
+
+    const handleHighAccuracyMode = async (storedDevice: StoredDevice) => {
+        const device = storedDevice.device;
+        if (!device || !storedDevice.pushHandler) return;
+
+        sendNotification(device.id, {setAccuracy: {requestAccuracy: LocationAccuracyRequest.HIGH}})
+            .then(r => {
+                if (r && r.success) toast(`Sent high accuracy request to ${device.id}`);
             });
 
         setOpenMenuId(null);
@@ -91,6 +106,11 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                 </svg>
             </button>
 
+            <Tooltip id="device-menu-tooltip"
+                     place="right"
+                     style={{zIndex: 9999}}
+            />
+
             <aside className={`sidebar ${isOpen ? "open" : "closed"}`}>
                 <div className="sidebar-header">
                     <h2>Devices</h2>
@@ -129,9 +149,21 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                                         {storedDevice.pushHandler &&
                                             <button
                                                 className="device-ring-btn"
-                                                onClick={() => handleRing(storedDevice)}
+                                                onClick={() => handlePlaySound(storedDevice)}
+                                                data-tooltip-id="device-menu-tooltip"
+                                                data-tooltip-content="Play an alarm sound"
                                             >
                                                 Play Sound
+                                            </button>
+                                        }
+                                        {storedDevice.pushHandler &&
+                                            <button
+                                                className="device-high-accuracy-btn"
+                                                onClick={() => handleHighAccuracyMode(storedDevice)}
+                                                data-tooltip-id="device-menu-tooltip"
+                                                data-tooltip-content="Request frequent update & high accuracy mode for 30 minutes"
+                                            >
+                                                Locate
                                             </button>
                                         }
                                         <button

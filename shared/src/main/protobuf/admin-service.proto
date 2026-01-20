@@ -5,6 +5,7 @@ package com.jackpf.locationhistory;
 option java_multiple_files = true;
 
 import "common.proto";
+import "notifications.proto";
 
 service AdminService {
   rpc Login(LoginRequest) returns (LoginResponse);
@@ -59,14 +60,9 @@ message ListLocationsResponse {
   repeated StoredLocation locations = 1;
 }
 
-enum NotificationType {
-  REQUEST_BEACON = 0;
-  REQUEST_ALARM = 1;
-}
-
 message SendNotificationRequest {
   string deviceId = 1;
-  NotificationType notification_type = 2;
+  Notification notification = 2;
 }
 
 message SendNotificationResponse {

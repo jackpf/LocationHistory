@@ -4,12 +4,14 @@ DOCKER_RELOAD ?= docker compose up -d --force-recreate
 
 .PHONY: clean
 clean:
+	make -C shared clean
 	make -C server clean
 	make -C client clean
 	make -C ui clean
 
 .PHONY: package-all
 package-all:
+	make -C shared publish
 	make -C server package
 	#make -C client build
 	make -C ui package

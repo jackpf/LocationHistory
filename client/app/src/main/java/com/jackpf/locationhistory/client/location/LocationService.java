@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import lombok.AllArgsConstructor;
@@ -59,7 +59,7 @@ public class LocationService {
     }
 
     public static LocationService create(Context context,
-                                         ExecutorService threadExecutor) {
+                                         Executor threadExecutor) {
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         return new LocationService(

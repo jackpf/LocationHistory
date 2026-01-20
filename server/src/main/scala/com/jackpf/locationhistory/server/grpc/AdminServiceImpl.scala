@@ -8,7 +8,6 @@ import com.jackpf.locationhistory.server.grpc.interceptors.TokenService
 import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.service.NotificationService
-import com.jackpf.locationhistory.server.service.NotificationService.Notification
 import com.jackpf.locationhistory.server.util.Logging
 import com.jackpf.locationhistory.server.util.ParamExtractor.*
 import com.jackpf.locationhistory.server.util.ResponseMapper.*
@@ -91,11 +90,9 @@ class AdminServiceImpl(
     val deviceId = DeviceId(request.deviceId)
 
     for {
+      notification <- request.notification.toFutureOr(NoNotificationProvided())
       storedDevice <- deviceRepo.getRegisteredDevice(deviceId).toFuture
       pushHandler <- storedDevice.pushHandler.toFutureOr(NoPushHandler(deviceId))
-      notification <- Notification
-        .fromProto(request.notificationType)
-        .toFutureOr(InvalidNotificationType(request.notificationType))
       response <- notificationService.sendNotification(pushHandler.url, notification)
     } yield response
   }.toResponse(_ => SendNotificationResponse(success = true))

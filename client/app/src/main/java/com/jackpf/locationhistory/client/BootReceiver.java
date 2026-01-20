@@ -15,7 +15,10 @@ public class BootReceiver extends BroadcastReceiver {
                 "android.intent.action.QUICKBOOT_POWERON".equals(intent.getAction())) {
             log.i("Device rebooted. Restarting service...");
 
-            BeaconService.startForegroundIfPermissionsGranted(context);
+            BeaconService.startForegroundIfPermissionsGranted(
+                    context,
+                    AppRequirements.getRequirements(context)
+            );
         }
     }
 }

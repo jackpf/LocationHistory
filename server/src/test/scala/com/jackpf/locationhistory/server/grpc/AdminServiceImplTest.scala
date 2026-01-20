@@ -12,7 +12,7 @@ import com.jackpf.locationhistory.server.model
 import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.service.NotificationService
-import com.jackpf.locationhistory.server.service.NotificationService.Notification
+import com.jackpf.locationhistory.notifications.Notification
 import com.jackpf.locationhistory.server.testutil.{
   DefaultScope,
   DefaultSpecification,
@@ -61,7 +61,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
           .thenReturn(token)
 
         val request: LoginRequest = LoginRequest(password = password)
-        val result: Future[LoginResponse] = adminService.login(request)
+        lazy val result: Future[LoginResponse] = adminService.login(request)
       }
 
       "return a token on correct password" >> in(new LoginEndpoint {
@@ -90,7 +90,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         }
 
         val request: ListDevicesRequest = ListDevicesRequest()
-        val result: Future[ListDevicesResponse] = adminService.listDevices(request)
+        lazy val result: Future[ListDevicesResponse] = adminService.listDevices(request)
       }
 
       "get all devices" >> in(new ListDevicesContext {
@@ -160,7 +160,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
           .thenReturn(updateResponse)
 
         val request: ApproveDeviceRequest = ApproveDeviceRequest(deviceId = deviceId)
-        val result: Future[ApproveDeviceResponse] = adminService.approveDevice(request)
+        lazy val result: Future[ApproveDeviceResponse] = adminService.approveDevice(request)
       }
 
       "approve a device" >> in(new ApproveDeviceContext {
@@ -229,7 +229,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         when(locationRepo.getForDevice(DeviceId(deviceId), limit = None)).thenReturn(getResponse)
 
         val request: ListLocationsRequest = ListLocationsRequest(deviceId = deviceId)
-        val result: Future[ListLocationsResponse] = adminService.listLocations(request)
+        lazy val result: Future[ListLocationsResponse] = adminService.listLocations(request)
       }
 
       "list locations for the given device" >> in(new ListLocationsContext {
@@ -272,26 +272,25 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
     "send notification endpoint" >> {
       trait SendNotificationContext extends Context {
         lazy val deviceId: String = "123"
-        lazy val notificationType: NotificationType
+        lazy val notification: Option[Notification] = Some(Notification())
         lazy val expectedNotificationUrl: String
-        lazy val expectedNotification: Notification
 
         lazy val getResponse: Future[Try[model.StoredDevice]]
         when(deviceRepo.getRegisteredDevice(DeviceId(deviceId))).thenReturn(getResponse)
 
         lazy val notificationResponse: Future[Try[Unit]]
-        when(notificationService.sendNotification(expectedNotificationUrl, expectedNotification))
-          .thenReturn(notificationResponse)
+        notification.foreach(n =>
+          when(notificationService.sendNotification(expectedNotificationUrl, n))
+            .thenReturn(notificationResponse)
+        )
 
         val request: SendNotificationRequest =
-          SendNotificationRequest(deviceId = deviceId, notificationType = notificationType)
-        val result: Future[SendNotificationResponse] = adminService.sendNotification(request)
+          SendNotificationRequest(deviceId = deviceId, notification = notification)
+        lazy val result: Future[SendNotificationResponse] = adminService.sendNotification(request)
       }
 
       "send a notification" >> in(new SendNotificationContext {
-        override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
         override lazy val expectedNotificationUrl: String = MockModels.pushHandler().url
-        override lazy val expectedNotification: Notification = Notification.TRIGGER_BEACON
         override lazy val getResponse: Future[Try[model.StoredDevice]] = Future.successful(
           Success(MockModels.storedDevice(pushHandler = Some(MockModels.pushHandler())))
         )
@@ -302,9 +301,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
 
       "not send a notification if registered device is not found" >> in(
         new SendNotificationContext {
-          override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
           override lazy val expectedNotificationUrl: String = null
-          override lazy val expectedNotification: Notification = null
           override lazy val getResponse: Future[Try[model.StoredDevice]] =
             Future.successful(Failure(DeviceNotFoundException(DeviceId(deviceId))))
           override lazy val notificationResponse: Future[Try[Unit]] = null
@@ -313,10 +310,22 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         context.result must throwAGrpcException(Code.NOT_FOUND, "Device 123 does not exist").await
       }
 
+      "not send an empty notification" >> in(
+        new SendNotificationContext {
+          override lazy val expectedNotificationUrl: String = null
+          override lazy val notification: Option[Notification] = None
+          override lazy val getResponse: Future[Try[model.StoredDevice]] = null
+          override lazy val notificationResponse: Future[Try[Unit]] = null
+        }
+      ) { context =>
+        context.result must throwAGrpcException(
+          Code.INVALID_ARGUMENT,
+          "No notification provided"
+        ).await
+      }
+
       "not send a notification if push handler is empty" >> in(new SendNotificationContext {
-        override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
         override lazy val expectedNotificationUrl: String = null
-        override lazy val expectedNotification: Notification = null
         override lazy val getResponse: Future[Try[model.StoredDevice]] = Future.successful(
           Success(MockModels.storedDevice(pushHandler = None))
         )
@@ -329,9 +338,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       }
 
       "propagate errors" >> in(new SendNotificationContext {
-        override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
         override lazy val expectedNotificationUrl: String = MockModels.pushHandler().url
-        override lazy val expectedNotification: Notification = Notification.TRIGGER_BEACON
         override lazy val getResponse: Future[Try[model.StoredDevice]] = Future.successful(
           Success(MockModels.storedDevice(pushHandler = Some(MockModels.pushHandler())))
         )

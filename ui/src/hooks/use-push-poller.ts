@@ -1,12 +1,13 @@
 import {useEffect} from "react";
-import {NotificationType, type SendNotificationResponse} from "../gen/admin-service.ts";
+import {type SendNotificationResponse} from "../gen/admin-service.ts";
+import {LocationAccuracyRequest, type Notification} from "../gen/notifications.ts";
 
 export function usePushPoller(
     deviceId: string | undefined,
     pushEnabled: boolean | undefined,
     isVisible: boolean,
     refreshInterval: number,
-    sendNotification: (deviceId: string, notificationType: NotificationType) => Promise<SendNotificationResponse | undefined>,
+    sendNotification: (deviceId: string, notification: Notification) => Promise<SendNotificationResponse | undefined>,
 ){
     useEffect(() => {
         const poll = () => {
@@ -15,7 +16,7 @@ export function usePushPoller(
             if (!isVisible) return;
             if (!deviceId || !pushEnabled) return;
 
-            sendNotification(deviceId, NotificationType.REQUEST_BEACON)
+            sendNotification(deviceId, {triggerLocation: {requestAccuracy: LocationAccuracyRequest.BALANCED}})
                 .then(r => {
                     if (r && r.success) console.log(`Sent beacon notification to ${deviceId}`);
                 });

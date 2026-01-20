@@ -19,9 +19,15 @@ message AlarmNotification {
 
 }
 
+/* Request high-accuracy mode (device will honour this for specified time, e.g. 30 mins) */
+message AccuracyNotification {
+  LocationAccuracyRequest request_accuracy = 1;
+}
+
 message Notification {
   oneof message {
     LocationNotification trigger_location = 1;
     AlarmNotification trigger_alarm = 2;
+    AccuracyNotification set_accuracy = 3;
   }
 }

@@ -19,12 +19,12 @@ public class DeviceState {
 
     @Getter(AccessLevel.NONE)
     private final AtomicBoolean ready = new AtomicBoolean(false);
-    String deviceId;
-    String deviceName;
-    DeviceStatus deviceStatus;
+    private String deviceId;
+    private String deviceName;
+    private DeviceStatus deviceStatus;
 
     // Last run values
-    long lastRunTimestamp;
+    private long lastRunTimestamp;
 
     private static String generateDeviceId() {
         return UUID.randomUUID().toString();

@@ -13,7 +13,7 @@ import androidx.annotation.RequiresPermission;
 
 import com.jackpf.locationhistory.client.util.Logger;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -21,9 +21,9 @@ public class LegacyHighAccuracyProvider implements LocationProvider {
     private final Logger log = new Logger(this);
 
     private final LocationManager locationManager;
-    private final ExecutorService threadExecutor;
+    private final Executor threadExecutor;
 
-    public LegacyHighAccuracyProvider(LocationManager locationManager, ExecutorService threadExecutor) {
+    public LegacyHighAccuracyProvider(LocationManager locationManager, Executor threadExecutor) {
         this.locationManager = locationManager;
         this.threadExecutor = threadExecutor;
     }
