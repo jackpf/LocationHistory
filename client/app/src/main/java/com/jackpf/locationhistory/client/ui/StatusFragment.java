@@ -26,7 +26,7 @@ public class StatusFragment extends Fragment {
 
     private final Handler heartbeatHandler = new Handler(Looper.getMainLooper());
     private static final long HEARTBEAT_INTERVAL_MS = 2000;
-    private final Runnable heartbeatRunnable = new Runnable() {
+    private final Runnable heartbeatRunnable = new Runnable() { // TODO In viewModel?
         @Override
         public void run() {
             viewModel.checkConnection().addListener(

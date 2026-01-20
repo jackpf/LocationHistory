@@ -14,14 +14,12 @@ import com.jackpf.locationhistory.client.R;
 import com.jackpf.locationhistory.client.client.ssl.SSLPrompt;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
 import com.jackpf.locationhistory.client.push.ObservableUnifiedPushState;
-import com.jackpf.locationhistory.client.util.Logger;
 
 import java.util.List;
 
 import javax.annotation.Nullable;
 
 public class SettingsFragment extends Fragment {
-    private final Logger log = new Logger(this);
 
     private FragmentSettingsBinding binding;
     private SettingsViewModel viewModel;
@@ -45,6 +43,7 @@ public class SettingsFragment extends Fragment {
 
         setupInputs();
         setupUnifiedPushListener();
+        observeEvents();
     }
 
     @Override

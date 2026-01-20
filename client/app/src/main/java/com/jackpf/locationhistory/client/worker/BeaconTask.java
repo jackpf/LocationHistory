@@ -66,13 +66,17 @@ public class BeaconTask {
             }
 
             BeaconContext beaconContext = beaconContextFactory.call();
-            return onDeviceReady(beaconContext, () ->
+            ListenableFuture<BeaconResult> beaconResult = onDeviceReady(beaconContext, () ->
                     requestLocationUpdate(beaconContext, (locationData) ->
                             handleLocationUpdate(beaconContext, locationData, () ->
                                     Futures.immediateFuture(new BeaconResult(beaconContext.getDeviceState(), locationData))
                             )
                     )
             );
+            beaconResult.addListener(() -> beaconContext.getDeviceState().storeToConfig(beaconContext.getConfigRepository()),
+                    executor
+            );
+            return beaconResult;
         }, executor);
     }
 

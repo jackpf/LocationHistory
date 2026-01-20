@@ -21,6 +21,8 @@ import lombok.Getter;
 
 public class BeaconContext {
     @Getter
+    private final ConfigRepository configRepository;
+    @Getter
     private final BeaconClient client;
     @Getter
     private final DeviceState deviceState;
@@ -35,6 +37,7 @@ public class BeaconContext {
             LocationService locationService,
             Executor executor
     ) throws IOException {
+        this.configRepository = configRepository;
         BeaconClientFactory.BeaconClientParams params = new BeaconClientFactory.BeaconClientParams(
                 configRepository.getServerHost(),
                 configRepository.getServerPort(),
