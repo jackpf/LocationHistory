@@ -38,7 +38,7 @@ public class BeaconContext {
         BeaconClientFactory.BeaconClientParams params = new BeaconClientFactory.BeaconClientParams(
                 configRepository.getServerHost(),
                 configRepository.getServerPort(),
-                true,
+                false,
                 BeaconClientFactory.DEFAULT_TIMEOUT
         );
         this.client = BeaconClientFactory.createPooledClient(params, trustedCertStorage);
