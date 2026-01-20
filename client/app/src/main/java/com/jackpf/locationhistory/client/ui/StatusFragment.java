@@ -48,7 +48,7 @@ public class StatusFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         viewModel = new ViewModelProvider(this).get(StatusViewModel.class);
-        sslPrompt = new SSLPrompt(getActivity());
+        sslPrompt = new SSLPrompt(requireActivity());
 
         observeEvents();
     }
