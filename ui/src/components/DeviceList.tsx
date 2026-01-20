@@ -4,6 +4,7 @@ import {type SendNotificationResponse, type StoredDeviceWithMetadata} from "../g
 import {LocationAccuracyRequest, type Notification} from "../gen/notifications.ts";
 import {formatDistanceToNow} from "date-fns";
 import {Tooltip} from "react-tooltip";
+import {toast} from "sonner"
 
 interface DeviceListProps {
     devices: StoredDeviceWithMetadata[];
@@ -43,7 +44,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
 
         sendNotification(device.id, {triggerAlarm: {}})
             .then(r => {
-                if (r && r.success) console.log(`Sent alarm notification to ${device.id}`);
+                if (r && r.success) toast(`Sent alarm request to ${device.id}`);
             });
 
         setOpenMenuId(null);
@@ -55,7 +56,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
 
         sendNotification(device.id, {setAccuracy: {requestAccuracy: LocationAccuracyRequest.HIGH}})
             .then(r => {
-                if (r && r.success) console.log(`Sent set high accuracy notification to ${device.id}`);
+                if (r && r.success) toast(`Sent high accuracy request to ${device.id}`);
             });
 
         setOpenMenuId(null);

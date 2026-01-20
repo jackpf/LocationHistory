@@ -131,7 +131,11 @@ public class BeaconService extends Service {
         Notifications notifications = new Notifications(this);
         ServiceCompat.startForeground(this,
                 PERSISTENT_NOTIFICATION_ID,
-                notifications.createPersistentNotification(getString(R.string.persistent_notification_title), getString(R.string.persistent_notification_message)),
+                notifications.createPersistentNotification(
+                        getString(R.string.persistent_notification_title),
+                        configRepository.inHighAccuracyMode() ? getString(R.string.persistent_notification_high_accuracy_mode)
+                                : getString(R.string.persistent_notification_message)
+                ),
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION : 0);
 
         if (intent == null || ACTION_RUN_TASK.equals(intent.getAction())) {
