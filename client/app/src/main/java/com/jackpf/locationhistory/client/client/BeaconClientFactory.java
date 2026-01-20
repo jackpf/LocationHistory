@@ -15,7 +15,7 @@ import io.grpc.ManagedChannel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-// TODO Make non-static?
+// TODO Make non-static
 public class BeaconClientFactory {
     private static final Logger log = new Logger("BeaconClientFactory");
 
