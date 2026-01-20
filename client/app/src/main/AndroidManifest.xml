@@ -38,10 +38,6 @@
             android:label="@string/permissions_title"
             android:theme="@style/Theme.LocationHistory" />
 
-        <receiver
-            android:name=".ScheduledReceiver"
-            android:exported="false" />
-
         <service
             android:name=".BeaconService"
             android:enabled="true"
