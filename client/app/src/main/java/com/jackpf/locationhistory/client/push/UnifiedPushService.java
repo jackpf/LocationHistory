@@ -8,8 +8,10 @@ import android.content.Intent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.jackpf.locationhistory.Notification;
+import com.jackpf.locationhistory.client.BeaconScheduler;
 import com.jackpf.locationhistory.client.R;
 import com.jackpf.locationhistory.client.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
@@ -42,6 +44,8 @@ public class UnifiedPushService extends PushService {
     private MessageHandler messageHandler;
     @Nullable
     private BeaconClient beaconClient;
+    @Nullable
+    private BeaconScheduler beaconScheduler;
 
     private final static Logger log = new Logger("UnifiedPushService");
 
@@ -71,6 +75,7 @@ public class UnifiedPushService extends PushService {
             log.e(e, "Failed to create beacon client for unified push service");
             Toasts.show(getApplicationContext(), R.string.toast_connection_failed, e.getMessage());
         }
+        beaconScheduler = BeaconScheduler.create(getApplicationContext(), BeaconScheduler.DEFAULT_WAKELOCK_TIMEOUT);
     }
 
     /**
@@ -112,13 +117,16 @@ public class UnifiedPushService extends PushService {
 
     @Override
     public void onMessage(@NonNull PushMessage pushMessage, @NonNull String instance) {
-        try {
-            Notification notification = Notification.parseFrom(pushMessage.getContent());
-            log.i("UnifiedPush: onMessage: %s", notification.toString());
-            messageHandler.handle(notification);
-        } catch (InvalidProtocolBufferException e) {
-            log.e("Failed to parse notification", e);
-        }
+        beaconScheduler.runWithWakeLock(() -> {
+            try {
+                Notification notification = Notification.parseFrom(pushMessage.getContent());
+                log.i("UnifiedPush: onMessage: %s", notification.toString());
+                return messageHandler.handle(notification);
+            } catch (InvalidProtocolBufferException e) {
+                log.e("Failed to parse notification", e);
+                return Futures.immediateFailedFuture(e);
+            }
+        });
     }
 
     @Override

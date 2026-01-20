@@ -37,7 +37,6 @@ public class BeaconService extends Service {
     private BeaconScheduler beaconScheduler;
     private static final int PERSISTENT_NOTIFICATION_ID = 1;
     private static final String ACTION_RUN_TASK = "com.jackpf.locationhistory.client.ACTION_BEACON_SERVICE";
-    private static final long WAKELOCK_TIMEOUT = TimeUnit.MINUTES.toMillis(10);
 
     private static final String START_MESSAGE = "Beacon task started";
     private static final String SUCCESS_MESSAGE = "Beacon task completed successfully";
@@ -97,11 +96,6 @@ public class BeaconService extends Service {
         return TimeUnit.MINUTES.toMillis(configRepository.getUpdateIntervalMinutes());
     }
 
-    private long highAccuracyDelayMillis() {
-        // Trigger frequently in high accuracy mode
-        return TimeUnit.SECONDS.toMillis(60);
-    }
-
     private long retryDelayMillis() {
         return TimeUnit.SECONDS.toMillis(30);
     }
@@ -121,7 +115,7 @@ public class BeaconService extends Service {
         configRepository = new ConfigRepository(this);
         configRepository.registerOnSharedPreferenceChangeListener(configChangeListener);
 
-        beaconScheduler = BeaconScheduler.create(this, WAKELOCK_TIMEOUT);
+        beaconScheduler = BeaconScheduler.create(this, BeaconScheduler.DEFAULT_WAKELOCK_TIMEOUT);
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.jackpf.locationhistory.client.push;
 
 import android.content.Context;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.AccuracyNotification;
 import com.jackpf.locationhistory.AlarmNotification;
 import com.jackpf.locationhistory.LocationAccuracyRequest;
@@ -10,6 +12,7 @@ import com.jackpf.locationhistory.Notification;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.ui.Notifications;
 import com.jackpf.locationhistory.client.util.Logger;
+import com.jackpf.locationhistory.client.worker.BeaconResult;
 import com.jackpf.locationhistory.client.worker.BeaconTask;
 
 import java.util.concurrent.Executor;
@@ -34,39 +37,41 @@ public class MessageHandler {
         configRepository.setHighAccuracyTriggeredAt(triggeredAt);
     }
 
-    private void handleTriggerLocation(LocationNotification notification) {
+    private ListenableFuture<BeaconResult> handleTriggerLocation(LocationNotification notification) {
         log.d("Triggering on-demand beacon");
         if (notification.getRequestAccuracy() == LocationAccuracyRequest.HIGH) {
             // We only "upgrade" balanced requests -> high accuracy if set
             // Otherwise could overwrite/ignore the current high accuracy mode
             updateRequestedAccuracy(notification.getRequestAccuracy());
         }
-        BeaconTask.runSafe(context, executor);
+        return BeaconTask.runSafe(context, executor);
     }
 
-    private void handleTriggerAlarm(AlarmNotification notification) {
+    private ListenableFuture<Void> handleTriggerAlarm(AlarmNotification notification) {
         log.d("Triggering on-demand alarm");
         Notifications notifications = new Notifications(context);
         notifications.show(ALARM_NOTIFICATION_ID, notifications.createAlarmNotification());
+        return Futures.immediateVoidFuture();
     }
 
-    private void handleSetAccuracy(AccuracyNotification notification) {
+    private ListenableFuture<Void> handleSetAccuracy(AccuracyNotification notification) {
         LocationAccuracyRequest requestedAccuracy = notification.getRequestAccuracy();
         log.d("Setting accuracy to %s", requestedAccuracy);
         updateRequestedAccuracy(requestedAccuracy);
+        return Futures.immediateVoidFuture();
     }
 
-    public void handle(Notification notification) {
-        log.i("UnifiedPush: onMessage: %s", notification.toString());
-
+    public ListenableFuture<?> handle(Notification notification) {
         if (notification.hasTriggerLocation()) {
-            handleTriggerLocation(notification.getTriggerLocation());
+            return handleTriggerLocation(notification.getTriggerLocation());
         } else if (notification.hasTriggerAlarm()) {
-            handleTriggerAlarm(notification.getTriggerAlarm());
+            return handleTriggerAlarm(notification.getTriggerAlarm());
         } else if (notification.hasSetAccuracy()) {
-            handleSetAccuracy(notification.getSetAccuracy());
+            return handleSetAccuracy(notification.getSetAccuracy());
         } else {
-            log.w("Received unhandled notification: %s", notification);
+            String msg = String.format("Received unhandled notification: %s", notification);
+            log.w(msg);
+            return Futures.immediateFailedFuture(new UnsupportedOperationException(msg));
         }
     }
 }
