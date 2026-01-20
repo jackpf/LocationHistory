@@ -15,10 +15,8 @@ import com.jackpf.locationhistory.client.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
-import com.jackpf.locationhistory.client.ui.Notifications;
 import com.jackpf.locationhistory.client.ui.Toasts;
 import com.jackpf.locationhistory.client.util.Logger;
-import com.jackpf.locationhistory.client.worker.BeaconTask;
 
 import org.unifiedpush.android.connector.FailedReason;
 import org.unifiedpush.android.connector.PushService;
@@ -33,7 +31,6 @@ import java.util.concurrent.Executors;
 public class UnifiedPushService extends PushService {
     private static final String NAME = "UnifiedPush";
     private static final String CUSTOM_UNREGISTER_ACTION = "com.jackpf.locationhistory.client.MANUAL_UNREGISTER";
-    private static final int ALARM_NOTIFICATION_ID = 1;
 
     @Nullable
     private ExecutorService executor;
@@ -41,6 +38,8 @@ public class UnifiedPushService extends PushService {
     private ConfigRepository configRepository;
     @Nullable
     private UnifiedPushStorage unifiedPushStorage;
+    @Nullable
+    private MessageHandler messageHandler;
     @Nullable
     private BeaconClient beaconClient;
 
@@ -65,6 +64,7 @@ public class UnifiedPushService extends PushService {
         executor = Executors.newSingleThreadExecutor();
         configRepository = new ConfigRepository(getApplicationContext());
         unifiedPushStorage = new UnifiedPushStorage(getApplicationContext());
+        messageHandler = new MessageHandler(this, configRepository, executor);
         try {
             beaconClient = createBeaconClient(getApplicationContext(), configRepository);
         } catch (IOException e) {
@@ -115,19 +115,7 @@ public class UnifiedPushService extends PushService {
         try {
             Notification notification = Notification.parseFrom(pushMessage.getContent());
             log.i("UnifiedPush: onMessage: %s", notification.toString());
-
-            if (notification.hasTriggerLocation()) {
-                log.d("Triggering on-demand beacon");
-                // TODO Handle accuracy request
-//                LocationNotification locationNotification = notification.getTriggerLocation();
-                BeaconTask.runSafe(getApplicationContext(), executor);
-            }
-
-            if (notification.hasTriggerAlarm()) {
-                log.d("Triggering on-demand alarm");
-                Notifications notifications = new Notifications(getApplicationContext());
-                notifications.show(ALARM_NOTIFICATION_ID, notifications.createAlarmNotification());
-            }
+            messageHandler.handle(notification);
         } catch (InvalidProtocolBufferException e) {
             log.e("Failed to parse notification", e);
         }

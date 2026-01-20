@@ -8,7 +8,7 @@ import androidx.annotation.RequiresPermission;
 
 import com.jackpf.locationhistory.client.util.Logger;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -16,12 +16,12 @@ public class LegacyCachedProvider implements LocationProvider {
     private final Logger log = new Logger(this);
 
     private final LocationManager locationManager;
-    private final ExecutorService threadExecutor;
+    private final Executor threadExecutor;
 
     private static final long FRESHNESS_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(5);
 
     public LegacyCachedProvider(LocationManager locationManager,
-                                ExecutorService threadExecutor) {
+                                Executor threadExecutor) {
         this.locationManager = locationManager;
         this.threadExecutor = threadExecutor;
     }

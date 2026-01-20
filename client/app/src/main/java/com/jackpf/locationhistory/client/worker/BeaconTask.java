@@ -20,24 +20,24 @@ import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 public class BeaconTask {
     private final PermissionsManager permissionsManager;
     private final Callable<BeaconContext> beaconContextFactory;
-    private final ExecutorService executor;
+    private final Executor executor;
 
     private final Logger log = new Logger(this);
 
     public BeaconTask(PermissionsManager permissionsManager,
                       Callable<BeaconContext> beaconContextFactory,
-                      ExecutorService executor) {
+                      Executor executor) {
         this.permissionsManager = permissionsManager;
         this.beaconContextFactory = beaconContextFactory;
         this.executor = executor;
     }
 
-    public static BeaconTask create(@NonNull Context context, ExecutorService executor) throws IOException {
+    public static BeaconTask create(@NonNull Context context, Executor executor) throws IOException {
         ConfigRepository configRepository = new ConfigRepository(context);
         TrustedCertStorage trustedCertStorage = new TrustedCertStorage(context);
         PermissionsManager permissionsManager = new PermissionsManager(context);
@@ -98,7 +98,7 @@ public class BeaconTask {
 
         return Futures.transformAsync(
                 CallbackToFutureAdapter.getFuture(completer -> {
-                    beaconContext.getLocation(RequestedAccuracy.BALANCED, locationData -> {
+                    beaconContext.getLocation(getRequestAccuracy(beaconContext), locationData -> {
                         if (locationData != null) completer.set(locationData);
                         else completer.setException(new EmptyLocationDataException());
                     });
@@ -126,7 +126,12 @@ public class BeaconTask {
         );
     }
 
-    public static ListenableFuture<BeaconResult> runSafe(Context context, ExecutorService executor) {
+    private RequestedAccuracy getRequestAccuracy(BeaconContext beaconContext) {
+        if (beaconContext.inHighAccuracyMode()) return RequestedAccuracy.HIGH;
+        else return RequestedAccuracy.BALANCED;
+    }
+
+    public static ListenableFuture<BeaconResult> runSafe(Context context, Executor executor) {
         try {
             return BeaconTask.create(context, executor).run();
         } catch (IOException e) {

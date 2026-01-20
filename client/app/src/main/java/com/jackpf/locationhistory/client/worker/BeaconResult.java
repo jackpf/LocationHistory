@@ -9,6 +9,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class BeaconResult {
-    DeviceState deviceState;
-    LocationData locationData;
+    private DeviceState deviceState;
+    private LocationData locationData;
 }

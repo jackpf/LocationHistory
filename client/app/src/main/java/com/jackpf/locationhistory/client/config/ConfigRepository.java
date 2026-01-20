@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.provider.Settings;
 
+import java.util.concurrent.TimeUnit;
+
 public class ConfigRepository {
     private final Context context;
     private final SharedPreferences prefs;
@@ -19,7 +21,14 @@ public class ConfigRepository {
 
     public static final String UPDATE_INTERVAL_KEY = "update-interval";
 
+    public static final String HIGH_ACCURACY_TRIGGERED_AT_KEY = "high-accuracy-triggered-at";
+
     public static final String LAST_RUN_TIMESTAMP_KEY = "last-run-timestamp";
+
+    /**
+     * How long do we stay in high accuracy mode after a trigger
+     */
+    private static final long HIGH_ACCURACY_DURATION = TimeUnit.MINUTES.toMillis(30);
 
     public ConfigRepository(Context context) {
         this.context = context;
@@ -89,6 +98,20 @@ public class ConfigRepository {
 
     public void setUpdateIntervalMinutes(long minutes) {
         prefs.edit().putLong(UPDATE_INTERVAL_KEY, minutes).apply();
+    }
+
+    public long getHighAccuracyTriggeredAt() {
+        return prefs.getLong(HIGH_ACCURACY_TRIGGERED_AT_KEY, -1L);
+    }
+
+    public void setHighAccuracyTriggeredAt(long triggeredAt) {
+        prefs.edit().putLong(HIGH_ACCURACY_TRIGGERED_AT_KEY, triggeredAt).apply();
+    }
+
+    public boolean inHighAccuracyMode() {
+        long highAccuracyTriggeredAt = getHighAccuracyTriggeredAt();
+        return highAccuracyTriggeredAt > 0
+                && System.currentTimeMillis() - highAccuracyTriggeredAt < HIGH_ACCURACY_DURATION;
     }
 
     public void setLastRunTimestamp(long lastRunTime) {

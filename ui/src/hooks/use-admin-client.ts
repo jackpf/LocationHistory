@@ -4,9 +4,9 @@ import {type StoredLocation} from '../gen/common';
 import {
     type ListDevicesResponse,
     type ListLocationsResponse,
-    NotificationType,
     type StoredDeviceWithMetadata
 } from "../gen/admin-service.ts";
+import {type Notification} from "../gen/notifications.ts";
 
 export function useAdminClient(refreshInterval: number) {
     const [devices, setDevices] = useState<StoredDeviceWithMetadata[]>([]);
@@ -66,10 +66,10 @@ export function useAdminClient(refreshInterval: number) {
         }
     };
 
-    const sendNotification = useCallback(async (deviceId: string, notificationType: NotificationType) => {
+    const sendNotification = useCallback(async (deviceId: string, notification: Notification) => {
         try {
             return await adminClient.sendNotification(
-                {deviceId: deviceId, notificationType: notificationType},
+                {deviceId: deviceId, notification: notification},
             );
         } catch (e) {
             console.error(e);

@@ -24,7 +24,6 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,14 +33,14 @@ import java.util.function.Consumer;
 public class OptimisedProviderTest {
 
     private LocationManager locationManager;
-    private ExecutorService executorService;
+    private Executor executor;
     private OptimisedProvider provider;
 
     @Before
     public void setUp() {
         locationManager = mock(LocationManager.class);
-        executorService = Executors.newSingleThreadExecutor();
-        provider = new OptimisedProvider(locationManager, executorService);
+        executor = Executors.newSingleThreadExecutor();
+        provider = new OptimisedProvider(locationManager, executor);
     }
 
     @Test
@@ -150,7 +149,7 @@ public class OptimisedProviderTest {
         provider.provide(LocationManager.GPS_PROVIDER, 5000, data -> {
         });
 
-        assertEquals(executorService, capturedExecutor.get());
+        assertEquals(executor, capturedExecutor.get());
     }
 
     @Test

@@ -62,4 +62,8 @@ public class BeaconContext {
     public ListenableFuture<SetLocationResponse> setLocation(LocationData locationData) {
         return locationUpdateService.setLocation(deviceState, locationData);
     }
+
+    public boolean inHighAccuracyMode() {
+        return configRepository.inHighAccuracyMode();
+    }
 }
