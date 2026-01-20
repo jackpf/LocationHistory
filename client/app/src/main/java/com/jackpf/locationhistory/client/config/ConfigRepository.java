@@ -10,16 +10,16 @@ public class ConfigRepository {
 
     private static final String PREFERENCES_KEY = "beacon";
 
-    private static final String DEVICE_ID_KEY = "device-id";
-    private static final String DEVICE_READY_KEY = "device-ready";
-    private static final String DEVICE_STATUS_KEY = "device-status";
+    public static final String DEVICE_ID_KEY = "device-id";
+    public static final String DEVICE_READY_KEY = "device-ready";
+    public static final String DEVICE_STATUS_KEY = "device-status";
 
-    private static final String SERVER_HOST_KEY = "server-host";
-    private static final String SERVER_PORT_KEY = "server-port";
+    public static final String SERVER_HOST_KEY = "server-host";
+    public static final String SERVER_PORT_KEY = "server-port";
 
-    private static final String UPDATE_INTERVAL_KEY = "update-interval";
+    public static final String UPDATE_INTERVAL_KEY = "update-interval";
 
-    private static final String LAST_RUN_TIMESTAMP_KEY = "last-run-timestamp";
+    public static final String LAST_RUN_TIMESTAMP_KEY = "last-run-timestamp";
 
     public ConfigRepository(Context context) {
         this.context = context;
@@ -83,12 +83,12 @@ public class ConfigRepository {
         return prefs.getLong(LAST_RUN_TIMESTAMP_KEY, 0L);
     }
 
-    public int getUpdateIntervalMinutes() {
-        return prefs.getInt(UPDATE_INTERVAL_KEY, 15);
+    public long getUpdateIntervalMinutes() {
+        return prefs.getLong(UPDATE_INTERVAL_KEY, 15L);
     }
 
-    public void setUpdateIntervalMinutes(int minutes) {
-        prefs.edit().putInt(UPDATE_INTERVAL_KEY, minutes).apply();
+    public void setUpdateIntervalMinutes(long minutes) {
+        prefs.edit().putLong(UPDATE_INTERVAL_KEY, minutes).apply();
     }
 
     public void setLastRunTimestamp(long lastRunTime) {

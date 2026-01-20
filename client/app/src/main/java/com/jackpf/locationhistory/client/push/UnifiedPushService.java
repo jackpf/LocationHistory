@@ -104,6 +104,9 @@ public class UnifiedPushService extends PushService {
         if (configRepository != null && beaconClient != null) {
             new PushRegistration(getApplicationContext(), configRepository, unifiedPushStorage, beaconClient)
                     .register(NAME, pushEndpoint.getUrl());
+        } else {
+            // Register failed, make sure we keep the old state
+            unifiedPushStorage.setEnabled(false);
         }
     }
 
@@ -144,6 +147,9 @@ public class UnifiedPushService extends PushService {
         if (configRepository != null && beaconClient != null) {
             new PushRegistration(getApplicationContext(), configRepository, unifiedPushStorage, beaconClient)
                     .unregister();
+        } else {
+            // Un-register failed, make sure we keep the old state
+            unifiedPushStorage.setEnabled(true);
         }
     }
 

@@ -72,10 +72,13 @@ public class BeaconService extends Service {
     };
 
     private final SharedPreferences.OnSharedPreferenceChangeListener configChangeListener = (prefs, key) -> {
-        log.d("Detected config change");
-
-        handler.removeCallbacks(beaconTaskRunner);
-        handler.postDelayed(beaconTaskRunner, 500); // Debounce config changes
+        if (key != null &&
+                (key.equals(ConfigRepository.SERVER_HOST_KEY)
+                        || key.equals(ConfigRepository.SERVER_PORT_KEY)
+                        || key.equals(ConfigRepository.UPDATE_INTERVAL_KEY))) {
+            log.d("Detected config change");
+            scheduleNext(500); // Debounce config changes with 500ms delay
+        }
     };
 
     private void scheduleNext(long delayMillis) {
