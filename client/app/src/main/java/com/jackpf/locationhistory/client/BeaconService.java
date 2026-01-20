@@ -1,6 +1,7 @@
 package com.jackpf.locationhistory.client;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
@@ -16,6 +17,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
+import com.jackpf.locationhistory.client.permissions.AppRequirementsUtil;
 import com.jackpf.locationhistory.client.ui.Notifications;
 import com.jackpf.locationhistory.client.util.Logger;
 import com.jackpf.locationhistory.client.worker.BeaconResult;
@@ -27,7 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class BeaconService extends Service {
-    private final Logger log = new Logger(this);
+    private static final Logger log = new Logger("BeaconService");
     private ExecutorService executorService;
     private ConfigRepository configRepository;
     private BeaconScheduler beaconScheduler;
@@ -136,5 +138,21 @@ public class BeaconService extends Service {
         if (executorService != null) executorService.shutdown();
         if (configRepository != null)
             configRepository.unregisterOnSharedPreferenceChangeListener(configChangeListener);
+    }
+
+    public static void startForeground(Context context) {
+        log.d("Starting service");
+        Intent intent = new Intent(context, BeaconService.class);
+        intent.setAction(ACTION_RUN_TASK);
+        ContextCompat.startForegroundService(context, intent);
+    }
+
+    public static void startForegroundIfPermissionsGranted(Context context) {
+        if (AppRequirementsUtil.allGranted(context, AppRequirements.getRequirements(context))) {
+            log.d("Permissions granted");
+            startForeground(context);
+        } else {
+            log.w("Permissions not yet granted");
+        }
     }
 }
