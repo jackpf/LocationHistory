@@ -2,6 +2,9 @@
 
     <string name="app_name">Location History</string>
 
+    <string name="persistent_notification_title" />
+    <string name="persistent_notification_message">Beacon Active</string>
+
     <string name="permissions_title">Permissions</string>
     <string name="permissions_missing">Permissions Missing</string>
     <string name="schedule_error">Unable to schedule updates</string>

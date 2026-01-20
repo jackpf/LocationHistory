@@ -119,7 +119,7 @@ public class BeaconService extends Service {
 
         ServiceCompat.startForeground(this,
                 PERSISTENT_NOTIFICATION_ID,
-                notifications.createPersistentNotification("", "Beacon active"),
+                notifications.createPersistentNotification(getString(R.string.persistent_notification_title), getString(R.string.persistent_notification_message)),
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION : 0);
 
         handler.removeCallbacks(beaconTaskRunner);
