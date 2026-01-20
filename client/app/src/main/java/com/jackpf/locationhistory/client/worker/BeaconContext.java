@@ -12,7 +12,6 @@ import com.jackpf.locationhistory.client.location.RequestedAccuracy;
 import com.jackpf.locationhistory.client.model.DeviceState;
 import com.jackpf.locationhistory.client.service.DeviceStateService;
 import com.jackpf.locationhistory.client.service.LocationUpdateService;
-import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
 import java.util.concurrent.Executor;
@@ -20,9 +19,7 @@ import java.util.function.Consumer;
 
 import lombok.Getter;
 
-public class BeaconContext implements AutoCloseable {
-    private final Logger log = new Logger(this);
-
+public class BeaconContext {
     @Getter
     private final BeaconClient client;
     @Getter
@@ -61,14 +58,5 @@ public class BeaconContext implements AutoCloseable {
 
     public ListenableFuture<SetLocationResponse> setLocation(LocationData locationData) {
         return locationUpdateService.setLocation(deviceState, locationData);
-    }
-
-    @Override
-    public void close() {
-        try {
-            locationService.close();
-        } catch (Exception e) {
-            log.e("Error closing resources", e);
-        }
     }
 }

@@ -27,7 +27,6 @@ import com.jackpf.locationhistory.client.push.Ntfy;
 import com.jackpf.locationhistory.client.push.ObservableUnifiedPushState;
 import com.jackpf.locationhistory.client.push.UnifiedPushService;
 import com.jackpf.locationhistory.client.util.Logger;
-import com.jackpf.locationhistory.client.util.PermissionException;
 
 import org.unifiedpush.android.connector.UnifiedPush;
 
@@ -149,16 +148,7 @@ public class SettingsFragment extends Fragment {
                     }
                 }
 
-                // Run once to trigger device registration immediately
-                BeaconWorkerFactory.runOnce(requireContext());
-                // Re-schedule for updated settings
-                try {
-                    BeaconWorkerFactory.schedule(requireContext(), configRepository);
-                    Toasts.show(requireContext(), R.string.toast_saved);
-                } catch (PermissionException e) {
-                    log.e("Unable to schedule beacon worker", e);
-                    Toasts.show(requireContext(), R.string.schedule_error);
-                }
+                Toasts.show(requireContext(), R.string.toast_saved);
             } catch (NumberFormatException e) {
                 Toasts.show(requireContext(), R.string.toast_invalid_settings, e.getMessage());
             }
