@@ -13,7 +13,6 @@ import androidx.core.app.ServiceCompat;
 
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.ui.Notifications;
-import com.jackpf.locationhistory.client.worker.BeaconWorkerFactory;
 
 import java.util.concurrent.TimeUnit;
 

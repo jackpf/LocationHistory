@@ -6,7 +6,6 @@ import android.content.Intent;
 
 import com.jackpf.locationhistory.client.util.Logger;
 import com.jackpf.locationhistory.client.util.PermissionException;
-import com.jackpf.locationhistory.client.worker.BeaconWorkerFactory;
 
 public class ScheduledReceiver extends BroadcastReceiver {
     private final Logger log = new Logger(this);

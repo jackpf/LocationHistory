@@ -10,17 +10,13 @@ import androidx.work.ListenableWorker;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.SetLocationResponse;
-import com.jackpf.locationhistory.client.client.BeaconClientFactory;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
-import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.location.LocationData;
 import com.jackpf.locationhistory.client.location.LocationService;
 import com.jackpf.locationhistory.client.location.RequestedAccuracy;
 import com.jackpf.locationhistory.client.model.DeviceState;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
-import com.jackpf.locationhistory.client.service.DeviceStateService;
-import com.jackpf.locationhistory.client.service.LocationUpdateService;
 import com.jackpf.locationhistory.client.util.Logger;
 import com.jackpf.locationhistory.client.util.SafeCallback;
 import com.jackpf.locationhistory.client.util.SafeRunnable;
@@ -32,16 +28,10 @@ import java.util.function.BiConsumer;
 
 public class BeaconTask implements AutoCloseable {
     private final Context context;
-    private final ConfigRepository configRepository;
-    private final DeviceState deviceState;
-    private final LocationService locationService;
-    private BeaconClient beaconClient;
     private final PermissionsManager permissionsManager;
-    private final ExecutorService backgroundExecutor;
-
-    // Services
-    private DeviceStateService deviceStateService;
-    private LocationUpdateService locationUpdateService;
+    private final ConfigRepository configRepository;
+    private BeaconContext beaconContext;
+    private final ExecutorService executor;
 
     private static final String BEACON_TASK_NAME = "BeaconTask";
     public static final String DATA_RUN_TIMESTAMP = "BeaconWorkerRunTimestamp";
@@ -67,32 +57,38 @@ public class BeaconTask implements AutoCloseable {
     }
 
     public BeaconTask(@NonNull Context context,
-                      ConfigRepository configRepository,
-                      DeviceState deviceState,
                       PermissionsManager permissionsManager,
-                      LocationService locationService,
-                      ExecutorService backgroundExecutor) {
+                      ConfigRepository configRepository,
+                      BeaconContext beaconContext,
+                      ExecutorService executor) {
         this.context = context;
-        this.configRepository = configRepository;
-        this.deviceState = deviceState;
         this.permissionsManager = permissionsManager;
-        this.locationService = locationService;
-        this.backgroundExecutor = backgroundExecutor;
+        this.configRepository = configRepository;
+        this.beaconContext = beaconContext;
+        this.executor = executor;
     }
 
-    public static BeaconTask create(@NonNull Context context) {
+    public static BeaconTask create(@NonNull Context context) throws IOException {
         ConfigRepository configRepository = new ConfigRepository(context);
-        DeviceState deviceState = DeviceState.fromConfig(configRepository);
+        TrustedCertStorage trustedCertStorage = new TrustedCertStorage(context);
         PermissionsManager permissionsManager = new PermissionsManager(context);
+        DeviceState deviceState = DeviceState.fromConfig(configRepository);
         LocationService locationService = LocationService.create(context, permissionsManager);
         ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
 
+        BeaconContext beaconContext = new BeaconContext(
+                configRepository,
+                trustedCertStorage,
+                deviceState,
+                locationService,
+                backgroundExecutor
+        );
+
         return new BeaconTask(
                 context,
-                configRepository,
-                deviceState,
                 permissionsManager,
-                locationService,
+                configRepository,
+                beaconContext,
                 backgroundExecutor
         );
     }
@@ -126,32 +122,24 @@ public class BeaconTask implements AutoCloseable {
         finish(completer, ListenableWorker.Result.failure(completeData(message, false)));
     }
 
+    private void finish(CallbackToFutureAdapter.Completer<ListenableWorker.Result> completer, ListenableWorker.Result result) {
+        try {
+            close();
+        } finally {
+            beaconContext.getDeviceState().storeToConfig(configRepository);
+            completer.set(result);
+        }
+    }
+
     public ListenableFuture<ListenableWorker.Result> run() {
         return CallbackToFutureAdapter.getFuture(completer -> {
-            backgroundExecutor.execute(new SafeRunnable(context, completer, () -> {
-                try {
-                    BeaconClientFactory.BeaconClientParams params = new BeaconClientFactory.BeaconClientParams(
-                            configRepository.getServerHost(),
-                            configRepository.getServerPort(),
-                            true,
-                            BeaconClientFactory.DEFAULT_TIMEOUT
-                    );
-
-                    beaconClient = BeaconClientFactory.createPooledClient(params, new TrustedCertStorage(context));
-                } catch (IOException e) {
-                    completeWithFailure(completer, CompleteReason.NO_CONNECTION, e);
-                    return;
-                }
-
-                deviceStateService = new DeviceStateService(beaconClient, backgroundExecutor);
-                locationUpdateService = new LocationUpdateService(beaconClient, backgroundExecutor);
-
+            executor.execute(new SafeRunnable(context, completer, () -> {
                 if (!permissionsManager.hasLocationPermissions()) {
                     completeWithFailure(completer, CompleteReason.NO_LOCATION_PERMISSIONS, null);
                     return;
                 }
 
-                Futures.addCallback(deviceStateService.onDeviceStateReady(deviceState), new SafeCallback<DeviceState>(context, completer) {
+                Futures.addCallback(beaconContext.onDeviceStateReady(), new SafeCallback<DeviceState>(context, completer) {
                     @Override
                     public void onSafeSuccess(DeviceState state) {
                         if (state.isReady()) requestLocationUpdate(
@@ -165,7 +153,7 @@ public class BeaconTask implements AutoCloseable {
                     public void onFailure(@NonNull Throwable t) {
                         completeWithFailure(completer, CompleteReason.DEVICE_CHECK_ERROR, t);
                     }
-                }, backgroundExecutor);
+                }, executor);
             }));
 
             return BEACON_TASK_NAME;
@@ -176,7 +164,7 @@ public class BeaconTask implements AutoCloseable {
                                        BiConsumer<CallbackToFutureAdapter.Completer<ListenableWorker.Result>, LocationData> onResult) {
         log.d("Updating location");
 
-        locationService.getLocation(RequestedAccuracy.BALANCED, locationData ->
+        beaconContext.getLocation(RequestedAccuracy.BALANCED, locationData ->
                 new SafeRunnable(context, completer, () -> onResult.accept(completer, locationData)).run()
         );
     }
@@ -185,14 +173,11 @@ public class BeaconTask implements AutoCloseable {
         if (locationData != null) {
             log.d("Received location data: %s", locationData.toString());
 
-            Futures.addCallback(locationUpdateService.setLocation(
-                    deviceState,
-                    locationData
-            ), new SafeCallback<SetLocationResponse>(context, completer) {
+            Futures.addCallback(beaconContext.setLocation(locationData), new SafeCallback<SetLocationResponse>(context, completer) {
                 @Override
                 public void onSafeSuccess(SetLocationResponse response) {
                     if (response.getSuccess()) {
-                        deviceState.setLastRunTimestamp(System.currentTimeMillis());
+                        beaconContext.getDeviceState().setLastRunTimestamp(System.currentTimeMillis());
                         completeWithSuccess(completer, CompleteReason.LOCATION_UPDATED);
                     } else {
                         completeWithFailure(completer, CompleteReason.SET_LOCATION_FAILED, null);
@@ -203,25 +188,16 @@ public class BeaconTask implements AutoCloseable {
                 public void onFailure(@NonNull Throwable t) {
                     completeWithFailure(completer, CompleteReason.SET_LOCATION_ERROR, t);
                 }
-            }, backgroundExecutor);
+            }, executor);
         } else completeWithFailure(completer, CompleteReason.EMPTY_LOCATION_DATA, null);
-    }
-
-    private void finish(CallbackToFutureAdapter.Completer<ListenableWorker.Result> completer, ListenableWorker.Result result) {
-        try {
-            close();
-        } finally {
-            deviceState.storeToConfig(configRepository);
-            completer.set(result);
-        }
     }
 
     @Override
     public void close() {
         log.d("Closing resources");
         try {
-            locationService.close();
-            backgroundExecutor.shutdown();
+            beaconContext.close();
+            executor.shutdown();
         } catch (Exception e) {
             log.e("Error closing resources", e);
         }

@@ -28,7 +28,6 @@ import com.jackpf.locationhistory.client.push.ObservableUnifiedPushState;
 import com.jackpf.locationhistory.client.push.UnifiedPushService;
 import com.jackpf.locationhistory.client.util.Logger;
 import com.jackpf.locationhistory.client.util.PermissionException;
-import com.jackpf.locationhistory.client.worker.BeaconWorkerFactory;
 
 import org.unifiedpush.android.connector.UnifiedPush;
 

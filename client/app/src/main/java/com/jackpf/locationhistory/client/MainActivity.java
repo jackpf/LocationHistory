@@ -9,7 +9,6 @@ import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.ui.Toasts;
 import com.jackpf.locationhistory.client.util.Logger;
 import com.jackpf.locationhistory.client.util.PermissionException;
-import com.jackpf.locationhistory.client.worker.BeaconWorkerFactory;
 
 public class MainActivity extends AppCompatActivity {
     private final Logger log = new Logger(this);
