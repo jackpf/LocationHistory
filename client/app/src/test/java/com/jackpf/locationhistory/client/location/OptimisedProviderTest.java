@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 
 import android.location.Location;
@@ -20,10 +21,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -56,7 +59,8 @@ public class OptimisedProviderTest {
     @Test(expected = RuntimeException.class)
     @Config(sdk = Build.VERSION_CODES.Q)
     public void provide_throwsOnUnsupportedApi() {
-        provider.provide(LocationManager.GPS_PROVIDER, 5000, data -> {});
+        provider.provide(LocationManager.GPS_PROVIDER, 5000, data -> {
+        });
     }
 
     @Test
@@ -143,8 +147,39 @@ public class OptimisedProviderTest {
                 any(Consumer.class)
         );
 
-        provider.provide(LocationManager.GPS_PROVIDER, 5000, data -> {});
+        provider.provide(LocationManager.GPS_PROVIDER, 5000, data -> {
+        });
 
         assertEquals(executorService, capturedExecutor.get());
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.R)
+    public void provide_callsConsumerWithNullOnTimeout() {
+        // Don't call the consumer immediately - simulate slow/no response
+        doNothing().when(locationManager).getCurrentLocation(
+                any(String.class),
+                any(CancellationSignal.class),
+                any(Executor.class),
+                any(Consumer.class)
+        );
+
+        AtomicBoolean consumerCalled = new AtomicBoolean(false);
+        AtomicReference<LocationData> result = new AtomicReference<>();
+
+        provider.provide(LocationManager.GPS_PROVIDER, 5000, data -> {
+            consumerCalled.set(true);
+            result.set(data);
+        });
+
+        // Consumer should not be called yet
+        assertFalse(consumerCalled.get());
+
+        // Advance time past the timeout
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        // Now consumer should have been called with null
+        assertTrue(consumerCalled.get());
+        assertNull(result.get());
     }
 }
