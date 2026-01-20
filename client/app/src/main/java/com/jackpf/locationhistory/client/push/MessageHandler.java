@@ -36,9 +36,12 @@ public class MessageHandler {
 
     private void handleTriggerLocation(LocationNotification notification) {
         log.d("Triggering on-demand beacon");
+        if (notification.getRequestAccuracy() == LocationAccuracyRequest.HIGH) {
+            // We only "upgrade" balanced requests -> high accuracy if set
+            // Otherwise could overwrite/ignore the current high accuracy mode
+            updateRequestedAccuracy(notification.getRequestAccuracy());
+        }
         BeaconTask.runSafe(context, executor);
-        // TODO Should we updateRequestedAccuracy with the request accuracy here? Currently ignored
-        // TODO It could overwrite high accuracy mode if we receive a balanced ping and we're already in high accuracy mode
     }
 
     private void handleTriggerAlarm(AlarmNotification notification) {
