@@ -40,8 +40,6 @@ public class DeviceStateService {
     }
 
     public ListenableFuture<DeviceState> onDeviceStateReady(DeviceState deviceState) {
-        log.d("Checking device state");
-
         if (deviceState.isReady()) {
             log.d("Device is already ready");
             return Futures.immediateFuture(deviceState);
