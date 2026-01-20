@@ -8,7 +8,6 @@ import android.content.Intent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.jackpf.locationhistory.Notification;
 import com.jackpf.locationhistory.client.R;
@@ -28,6 +27,7 @@ import org.unifiedpush.android.connector.data.PushEndpoint;
 import org.unifiedpush.android.connector.data.PushMessage;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
 
 public class UnifiedPushService extends PushService {
     private static final String NAME = "UnifiedPush";
@@ -102,7 +102,7 @@ public class UnifiedPushService extends PushService {
                 log.d("Triggering on-demand beacon");
                 // TODO Handle accuracy request
 //                LocationNotification locationNotification = notification.getTriggerLocation();
-                BeaconTask.runAndClose(getApplicationContext(), MoreExecutors.directExecutor());
+                BeaconTask.runAndClose(getApplicationContext(), Executors.newSingleThreadExecutor());
             }
 
             if (notification.hasTriggerAlarm()) {

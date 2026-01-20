@@ -17,19 +17,21 @@ import androidx.core.content.ContextCompat;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.ui.Notifications;
 import com.jackpf.locationhistory.client.util.Logger;
 import com.jackpf.locationhistory.client.worker.BeaconTask;
 import com.jackpf.locationhistory.client.worker.RetryableException;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class BeaconService extends Service {
     private final Logger log = new Logger(this);
     private HandlerThread handlerThread;
     private Handler handler;
+    private ExecutorService executorService;
     private ConfigRepository configRepository;
     private static final int PERSISTENT_NOTIFICATION_ID = 1;
 
@@ -43,7 +45,7 @@ public class BeaconService extends Service {
         log.appendEventToFile(BeaconService.this, START_MESSAGE);
 
         ListenableFuture<Void> beaconResult = BeaconTask
-                .runAndClose(BeaconService.this, MoreExecutors.directExecutor());
+                .runAndClose(BeaconService.this, executorService);
 
         Futures.addCallback(beaconResult, new FutureCallback<Void>() {
             @Override
@@ -99,6 +101,7 @@ public class BeaconService extends Service {
         handlerThread = new HandlerThread("ServiceTimer");
         handlerThread.start();
         handler = new Handler(handlerThread.getLooper());
+        executorService = Executors.newSingleThreadExecutor();
 
         configRepository = new ConfigRepository(this);
         configRepository.registerOnSharedPreferenceChangeListener(configChangeListener);

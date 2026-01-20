@@ -9,6 +9,7 @@ import com.google.common.util.concurrent.AsyncCallable;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.location.LocationData;
@@ -20,9 +21,7 @@ import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class BeaconTask implements AutoCloseable {
     private final PermissionsManager permissionsManager;
@@ -39,12 +38,11 @@ public class BeaconTask implements AutoCloseable {
         this.executor = executor;
     }
 
-    public static BeaconTask create(@NonNull Context context) throws IOException {
+    public static BeaconTask create(@NonNull Context context, ExecutorService executor) throws IOException {
         ConfigRepository configRepository = new ConfigRepository(context);
         TrustedCertStorage trustedCertStorage = new TrustedCertStorage(context);
         PermissionsManager permissionsManager = new PermissionsManager(context);
         DeviceState deviceState = DeviceState.fromConfig(configRepository);
-        ExecutorService executor = Executors.newSingleThreadExecutor();
         LocationService locationService = LocationService.create(context, executor);
 
         BeaconContext beaconContext = new BeaconContext(
@@ -133,11 +131,11 @@ public class BeaconTask implements AutoCloseable {
         }
     }
 
-    public static ListenableFuture<Void> runAndClose(Context context, Executor executor) {
+    public static ListenableFuture<Void> runAndClose(Context context, ExecutorService executor) {
         try {
-            BeaconTask beaconTask = BeaconTask.create(context);
+            BeaconTask beaconTask = BeaconTask.create(context, executor);
             ListenableFuture<Void> result = beaconTask.run();
-            result.addListener(beaconTask::close, executor);
+            result.addListener(beaconTask::close, MoreExecutors.directExecutor());
             return result;
         } catch (IOException e) {
             return Futures.immediateFailedFuture(e);
