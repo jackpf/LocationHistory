@@ -9,7 +9,6 @@ import com.google.common.util.concurrent.AsyncCallable;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.location.LocationData;
@@ -23,7 +22,7 @@ import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-public class BeaconTask implements AutoCloseable {
+public class BeaconTask {
     private final PermissionsManager permissionsManager;
     private final Callable<BeaconContext> beaconContextFactory;
     private final ExecutorService executor;
@@ -121,22 +120,9 @@ public class BeaconTask implements AutoCloseable {
         );
     }
 
-    @Override
-    public void close() {
-        log.d("Closing resources");
+    public static ListenableFuture<Void> runSafe(Context context, ExecutorService executor) {
         try {
-            executor.shutdown();
-        } catch (Exception e) {
-            log.e("Error closing resources", e);
-        }
-    }
-
-    public static ListenableFuture<Void> runAndClose(Context context, ExecutorService executor) {
-        try {
-            BeaconTask beaconTask = BeaconTask.create(context, executor);
-            ListenableFuture<Void> result = beaconTask.run();
-            result.addListener(beaconTask::close, MoreExecutors.directExecutor());
-            return result;
+            return BeaconTask.create(context, executor).run();
         } catch (IOException e) {
             return Futures.immediateFailedFuture(e);
         }

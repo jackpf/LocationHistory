@@ -45,7 +45,7 @@ public class BeaconService extends Service {
         log.appendEventToFile(BeaconService.this, START_MESSAGE);
 
         ListenableFuture<Void> beaconResult = BeaconTask
-                .runAndClose(BeaconService.this, executorService);
+                .runSafe(BeaconService.this, executorService);
 
         Futures.addCallback(beaconResult, new FutureCallback<Void>() {
             @Override

@@ -102,7 +102,7 @@ public class UnifiedPushService extends PushService {
                 log.d("Triggering on-demand beacon");
                 // TODO Handle accuracy request
 //                LocationNotification locationNotification = notification.getTriggerLocation();
-                BeaconTask.runAndClose(getApplicationContext(), Executors.newSingleThreadExecutor());
+                BeaconTask.runSafe(getApplicationContext(), Executors.newSingleThreadExecutor());
             }
 
             if (notification.hasTriggerAlarm()) {
