@@ -274,14 +274,15 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         lazy val deviceId: String = "123"
         lazy val notification: Option[Notification] = Some(Notification())
         lazy val expectedNotificationUrl: String
-        lazy val expectedNotification: Notification
 
         lazy val getResponse: Future[Try[model.StoredDevice]]
         when(deviceRepo.getRegisteredDevice(DeviceId(deviceId))).thenReturn(getResponse)
 
         lazy val notificationResponse: Future[Try[Unit]]
-        when(notificationService.sendNotification(expectedNotificationUrl, expectedNotification))
-          .thenReturn(notificationResponse)
+        notification.foreach(n =>
+          when(notificationService.sendNotification(expectedNotificationUrl, n))
+            .thenReturn(notificationResponse)
+        )
 
         val request: SendNotificationRequest =
           SendNotificationRequest(deviceId = deviceId, notification = notification)
@@ -290,7 +291,6 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
 
       "send a notification" >> in(new SendNotificationContext {
         override lazy val expectedNotificationUrl: String = MockModels.pushHandler().url
-        override lazy val expectedNotification: Notification = Notification()
         override lazy val getResponse: Future[Try[model.StoredDevice]] = Future.successful(
           Success(MockModels.storedDevice(pushHandler = Some(MockModels.pushHandler())))
         )
@@ -302,7 +302,6 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       "not send a notification if registered device is not found" >> in(
         new SendNotificationContext {
           override lazy val expectedNotificationUrl: String = null
-          override lazy val expectedNotification: Notification = null
           override lazy val getResponse: Future[Try[model.StoredDevice]] =
             Future.successful(Failure(DeviceNotFoundException(DeviceId(deviceId))))
           override lazy val notificationResponse: Future[Try[Unit]] = null
@@ -311,9 +310,22 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         context.result must throwAGrpcException(Code.NOT_FOUND, "Device 123 does not exist").await
       }
 
+      "not send an empty notification" >> in(
+        new SendNotificationContext {
+          override lazy val expectedNotificationUrl: String = null
+          override lazy val notification: Option[Notification] = None
+          override lazy val getResponse: Future[Try[model.StoredDevice]] = null
+          override lazy val notificationResponse: Future[Try[Unit]] = null
+        }
+      ) { context =>
+        context.result must throwAGrpcException(
+          Code.INVALID_ARGUMENT,
+          "No notification provided"
+        ).await
+      }
+
       "not send a notification if push handler is empty" >> in(new SendNotificationContext {
         override lazy val expectedNotificationUrl: String = null
-        override lazy val expectedNotification: Notification = null
         override lazy val getResponse: Future[Try[model.StoredDevice]] = Future.successful(
           Success(MockModels.storedDevice(pushHandler = None))
         )
@@ -327,7 +339,6 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
 
       "propagate errors" >> in(new SendNotificationContext {
         override lazy val expectedNotificationUrl: String = MockModels.pushHandler().url
-        override lazy val expectedNotification: Notification = Notification()
         override lazy val getResponse: Future[Try[model.StoredDevice]] = Future.successful(
           Success(MockModels.storedDevice(pushHandler = Some(MockModels.pushHandler())))
         )

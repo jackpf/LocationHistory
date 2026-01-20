@@ -90,9 +90,9 @@ class AdminServiceImpl(
     val deviceId = DeviceId(request.deviceId)
 
     for {
+      notification <- request.notification.toFutureOr(NoNotificationProvided())
       storedDevice <- deviceRepo.getRegisteredDevice(deviceId).toFuture
       pushHandler <- storedDevice.pushHandler.toFutureOr(NoPushHandler(deviceId))
-      notification <- request.notification.toFutureOr(NoNotificationProvided())
       response <- notificationService.sendNotification(pushHandler.url, notification)
     } yield response
   }.toResponse(_ => SendNotificationResponse(success = true))
