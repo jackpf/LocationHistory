@@ -1,7 +1,6 @@
 package com.jackpf.locationhistory.client.ui;
 
 import android.app.Application;
-import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -17,11 +16,8 @@ import com.jackpf.locationhistory.client.client.ssl.UntrustedCertException;
 import com.jackpf.locationhistory.client.client.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
-import com.jackpf.locationhistory.client.push.Ntfy;
-import com.jackpf.locationhistory.client.push.UnifiedPushService;
+import com.jackpf.locationhistory.client.push.UnifiedPushContext;
 import com.jackpf.locationhistory.client.util.Logger;
-
-import org.unifiedpush.android.connector.UnifiedPush;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -32,6 +28,7 @@ public class SettingsViewModel extends AndroidViewModel {
 
     private final ConfigRepository configRepository;
     private final TrustedCertStorage trustedCertStorage;
+    private final UnifiedPushContext unifiedPushContext;
 
     private final SingleLiveEvent<SettingsViewEvent> events = new SingleLiveEvent<>();
 
@@ -39,6 +36,7 @@ public class SettingsViewModel extends AndroidViewModel {
         super(application);
         this.configRepository = new ConfigRepository(application);
         this.trustedCertStorage = new TrustedCertStorage(application);
+        this.unifiedPushContext = new UnifiedPushContext(application);
     }
 
     public LiveData<SettingsViewEvent> getEvents() {
@@ -92,26 +90,25 @@ public class SettingsViewModel extends AndroidViewModel {
         }
     }
 
-    public void handleUnifiedPushToggle(Context context, boolean isChecked) {
+    public void handleUnifiedPushToggle(boolean isChecked) {
         if (isChecked) {
-            List<String> distributors = UnifiedPush.getDistributors(context);
+            List<String> distributors = unifiedPushContext.getDistributors();
             log.d("Found distributors: %s", Arrays.toString(distributors.toArray()));
 
             if (distributors.isEmpty()) {
-                Ntfy.promptInstall(context);
-                events.postValue(new SettingsViewEvent.SetUnifiedPushChecked(false));
+                events.postValue(new SettingsViewEvent.PromptNtfyInstall());
             } else if (distributors.size() == 1) {
-                registerUnifiedPush(context, distributors.get(0));
+                unifiedPushContext.register(distributors.get(0));
             } else {
                 events.postValue(new SettingsViewEvent.ShowDistributorPicker(distributors));
             }
         } else {
-            UnifiedPushService.unregister(context);
+            unifiedPushContext.unregister();
         }
     }
 
-    public void registerUnifiedPush(Context context, String distributor) {
+    public void registerUnifiedPush(String distributor) {
         log.d("Registering with distributor: %s", distributor);
-        UnifiedPushService.register(context, distributor);
+        unifiedPushContext.register(distributor);
     }
 }

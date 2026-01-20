@@ -13,6 +13,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.jackpf.locationhistory.client.R;
 import com.jackpf.locationhistory.client.client.ssl.SSLPrompt;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
+import com.jackpf.locationhistory.client.push.Ntfy;
 import com.jackpf.locationhistory.client.push.ObservableUnifiedPushState;
 
 import java.util.List;
@@ -88,7 +89,7 @@ public class SettingsFragment extends Fragment {
                         binding.pushRegisterSwitch.setChecked(isEnabled);
                     }
                     binding.pushRegisterSwitch.setOnCheckedChangeListener((v, isChecked) ->
-                            viewModel.handleUnifiedPushToggle(requireContext(), isChecked)
+                            viewModel.handleUnifiedPushToggle(isChecked)
                     );
                 });
     }
@@ -114,6 +115,10 @@ public class SettingsFragment extends Fragment {
                     SettingsViewEvent.ShowDistributorPicker pickerEvent = (SettingsViewEvent.ShowDistributorPicker) event;
                     showDistributorPicker(pickerEvent.getDistributors());
                     break;
+                case PROMPT_NTFY_INSTALL:
+                    Ntfy.promptInstall(requireContext());
+                    binding.pushRegisterSwitch.setChecked(false); // Make sure we un-check
+                    break;
             }
         });
     }
@@ -124,7 +129,7 @@ public class SettingsFragment extends Fragment {
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.select_distributor)
                 .setItems(distributorsArray, (dialog, which) ->
-                        viewModel.registerUnifiedPush(requireContext(), distributorsArray[which])
+                        viewModel.registerUnifiedPush(distributorsArray[which])
                 )
                 .setNegativeButton(R.string.cancel, (dialog, which) ->
                         binding.pushRegisterSwitch.setChecked(false)

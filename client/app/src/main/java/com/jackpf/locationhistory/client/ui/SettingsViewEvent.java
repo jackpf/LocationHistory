@@ -6,13 +6,17 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 public abstract class SettingsViewEvent {
-    public enum Type { TOAST, SSL_PROMPT, SET_UNIFIED_PUSH_CHECKED, SHOW_DISTRIBUTOR_PICKER }
+    public enum Type {TOAST, SSL_PROMPT, SET_UNIFIED_PUSH_CHECKED, SHOW_DISTRIBUTOR_PICKER, PROMPT_NTFY_INSTALL}
 
     public abstract Type getType();
 
     @Getter
     public static class Toast extends SettingsViewEvent {
-        @Override public Type getType() { return Type.TOAST; }
+        @Override
+        public Type getType() {
+            return Type.TOAST;
+        }
+
         private final int messageResId;
         private final Object[] formatArgs;
 
@@ -25,21 +29,42 @@ public abstract class SettingsViewEvent {
     @Getter
     @RequiredArgsConstructor
     public static class SslPrompt extends SettingsViewEvent {
-        @Override public Type getType() { return Type.SSL_PROMPT; }
+        @Override
+        public Type getType() {
+            return Type.SSL_PROMPT;
+        }
+
         private final String fingerprint;
     }
 
     @Getter
     @RequiredArgsConstructor
     public static class SetUnifiedPushChecked extends SettingsViewEvent {
-        @Override public Type getType() { return Type.SET_UNIFIED_PUSH_CHECKED; }
+        @Override
+        public Type getType() {
+            return Type.SET_UNIFIED_PUSH_CHECKED;
+        }
+
         private final boolean checked;
     }
 
     @Getter
     @RequiredArgsConstructor
     public static class ShowDistributorPicker extends SettingsViewEvent {
-        @Override public Type getType() { return Type.SHOW_DISTRIBUTOR_PICKER; }
+        @Override
+        public Type getType() {
+            return Type.SHOW_DISTRIBUTOR_PICKER;
+        }
+
         private final List<String> distributors;
+    }
+
+    @Getter
+    @RequiredArgsConstructor
+    public static class PromptNtfyInstall extends SettingsViewEvent {
+        @Override
+        public Type getType() {
+            return Type.PROMPT_NTFY_INSTALL;
+        }
     }
 }
