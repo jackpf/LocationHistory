@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.ui.Notifications;
 import com.jackpf.locationhistory.client.util.Logger;
+import com.jackpf.locationhistory.client.worker.BeaconResult;
 import com.jackpf.locationhistory.client.worker.BeaconTask;
 import com.jackpf.locationhistory.client.worker.RetryableException;
 
@@ -44,14 +45,14 @@ public class BeaconService extends Service {
         log.i(START_MESSAGE);
         log.appendEventToFile(BeaconService.this, START_MESSAGE);
 
-        ListenableFuture<Void> beaconResult = BeaconTask
+        ListenableFuture<BeaconResult> beaconResult = BeaconTask
                 .runSafe(BeaconService.this, executorService);
 
-        Futures.addCallback(beaconResult, new FutureCallback<Void>() {
+        Futures.addCallback(beaconResult, new FutureCallback<BeaconResult>() {
             @Override
-            public void onSuccess(Void result) {
-                log.i(SUCCESS_MESSAGE);
-                log.appendEventToFile(BeaconService.this, SUCCESS_MESSAGE);
+            public void onSuccess(BeaconResult result) {
+                log.i("%s: %s", SUCCESS_MESSAGE, result);
+                log.appendEventToFile(BeaconService.this, "%s: %s", SUCCESS_MESSAGE, result);
                 scheduleNext(regularDelayMillis());
             }
 

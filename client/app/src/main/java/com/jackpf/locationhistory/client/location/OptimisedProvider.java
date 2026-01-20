@@ -49,8 +49,9 @@ public class OptimisedProvider implements LocationProvider {
                 threadExecutor,
                 location -> {
                     handler.removeCallbacks(onTimeout);
-                    
-                    if (location != null) consumer.accept(new LocationData(location, source));
+
+                    if (location != null)
+                        consumer.accept(new LocationData(location, source, getClass().getName()));
                     else consumer.accept(null);
                 }
         );

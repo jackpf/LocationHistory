@@ -39,7 +39,7 @@ public class LegacyHighAccuracyProvider implements LocationProvider {
                 if (resultHandled.compareAndSet(false, true)) {
                     log.d("Location data received from listener");
                     locationManager.removeUpdates(this);
-                    threadExecutor.execute(() -> consumer.accept(new LocationData(location, source)));
+                    threadExecutor.execute(() -> consumer.accept(new LocationData(location, source, getClass().getName())));
                 }
             }
 
