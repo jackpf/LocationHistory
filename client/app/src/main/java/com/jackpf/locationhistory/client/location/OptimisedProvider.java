@@ -36,13 +36,20 @@ public class OptimisedProvider implements LocationProvider {
         if (!isSupported())
             throw new RuntimeException("getLiveLocation requires Android R or above");
         CancellationSignal cancellationSignal = new CancellationSignal();
-        new Handler(Looper.getMainLooper()).postDelayed(cancellationSignal::cancel, timeout);
+        Handler handler = new Handler(Looper.getMainLooper());
+        Runnable onTimeout = () -> {
+            cancellationSignal.cancel();
+            consumer.accept(null);
+        };
+        handler.postDelayed(onTimeout, timeout);
 
         locationManager.getCurrentLocation(
                 source,
                 cancellationSignal,
                 threadExecutor,
                 location -> {
+                    handler.removeCallbacks(onTimeout);
+                    
                     if (location != null) consumer.accept(new LocationData(location, source));
                     else consumer.accept(null);
                 }
