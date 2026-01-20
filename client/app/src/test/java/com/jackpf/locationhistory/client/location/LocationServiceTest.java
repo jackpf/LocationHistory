@@ -14,7 +14,6 @@ import static org.mockito.Mockito.when;
 import android.location.Location;
 import android.location.LocationManager;
 
-import com.google.common.util.concurrent.MoreExecutors;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 
 import org.junit.Before;
@@ -53,7 +52,6 @@ public class LocationServiceTest {
         locationService = new LocationService(
                 locationManager,
                 permissionsManager,
-                MoreExecutors.newDirectExecutorService(),
                 legacyHighAccuracyProvider,
                 legacyCachedProvider,
                 optimisedProvider
