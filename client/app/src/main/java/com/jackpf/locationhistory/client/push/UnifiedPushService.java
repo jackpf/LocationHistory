@@ -27,7 +27,7 @@ import org.unifiedpush.android.connector.data.PushEndpoint;
 import org.unifiedpush.android.connector.data.PushMessage;
 
 import java.io.IOException;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 
 public class UnifiedPushService extends PushService {
     private static final String NAME = "UnifiedPush";
@@ -102,7 +102,7 @@ public class UnifiedPushService extends PushService {
                 log.d("Triggering on-demand beacon");
                 // TODO Handle accuracy request
 //                LocationNotification locationNotification = notification.getTriggerLocation();
-                BeaconTask.runSafe(getApplicationContext(), Executors.newSingleThreadExecutor());
+                BeaconTask.runSafe(getApplicationContext(), ForkJoinPool.commonPool());
             }
 
             if (notification.hasTriggerAlarm()) {

@@ -58,12 +58,12 @@ public class BeaconService extends Service {
             @Override
             public void onFailure(@NonNull Throwable t) {
                 if (t instanceof RetryableException) {
-                    log.w(String.format("%s: %s", RETRY_MESSAGE, t.getMessage()));
-                    log.appendEventToFile(BeaconService.this, String.format("%s: %s", RETRY_MESSAGE, t.getMessage()));
+                    log.w(RETRY_MESSAGE, t);
+                    log.appendEventToFile(BeaconService.this, "%s: %s", RETRY_MESSAGE, t.getMessage());
                     scheduleNext(retryDelayMillis());
                 } else {
-                    log.e(String.format("%s: %s", FAILED_MESSAGE, t.getMessage()));
-                    log.appendEventToFile(BeaconService.this, String.format("%s: %s", FAILED_MESSAGE, t.getMessage()));
+                    log.e(FAILED_MESSAGE, t.getMessage());
+                    log.appendEventToFile(BeaconService.this, "%s: %s", FAILED_MESSAGE, t.getMessage());
                     scheduleNext(regularDelayMillis());
                 }
             }
@@ -132,6 +132,7 @@ public class BeaconService extends Service {
 
         if (handler != null) handler.removeCallbacks(beaconTaskRunner);
         if (handlerThread != null) handlerThread.quitSafely();
+        if (executorService != null) executorService.shutdown();
         if (configRepository != null)
             configRepository.unregisterOnSharedPreferenceChangeListener(configChangeListener);
     }
