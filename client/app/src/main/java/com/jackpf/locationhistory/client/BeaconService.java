@@ -62,7 +62,7 @@ public class BeaconService extends Service {
                     log.appendEventToFile(BeaconService.this, "%s: %s", RETRY_MESSAGE, t.getMessage());
                     scheduleNext(retryDelayMillis());
                 } else {
-                    log.e(FAILED_MESSAGE, t.getMessage());
+                    log.e(FAILED_MESSAGE, t);
                     log.appendEventToFile(BeaconService.this, "%s: %s", FAILED_MESSAGE, t.getMessage());
                     scheduleNext(regularDelayMillis());
                 }
@@ -113,6 +113,8 @@ public class BeaconService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
+
         Notifications notifications = new Notifications(this);
 
         ServiceCompat.startForeground(this,
