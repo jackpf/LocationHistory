@@ -12,7 +12,7 @@ import com.jackpf.locationhistory.server.model
 import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.service.NotificationService
-import com.jackpf.locationhistory.server.service.NotificationService.Notification
+import com.jackpf.locationhistory.notifications.Notification
 import com.jackpf.locationhistory.server.testutil.{
   DefaultScope,
   DefaultSpecification,
@@ -272,7 +272,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
     "send notification endpoint" >> {
       trait SendNotificationContext extends Context {
         lazy val deviceId: String = "123"
-        lazy val notificationType: NotificationType
+        lazy val notification: Option[Notification] = Some(Notification())
         lazy val expectedNotificationUrl: String
         lazy val expectedNotification: Notification
 
@@ -284,14 +284,13 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
           .thenReturn(notificationResponse)
 
         val request: SendNotificationRequest =
-          SendNotificationRequest(deviceId = deviceId, notificationType = notificationType)
+          SendNotificationRequest(deviceId = deviceId, notification = notification)
         val result: Future[SendNotificationResponse] = adminService.sendNotification(request)
       }
 
       "send a notification" >> in(new SendNotificationContext {
-        override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
         override lazy val expectedNotificationUrl: String = MockModels.pushHandler().url
-        override lazy val expectedNotification: Notification = Notification.TRIGGER_BEACON
+        override lazy val expectedNotification: Notification = Notification()
         override lazy val getResponse: Future[Try[model.StoredDevice]] = Future.successful(
           Success(MockModels.storedDevice(pushHandler = Some(MockModels.pushHandler())))
         )
@@ -302,7 +301,6 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
 
       "not send a notification if registered device is not found" >> in(
         new SendNotificationContext {
-          override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
           override lazy val expectedNotificationUrl: String = null
           override lazy val expectedNotification: Notification = null
           override lazy val getResponse: Future[Try[model.StoredDevice]] =
@@ -314,7 +312,6 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       }
 
       "not send a notification if push handler is empty" >> in(new SendNotificationContext {
-        override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
         override lazy val expectedNotificationUrl: String = null
         override lazy val expectedNotification: Notification = null
         override lazy val getResponse: Future[Try[model.StoredDevice]] = Future.successful(
@@ -329,9 +326,8 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       }
 
       "propagate errors" >> in(new SendNotificationContext {
-        override lazy val notificationType: NotificationType = NotificationType.REQUEST_BEACON
         override lazy val expectedNotificationUrl: String = MockModels.pushHandler().url
-        override lazy val expectedNotification: Notification = Notification.TRIGGER_BEACON
+        override lazy val expectedNotification: Notification = Notification()
         override lazy val getResponse: Future[Try[model.StoredDevice]] = Future.successful(
           Success(MockModels.storedDevice(pushHandler = Some(MockModels.pushHandler())))
         )

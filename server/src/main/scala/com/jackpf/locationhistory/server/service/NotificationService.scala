@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.service
 
-import com.jackpf.locationhistory.notifications.Notification as NotificationMessage
+import com.jackpf.locationhistory.notifications.Notification
 import sttp.client4.*
 
 import java.io.IOException
@@ -8,7 +8,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 class NotificationService(backend: Backend[Future]) {
-  def sendNotification(url: String, notification: NotificationMessage)(using
+  def sendNotification(url: String, notification: Notification)(using
       ec: ExecutionContext
   ): Future[Try[Unit]] = {
     val request = quickRequest

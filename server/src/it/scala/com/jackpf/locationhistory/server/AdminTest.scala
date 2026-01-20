@@ -7,10 +7,10 @@ import com.jackpf.locationhistory.admin_service.{
   DeleteDeviceResponse,
   ListDevicesRequest,
   LoginRequest,
-  NotificationType,
   SendNotificationRequest,
   SendNotificationResponse
 }
+import com.jackpf.locationhistory.notifications.Notification
 import com.jackpf.locationhistory.beacon_service.{
   RegisterDeviceRequest,
   RegisterDeviceResponse,
@@ -20,10 +20,10 @@ import com.jackpf.locationhistory.beacon_service.{
 import com.jackpf.locationhistory.common.{Device, PushHandler}
 import com.jackpf.locationhistory.server.testutil.{GrpcMatchers, IntegrationTest, TestServer}
 import io.grpc.Status.Code
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.when
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
 class AdminTest extends IntegrationTest with GrpcMatchers {
@@ -158,14 +158,14 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
 
         when(
           IntegrationTest.notificationService
-            .sendNotification(any(), any())(using any())
+            .sendNotification(anyString(), any[Notification]())(using any[ExecutionContext]())
         ).thenReturn(Future.successful(Success(())))
       }
 
       "send a notification" >> in(new DeviceWithPushHandlerContext {}) { context =>
         val request = SendNotificationRequest(
           deviceId = context.device.id,
-          notificationType = NotificationType.REQUEST_BEACON
+          notification = Some(Notification())
         )
 
         val response = context.adminClient.sendNotification(request)
@@ -177,7 +177,7 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
         context =>
           val request = SendNotificationRequest(
             deviceId = "non-existing",
-            notificationType = NotificationType.REQUEST_BEACON
+            notification = Some(Notification())
           )
 
           context.adminClient.sendNotification(request) must throwAGrpcRuntimeException(
@@ -191,7 +191,7 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
       ) { context =>
         val request = SendNotificationRequest(
           deviceId = context.device.id,
-          notificationType = NotificationType.REQUEST_BEACON
+          notification = Some(Notification())
         )
 
         context.adminClient.sendNotification(request) must throwAGrpcRuntimeException(
