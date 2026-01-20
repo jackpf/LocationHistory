@@ -71,11 +71,15 @@ public class BeaconService extends Service {
     };
 
     private final SharedPreferences.OnSharedPreferenceChangeListener configChangeListener = (prefs, key) -> {
+        log.d("Detected config change");
+
         handler.removeCallbacks(beaconTaskRunner);
         handler.postDelayed(beaconTaskRunner, 500); // Debounce config changes
     };
 
     private void scheduleNext(long delayMillis) {
+        log.d("Scheduling next beacon task in %dms", delayMillis);
+
         handler.removeCallbacks(beaconTaskRunner);
         handler.postDelayed(beaconTaskRunner, delayMillis);
     }

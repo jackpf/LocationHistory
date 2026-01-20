@@ -53,10 +53,7 @@
     <string name="cancel">Cancel</string>
 
     <string name="update_frequency">Update Frequency</string>
-    <string name="update_frequency_balanced">Balanced</string>
-    <string name="update_frequency_high">Scheduled</string>
-    <string name="update_every">Update Every</string>
-    <string name="update_every_hint">Minutes</string>
+    <string name="update_frequency_hint">Minutes</string>
 
     <string name="enable_unified_push">Enable UnifiedPush</string>
     <string name="unified_push_description">Enables real-time location requests and Find Device in the web UI</string>
