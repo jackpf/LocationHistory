@@ -3,7 +3,7 @@ package com.jackpf.locationhistory.server.util
 import io.circe.{Decoder, Encoder}
 import io.circe.parser.decode
 import io.circe.syntax.*
-import org.sqlite.SQLiteException
+import org.sqlite.{SQLiteErrorCode, SQLiteException}
 import scalasql.core.TypeMapper
 
 import java.sql.{JDBCType, PreparedStatement, ResultSet}
@@ -52,7 +52,11 @@ object SQLiteMapper {
       if (jsonStr == null || jsonStr.isEmpty) JsonColumn(defaultValue.value)
       else
         decode[T](jsonStr) match {
-          case Left(error)  => throw error
+          case Left(error) =>
+            throw SQLiteException(
+              s"Error parsing JsonColumn: ${error.getMessage}",
+              SQLiteErrorCode.UNKNOWN_ERROR
+            )
           case Right(value) => JsonColumn(value)
         }
     }
