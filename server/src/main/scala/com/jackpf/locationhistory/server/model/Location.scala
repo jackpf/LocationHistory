@@ -20,4 +20,7 @@ case class Location(lat: Double, lon: Double, accuracy: Double, metadata: Map[St
     accuracy = accuracy,
     metadata = metadata
   )
+
+  def withExtraMetadata(extraMetadata: Map[String, String]): Location =
+    copy(metadata = metadata ++ extraMetadata)
 }

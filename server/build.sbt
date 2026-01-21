@@ -37,8 +37,10 @@ lazy val root = (project in file("."))
       "org.xerial" % "sqlite-jdbc" % versions.sqlite,
       "com.lihaoyi" %% "scalasql-namedtuples" % versions.scalasql,
       "com.softwaremill.sttp.client4" %% "core" % versions.sttp,
+      "com.softwaremill.sttp.client4" %% "circe" % versions.sttp,
       "com.github.jwt-scala" %% "jwt-circe" % versions.jwt,
       "io.circe" %% "circe-generic" % versions.circe,
+      "io.circe" %% "circe-generic-extras" % "0.14.3"
     ),
     // Test Dependencies
     libraryDependencies ++= Seq(

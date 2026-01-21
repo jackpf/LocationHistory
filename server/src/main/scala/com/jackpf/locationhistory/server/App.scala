@@ -1,11 +1,12 @@
 package com.jackpf.locationhistory.server
 
 import com.jackpf.locationhistory.server.db.DataSourceFactory
+import com.jackpf.locationhistory.server.enricher.{EnricherExecutor, OSMEnricher}
 import com.jackpf.locationhistory.server.grpc.interceptors.TokenService
 import com.jackpf.locationhistory.server.grpc.{AuthenticationManager, Services}
 import com.jackpf.locationhistory.server.model.StorageType
 import com.jackpf.locationhistory.server.repo.*
-import com.jackpf.locationhistory.server.service.{JwtAuthService, NotificationService}
+import com.jackpf.locationhistory.server.service.{JwtAuthService, NotificationService, OSMService}
 import scopt.OptionParser
 import sttp.client4.DefaultFutureBackend
 
@@ -73,6 +74,11 @@ object App {
     val locationRepo: LocationRepo = repoFactory.locationRepo(parsedArgs.storageType.get)
     val sttpBackend = DefaultFutureBackend()
     val notificationService: NotificationService = new NotificationService(sttpBackend)
+    val enricherExecutor: EnricherExecutor = new EnricherExecutor(
+      Seq( // TODO Make configurable
+        new OSMEnricher(new OSMService(sttpBackend))
+      )
+    )
 
     Await.result(
       Future.sequence(
@@ -88,7 +94,7 @@ object App {
       "Beacon service",
       parsedArgs.beaconPort.get,
       parsedArgs.sslCertsPath,
-      Services.beaconServices(deviceRepo, locationRepo)*
+      Services.beaconServices(deviceRepo, locationRepo, enricherExecutor)*
     ).start()
 
     val adminServer = new AppServer(
