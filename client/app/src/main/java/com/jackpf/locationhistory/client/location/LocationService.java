@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -75,7 +76,7 @@ public class LocationService {
 
     private void callSequentialProviders(Iterator<ProviderRequest> providers, Consumer<LocationData> consumer) {
         if (!providers.hasNext()) {
-            consumer.accept(null); // All providers failed
+            consumer.accept(null); // All providers invalid/failed
             return;
         }
 
@@ -94,12 +95,19 @@ public class LocationService {
     private void callParallelProviders(Iterator<ProviderRequest> providers,
                                        Function<List<LocationData>, LocationData> selector,
                                        Consumer<LocationData> consumer) {
-        ProviderRequest[] providersArray = Iterators.toArray(providers, ProviderRequest.class);
+        List<ProviderRequest> validProviders = Arrays.stream(Iterators.toArray(providers, ProviderRequest.class))
+                .filter(p -> locationManager.isProviderEnabled(p.source))
+                .collect(Collectors.toList());
+
+        if (!providers.hasNext()) {
+            consumer.accept(null); // All providers invalid/failed
+            return;
+        }
+
         Consumer<List<LocationData>> parentConsumer = locations -> consumer.accept(selector.apply(locations));
+        ConsumerAggregator<LocationData> aggregator = new ConsumerAggregator<>(validProviders.size(), parentConsumer);
 
-        ConsumerAggregator<LocationData> aggregator = new ConsumerAggregator<>(providersArray.length, parentConsumer);
-
-        for (ProviderRequest request : providersArray) {
+        for (ProviderRequest request : validProviders) {
             request.provider.provide(request.getSource(), request.getTimeout(), aggregator.newChildConsumer());
         }
     }
