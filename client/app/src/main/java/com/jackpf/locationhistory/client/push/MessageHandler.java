@@ -16,6 +16,7 @@ import com.jackpf.locationhistory.client.worker.BeaconResult;
 import com.jackpf.locationhistory.client.worker.BeaconTask;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class MessageHandler {
     private final Logger log = new Logger(this);
@@ -24,12 +25,19 @@ public class MessageHandler {
     private final ConfigRepository configRepository;
     private final Executor executor;
 
+    private static final AtomicLong lastMessageTimestamp = new AtomicLong();
+    private final long cooldownMillis;
+
     private static final int ALARM_NOTIFICATION_ID = 1;
 
-    public MessageHandler(Context context, ConfigRepository configRepository, Executor executor) {
+    public MessageHandler(Context context,
+                          ConfigRepository configRepository,
+                          Executor executor,
+                          long cooldownMillis) {
         this.context = context;
         this.configRepository = configRepository;
         this.executor = executor;
+        this.cooldownMillis = cooldownMillis;
     }
 
     private void updateRequestedAccuracy(LocationAccuracyRequest requestedAccuracy) {
@@ -61,7 +69,21 @@ public class MessageHandler {
         return Futures.immediateVoidFuture();
     }
 
+    private boolean shouldDropMessage() {
+        return System.currentTimeMillis() - lastMessageTimestamp.get() < cooldownMillis;
+    }
+
+    private void updateLastMessageTimestamp() {
+        lastMessageTimestamp.set(System.currentTimeMillis());
+    }
+
     public ListenableFuture<?> handle(Notification notification) {
+        if (shouldDropMessage()) {
+            log.w("Dropping message due to cooldown");
+            return Futures.immediateVoidFuture();
+        }
+        updateLastMessageTimestamp();
+
         if (notification.hasTriggerLocation()) {
             return handleTriggerLocation(notification.getTriggerLocation());
         } else if (notification.hasTriggerAlarm()) {

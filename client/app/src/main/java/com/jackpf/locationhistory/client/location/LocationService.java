@@ -99,8 +99,8 @@ public class LocationService {
                 .filter(p -> locationManager.isProviderEnabled(p.source))
                 .collect(Collectors.toList());
 
-        if (!providers.hasNext()) {
-            consumer.accept(null); // All providers invalid/failed
+        if (validProviders.isEmpty()) {
+            consumer.accept(null); // All providers invalid
             return;
         }
 
