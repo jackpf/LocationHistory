@@ -86,16 +86,11 @@ public class MessageHandler {
         return false;
     }
 
-    private void updateLastMessageTimestamp() {
-        lastMessageTimestamp.set(System.currentTimeMillis());
-    }
-
     public ListenableFuture<?> handle(Notification notification) {
         if (shouldDropMessage()) {
             log.w("Dropping message due to cooldown");
             return Futures.immediateVoidFuture();
         }
-        updateLastMessageTimestamp();
 
         if (notification.hasTriggerLocation()) {
             return handleTriggerLocation(notification.getTriggerLocation());
