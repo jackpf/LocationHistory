@@ -55,10 +55,8 @@ class BeaconServiceImpl(
     for {
       protoLocation <- request.location.toFutureOr(NoLocationProvidedException())
       location = Location.fromProto(protoLocation)
-      enrichedLocation <- enricherExecutor.enrich(
-        location
-      ) // TODO Must go after getRegisteredDevice
       storedDevice <- deviceRepo.getRegisteredDevice(DeviceId(request.deviceId)).toFuture
+      enrichedLocation <- enricherExecutor.enrich(location)
       storeLocationResponse <- locationRepo
         .storeDeviceLocationOrUpdatePrevious(
           storedDevice.device.id,

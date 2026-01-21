@@ -1,8 +1,7 @@
 package com.jackpf.locationhistory.server.service
 
 import com.jackpf.locationhistory.server.util.STTPUtils.*
-import io.circe.derivation.Configuration
-import io.circe.generic.auto.*
+import io.circe.derivation.{Configuration, ConfiguredDecoder}
 import sttp.client4.*
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -15,22 +14,31 @@ object OSMService {
     s"https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&extratags=1&format=jsonv2"
 
   object GeoLookupResponse {
+
+    /** Address fields are all optional
+      * Availability depends on OSM data for the location
+      */
     case class Address(
-        houseNumber: String,
-        road: String,
-        quarter: String,
-        suburb: String,
-        borough: String,
-        city: String,
-        ISO31662Lvl4: String,
-        postcode: String,
-        country: String,
-        countryCode: String
-    )
+        houseNumber: Option[String] = None,
+        road: Option[String] = None,
+        quarter: Option[String] = None,
+        suburb: Option[String] = None,
+        borough: Option[String] = None,
+        city: Option[String] = None,
+        town: Option[String] = None,
+        village: Option[String] = None,
+        county: Option[String] = None,
+        state: Option[String] = None,
+        stateDistrict: Option[String] = None,
+        ISO31662Lvl4: Option[String] = None,
+        postcode: Option[String] = None,
+        country: Option[String] = None,
+        countryCode: Option[String] = None
+    ) derives ConfiguredDecoder
   }
   case class GeoLookupResponse(
       placeId: Long,
-      license: String,
+      licence: String,
       osmType: String,
       osmId: Long,
       lat: String,
@@ -39,13 +47,14 @@ object OSMService {
       `type`: String,
       placeRank: Int,
       importance: Double,
-      addressType: String,
-      name: String,
+      addresstype: String,
+      /** Can be null for unnamed places */
+      name: Option[String],
       displayName: String,
       address: GeoLookupResponse.Address,
-      extraTags: Map[String, String],
+      extratags: Option[Map[String, String]],
       boundingbox: Seq[String]
-  )
+  ) derives ConfiguredDecoder
 }
 
 class OSMService(backend: Backend[Future]) {
