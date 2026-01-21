@@ -2,6 +2,8 @@ package com.jackpf.locationhistory.client.util;
 
 import android.content.Context;
 
+import androidx.annotation.Nullable;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,6 +13,8 @@ import java.util.Locale;
 
 public class Logger {
     private static final String EVENT_LOG_FILE = "event_log.txt";
+    @Nullable
+    private static File filesDir;
 
     private final String tag;
 
@@ -20,6 +24,13 @@ public class Logger {
 
     public Logger(Object context) {
         this.tag = context.getClass().getSimpleName();
+    }
+
+    /**
+     * Needed for file logging
+     */
+    public static void initContext(Context context) {
+        filesDir = context.getFilesDir();
     }
 
     private String format(String msg, Object... args) {
@@ -61,8 +72,17 @@ public class Logger {
         android.util.Log.e(tag, format(msg, args), t);
     }
 
-    public void appendEventToFile(Context context, String msg, Object... args) {
-        File logFile = new File(context.getFilesDir(), EVENT_LOG_FILE);
+    public void appendEventToFile(String msg, Object... args) {
+        if (filesDir == null) {
+            e("Logger not initialized - call initContext for file logging");
+            return;
+        }
+
+        appendEventToFile(filesDir, msg, args);
+    }
+
+    public void appendEventToFile(File customFilesDir, String msg, Object... args) {
+        File logFile = new File(customFilesDir, EVENT_LOG_FILE);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         String entry = sdf.format(new Date()) + ": " + format(msg, args) + "\n";

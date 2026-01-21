@@ -38,36 +38,22 @@ public class BeaconService extends Service {
     private static final int PERSISTENT_NOTIFICATION_ID = 1;
     private static final String ACTION_RUN_TASK = "com.jackpf.locationhistory.client.ACTION_BEACON_SERVICE";
 
-    private static final String START_MESSAGE = "Beacon task started";
-    private static final String SUCCESS_MESSAGE = "Beacon task completed successfully";
-    private static final String FAILED_MESSAGE = "Beacon task failed";
-    private static final String RETRY_MESSAGE = "Beacon task failed with retry";
-
     private final Runnable beaconTask = () ->
             beaconScheduler.runWithWakeLock(() -> {
-                log.i(START_MESSAGE);
-                log.appendEventToFile(BeaconService.this, START_MESSAGE);
-
                 ListenableFuture<BeaconResult> beaconResult = BeaconTask
                         .runSafe(BeaconService.this, executorService);
 
                 Futures.addCallback(beaconResult, new FutureCallback<BeaconResult>() {
                     @Override
                     public void onSuccess(BeaconResult result) {
-                        log.i("%s: %s", SUCCESS_MESSAGE, result);
-                        log.appendEventToFile(BeaconService.this, "%s: %s", SUCCESS_MESSAGE, result);
                         scheduleNext(regularDelayMillis());
                     }
 
                     @Override
                     public void onFailure(@NonNull Throwable t) {
                         if (t instanceof RetryableException) {
-                            log.w(RETRY_MESSAGE, t);
-                            log.appendEventToFile(BeaconService.this, "%s: %s", RETRY_MESSAGE, t.getMessage());
                             scheduleNext(retryDelayMillis());
                         } else {
-                            log.e(FAILED_MESSAGE, t);
-                            log.appendEventToFile(BeaconService.this, "%s: %s", FAILED_MESSAGE, t.getMessage());
                             scheduleNext(regularDelayMillis());
                         }
                     }

@@ -29,11 +29,9 @@ import org.unifiedpush.android.connector.data.PushMessage;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class UnifiedPushService extends PushService {
-    private static final String NAME = "UnifiedPush";
-    private static final String CUSTOM_UNREGISTER_ACTION = "com.jackpf.locationhistory.client.MANUAL_UNREGISTER";
-
     @Nullable
     private ExecutorService executor;
     @Nullable
@@ -48,6 +46,10 @@ public class UnifiedPushService extends PushService {
     private BeaconScheduler beaconScheduler;
 
     private final static Logger log = new Logger("UnifiedPushService");
+
+    private static final String NAME = "UnifiedPush";
+    private static final String CUSTOM_UNREGISTER_ACTION = "com.jackpf.locationhistory.client.MANUAL_UNREGISTER";
+    private static final long messageHandlerCooldownMillis = TimeUnit.MILLISECONDS.toMillis(5000);
 
     private static BeaconClient createBeaconClient(Context context, ConfigRepository configRepository) throws IOException {
         return BeaconClientFactory.createPooledClient(
@@ -68,7 +70,7 @@ public class UnifiedPushService extends PushService {
         executor = Executors.newSingleThreadExecutor();
         configRepository = new ConfigRepository(getApplicationContext());
         unifiedPushStorage = new UnifiedPushStorage(getApplicationContext());
-        messageHandler = new MessageHandler(this, configRepository, executor);
+        messageHandler = new MessageHandler(this, configRepository, executor, messageHandlerCooldownMillis);
         try {
             beaconClient = createBeaconClient(getApplicationContext(), configRepository);
         } catch (IOException e) {

@@ -3,6 +3,7 @@ package com.jackpf.locationhistory.client.location;
 import android.content.Context;
 import android.location.LocationManager;
 
+import com.google.common.collect.Streams;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.util.Logger;
 
@@ -12,6 +13,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -41,9 +44,9 @@ public class LocationService {
     @Getter
     @AllArgsConstructor
     private static class ProviderRequest {
-        String source;
-        int timeout;
-        LocationProvider provider;
+        private String source;
+        private int timeout;
+        private LocationProvider provider;
     }
 
     LocationService(LocationManager locationManager,
@@ -71,9 +74,9 @@ public class LocationService {
         );
     }
 
-    private void callProvider(Iterator<ProviderRequest> providers, Consumer<LocationData> consumer) {
+    private void callSequentialProviders(Iterator<ProviderRequest> providers, Consumer<LocationData> consumer) {
         if (!providers.hasNext()) {
-            consumer.accept(null); // All providers failed
+            consumer.accept(null); // All providers invalid/failed
             return;
         }
 
@@ -82,11 +85,42 @@ public class LocationService {
         if (locationManager.isProviderEnabled(nextProvider.getSource())) {
             nextProvider.getProvider().provide(nextProvider.getSource(), nextProvider.getTimeout(), location -> {
                 if (location != null) consumer.accept(location);
-                else callProvider(providers, consumer);
+                else callSequentialProviders(providers, consumer);
             });
         } else {
-            callProvider(providers, consumer);
+            callSequentialProviders(providers, consumer);
         }
+    }
+
+    private void callParallelProviders(Iterator<ProviderRequest> providers,
+                                       Function<List<LocationData>, LocationData> selector,
+                                       Consumer<LocationData> consumer) {
+        List<ProviderRequest> validProviders = Streams.stream(providers)
+                .filter(p -> locationManager.isProviderEnabled(p.source))
+                .collect(Collectors.toList());
+
+        if (validProviders.isEmpty()) {
+            consumer.accept(null); // All providers invalid
+            return;
+        }
+
+        Consumer<List<LocationData>> parentConsumer = locations -> consumer.accept(selector.apply(locations));
+        ConsumerAggregator<LocationData> aggregator = new ConsumerAggregator<>(validProviders.size(), parentConsumer);
+
+        for (ProviderRequest request : validProviders) {
+            request.provider.provide(request.getSource(), request.getTimeout(), aggregator.newChildConsumer());
+        }
+    }
+
+    private LocationData chooseBestLocation(List<LocationData> locations) {
+        LocationData best = null;
+        for (LocationData location : locations) {
+            if (location != null && location.getLocation() != null
+                    && (best == null || location.getLocation().getAccuracy() < best.getLocation().getAccuracy())) {
+                best = location;
+            }
+        }
+        return best;
     }
 
     /**
@@ -111,8 +145,10 @@ public class LocationService {
 
             if (accuracy == RequestedAccuracy.HIGH) {
                 providers.addAll(Arrays.asList(gpsRequest, networkRequest));
+                callParallelProviders(providers.iterator(), this::chooseBestLocation, consumer);
             } else {
                 providers.addAll(Arrays.asList(networkRequest, gpsRequest));
+                callSequentialProviders(providers.iterator(), consumer);
             }
         } else {
             /* The legacy provider will directly request location from the hardware,
@@ -126,11 +162,11 @@ public class LocationService {
 
             if (accuracy == RequestedAccuracy.HIGH) {
                 providers.addAll(Arrays.asList(highGps, highNetwork, cachedGps, cachedNetwork));
+                callParallelProviders(providers.iterator(), this::chooseBestLocation, consumer);
             } else {
                 providers.addAll(Arrays.asList(cachedGps, cachedNetwork, highNetwork, highGps));
+                callSequentialProviders(providers.iterator(), consumer);
             }
         }
-
-        callProvider(providers.iterator(), consumer);
     }
 }
