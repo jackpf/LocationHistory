@@ -25,7 +25,7 @@ class OSMEnricherTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
       lat = "51.5074",
       lon = "-0.1278",
       category = "building",
-      `type` = "yes",
+      `type` = "pub",
       place_rank = 30,
       importance = 0.5,
       addresstype = "building",
@@ -58,7 +58,7 @@ class OSMEnricherTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
       context.result must contain(
         "name" -> "Test Building",
         "category" -> "building",
-        "type" -> "yes",
+        "type" -> "pub",
         "houseNumber" -> "123",
         "road" -> "Test Road",
         "city" -> "London",

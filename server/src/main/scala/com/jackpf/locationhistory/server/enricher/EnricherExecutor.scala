@@ -16,6 +16,8 @@ class EnricherExecutor(enrichers: Iterable[MetadataEnricher]) extends Logging {
     }
   }
 
+  /** Overwrites keys on duplicates
+    */
   private def mergeMetadata(multiple: Iterable[Map[String, String]]): Map[String, String] =
     multiple.flatten.toMap
 
