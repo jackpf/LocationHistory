@@ -115,7 +115,7 @@ public class LocationService {
     private LocationData chooseBestLocation(List<LocationData> locations) {
         LocationData best = null;
         for (LocationData location : locations) {
-            if (location.getLocation() != null
+            if (location != null && location.getLocation() != null
                     && (best == null || location.getLocation().getAccuracy() < best.getLocation().getAccuracy())) {
                 best = location;
             }

@@ -71,7 +71,19 @@ public class MessageHandler {
     }
 
     private boolean shouldDropMessage() {
-        return System.currentTimeMillis() - lastMessageTimestamp.get() < cooldownMillis;
+        final long now = System.currentTimeMillis();
+        final long last = lastMessageTimestamp.get();
+
+        if (now - last < cooldownMillis) {
+            log.w("Dropping message due to cooldown");
+            return true;
+        }
+        if (!lastMessageTimestamp.compareAndSet(last, now)) {
+            log.w("Dropping message due to concurrent processing");
+            return true;
+        }
+
+        return false;
     }
 
     private void updateLastMessageTimestamp() {
