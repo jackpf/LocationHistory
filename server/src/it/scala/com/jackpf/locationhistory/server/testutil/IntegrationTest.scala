@@ -25,10 +25,9 @@ import scala.concurrent.{Await, Future}
 object IntegrationTest {
   val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
   val locationRepo: LocationRepo = new InMemoryLocationRepo
+  val enricherExecutor: EnricherExecutor = new EnricherExecutor(Seq.empty)
   // TODO Use wiremock
   val notificationService: NotificationService = mock(classOf[NotificationService])
-  // TODO Use wiremock
-  val enricherExecutor: EnricherExecutor = new EnricherExecutor(Seq.empty)
 
   def startServer(): Unit = {
     Await.result(
@@ -38,7 +37,7 @@ object IntegrationTest {
       Duration.Inf
     ): Unit
 
-    TestServer.start(deviceRepo, locationRepo, notificationService, enricherExecutor)
+    TestServer.start(deviceRepo, locationRepo, enricherExecutor, notificationService)
   }
 
   def resetState(): Unit = {

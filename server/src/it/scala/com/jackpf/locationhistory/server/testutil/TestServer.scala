@@ -19,8 +19,8 @@ object TestServer {
   def start(
       deviceRepo: DeviceRepo,
       locationRepo: LocationRepo,
-      notificationService: NotificationService,
-      enricherExecutor: EnricherExecutor
+      enricherExecutor: EnricherExecutor,
+      notificationService: NotificationService
   ): Unit =
     synchronized {
       if (server == null) {
