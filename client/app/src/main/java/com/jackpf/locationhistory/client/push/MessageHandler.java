@@ -9,11 +9,11 @@ import com.jackpf.locationhistory.AlarmNotification;
 import com.jackpf.locationhistory.LocationAccuracyRequest;
 import com.jackpf.locationhistory.LocationNotification;
 import com.jackpf.locationhistory.Notification;
+import com.jackpf.locationhistory.client.AppRequirements;
+import com.jackpf.locationhistory.client.BeaconService;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.ui.Notifications;
 import com.jackpf.locationhistory.client.util.Logger;
-import com.jackpf.locationhistory.client.worker.BeaconResult;
-import com.jackpf.locationhistory.client.worker.BeaconTask;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
@@ -45,14 +45,15 @@ public class MessageHandler {
         configRepository.setHighAccuracyTriggeredAt(triggeredAt);
     }
 
-    private ListenableFuture<BeaconResult> handleTriggerLocation(LocationNotification notification) {
+    private ListenableFuture<Void> handleTriggerLocation(LocationNotification notification) {
         log.d("Triggering on-demand beacon");
         if (notification.getRequestAccuracy() == LocationAccuracyRequest.HIGH) {
             // We only "upgrade" balanced requests -> high accuracy if set
             // Otherwise could overwrite/ignore the current high accuracy mode
             updateRequestedAccuracy(notification.getRequestAccuracy());
         }
-        return BeaconTask.runSafe(context, executor);
+        BeaconService.startForegroundIfPermissionsGranted(context, AppRequirements.getRequirements(context));
+        return Futures.immediateVoidFuture();
     }
 
     private ListenableFuture<Void> handleTriggerAlarm(AlarmNotification notification) {
