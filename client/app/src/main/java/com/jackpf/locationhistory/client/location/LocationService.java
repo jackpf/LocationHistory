@@ -3,7 +3,7 @@ package com.jackpf.locationhistory.client.location;
 import android.content.Context;
 import android.location.LocationManager;
 
-import com.google.common.collect.Iterators;
+import com.google.common.collect.Streams;
 import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.util.Logger;
 
@@ -95,7 +95,7 @@ public class LocationService {
     private void callParallelProviders(Iterator<ProviderRequest> providers,
                                        Function<List<LocationData>, LocationData> selector,
                                        Consumer<LocationData> consumer) {
-        List<ProviderRequest> validProviders = Arrays.stream(Iterators.toArray(providers, ProviderRequest.class))
+        List<ProviderRequest> validProviders = Streams.stream(providers)
                 .filter(p -> locationManager.isProviderEnabled(p.source))
                 .collect(Collectors.toList());
 
