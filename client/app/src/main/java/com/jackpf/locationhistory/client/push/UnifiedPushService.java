@@ -49,7 +49,7 @@ public class UnifiedPushService extends PushService {
 
     private static final String NAME = "UnifiedPush";
     private static final String CUSTOM_UNREGISTER_ACTION = "com.jackpf.locationhistory.client.MANUAL_UNREGISTER";
-    private static final long messageHandlerCooldownMillis = TimeUnit.MILLISECONDS.toMillis(1000);
+    private static final long messageHandlerCooldownMillis = TimeUnit.MILLISECONDS.toMillis(5000);
 
     private static BeaconClient createBeaconClient(Context context, ConfigRepository configRepository) throws IOException {
         return BeaconClientFactory.createPooledClient(
