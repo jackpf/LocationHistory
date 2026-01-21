@@ -31,9 +31,9 @@ object MockModels {
       lat: Double = 0.1,
       lon: Double = 0.2,
       accuracy: Double = 0.3,
-      metdata: Map[String, String] = Map.empty
+      metadata: Map[String, String] = Map("key1" -> "value1", "key2" -> "value2")
   ): Location =
-    Location(lat = lat, lon = lon, accuracy = accuracy, metadata = metdata)
+    Location(lat = lat, lon = lon, accuracy = accuracy, metadata = metadata)
 
   def storedLocation(
       id: Long = 1,

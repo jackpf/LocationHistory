@@ -26,16 +26,7 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
 
   trait StoredLocationContext extends Context {
     lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
-      (
-        DeviceId("123"),
-        Location(
-          lat = 0.1,
-          lon = 0.2,
-          accuracy = 0.3,
-          metadata = Map("key1" -> "value1", "key2" -> "value2")
-        ),
-        123L
-      )
+      (DeviceId("123"), MockModels.location(), 123L)
     )
 
     lazy val result: Future[Try[Unit]] = {
@@ -63,7 +54,7 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
     "get locations by device" >> in(new StoredLocationContext {}) { context =>
       context.locationRepo
         .getForDevice(DeviceId("123"), limit = None) must beEqualTo(
-        Seq(StoredLocation(1L, context.locations.head._2, context.locations.head._3))
+        Seq(MockModels.storedLocation(1L, context.locations.head._2, context.locations.head._3))
       ).await
     }
 
@@ -77,8 +68,8 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
       context.locationRepo
         .getForDevice(DeviceId("123"), limit = Some(2)) must beEqualTo(
         Seq(
-          StoredLocation(2L, context.locations(1)._2, context.locations(1)._3),
-          StoredLocation(3L, context.locations(2)._2, context.locations(2)._3)
+          MockModels.storedLocation(2L, context.locations(1)._2, context.locations(1)._3),
+          MockModels.storedLocation(3L, context.locations(2)._2, context.locations(2)._3)
         )
       ).await
     }
@@ -100,7 +91,7 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
 
       context.locationRepo
         .getForDevice(DeviceId("123"), limit = None) must beEqualTo(
-        Seq(StoredLocation(1L, context.locations.head._2, context.locations.head._3))
+        Seq(MockModels.storedLocation(1L, context.locations.head._2, context.locations.head._3))
       ).await
       context.locationRepo
         .getForDevice(DeviceId("456"), limit = None) must beEmpty[Seq[StoredLocation]].await
@@ -132,7 +123,11 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
           updated <- context.locationRepo.getForDevice(DeviceId("123"), limit = None)
         } yield updated must beEqualTo(
           Seq(
-            StoredLocation(1L, MockModels.location(lat = 0.1, lon = 0.2, accuracy = 0.3), 999)
+            MockModels.storedLocation(
+              1L,
+              MockModels.location(lat = 0.1, lon = 0.2, accuracy = 0.3),
+              999
+            )
           )
         )
       }.await
