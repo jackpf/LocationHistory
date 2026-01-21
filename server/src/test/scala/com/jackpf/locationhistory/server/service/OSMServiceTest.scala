@@ -3,6 +3,7 @@ package com.jackpf.locationhistory.server.service
 import com.jackpf.locationhistory.server.service.OSMService.GeoLookupResponse
 import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification}
 import io.circe.parser.decode
+import io.circe.generic.auto.*
 
 class OSMServiceTest extends DefaultSpecification {
   trait Context extends DefaultScope {
@@ -49,30 +50,36 @@ class OSMServiceTest extends DefaultSpecification {
     }
 
     "correctly parse place_id as placeId" >> in(new Context {}) { context =>
-      context.decodeResponse.map(_.placeId) must beRight(123456789L)
+      context.decodeResponse.map(_.place_id) must beRight(123456789L)
     }
 
     "correctly parse osm_type as osmType" >> in(new Context {}) { context =>
-      context.decodeResponse.map(_.osmType) must beRight("way")
+      context.decodeResponse.map(_.osm_type) must beRight("way")
     }
 
     "correctly parse osm_id as osmId" >> in(new Context {}) { context =>
-      context.decodeResponse.map(_.osmId) must beRight(987654321L)
+      context.decodeResponse.map(_.osm_id) must beRight(987654321L)
     }
 
     "correctly parse place_rank as placeRank" >> in(new Context {}) { context =>
-      context.decodeResponse.map(_.placeRank) must beRight(30)
+      context.decodeResponse.map(_.place_rank) must beRight(30)
     }
 
     "correctly parse display_name as displayName" >> in(new Context {}) { context =>
-      context.decodeResponse.map(_.displayName) must beRight("Test Building, Test Road, London, UK")
+      context.decodeResponse.map(_.display_name) must beRight(
+        "Test Building, Test Road, London, UK"
+      )
+    }
+
+    "correctly parse ISO3166-2-lvl4" >> in(new Context {}) { context =>
+      context.decodeResponse.map(_.address.`ISO3166-2-lvl4`) must beRight(Some("GB-ENG"))
     }
 
     "correctly parse nested address with snake_case fields" >> in(new Context {}) { context =>
       val result = context.decodeResponse
       result must beRight
-      result.map(_.address.houseNumber) must beRight(Some("123"))
-      result.map(_.address.countryCode) must beRight(Some("gb"))
+      result.map(_.address.house_number) must beRight(Some("123"))
+      result.map(_.address.country_code) must beRight(Some("gb"))
     }
 
     "correctly parse extratags" >> in(new Context {}) { context =>

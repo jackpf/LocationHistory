@@ -18,7 +18,7 @@ class OSMEnricher(osmService: OSMService) extends MetadataEnricher with Logging 
       "name" -> meta.name,
       "category" -> Some(meta.category),
       "type" -> Some(meta.`type`),
-      "houseNumber" -> meta.address.houseNumber,
+      "houseNumber" -> meta.address.house_number,
       "road" -> meta.address.road,
       "quarter" -> meta.address.quarter,
       "suburb" -> meta.address.suburb,
@@ -30,7 +30,7 @@ class OSMEnricher(osmService: OSMService) extends MetadataEnricher with Logging 
       "state" -> meta.address.state,
       "postcode" -> meta.address.postcode,
       "country" -> meta.address.country,
-      "countryCode" -> meta.address.countryCode
+      "countryCode" -> meta.address.country_code
     ).collect { case (k, Some(v)) => k -> v } ++ extraTagsToMap(meta.extratags.getOrElse(Map.empty))
 
   override def enrich(

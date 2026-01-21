@@ -18,26 +18,26 @@ class OSMEnricherTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
     val location: Location = MockModels.location(lat = 51.5074, lon = -0.1278)
 
     def geoLookupResponse: GeoLookupResponse = GeoLookupResponse(
-      placeId = 123456789L,
+      place_id = 123456789L,
       licence = "Data",
-      osmType = "way",
-      osmId = 987654321L,
+      osm_type = "way",
+      osm_id = 987654321L,
       lat = "51.5074",
       lon = "-0.1278",
       category = "building",
       `type` = "yes",
-      placeRank = 30,
+      place_rank = 30,
       importance = 0.5,
       addresstype = "building",
       name = Some("Test Building"),
-      displayName = "Test Building, Test Road, London, UK",
+      display_name = "Test Building, Test Road, London, UK",
       address = GeoLookupResponse.Address(
-        houseNumber = Some("123"),
+        house_number = Some("123"),
         road = Some("Test Road"),
         city = Some("London"),
         postcode = Some("SW1A 1AA"),
         country = Some("United Kingdom"),
-        countryCode = Some("gb")
+        country_code = Some("gb")
       ),
       extratags = Some(Map("building" -> "yes")),
       boundingbox = Seq("51.5073", "51.5075", "-0.1279", "-0.1277")
@@ -76,22 +76,22 @@ class OSMEnricherTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
 
     "omit fields that are None" >> in(new Context {
       override def geoLookupResponse = GeoLookupResponse(
-        placeId = 123456789L,
+        place_id = 123456789L,
         licence = "Data",
-        osmType = "way",
-        osmId = 987654321L,
+        osm_type = "way",
+        osm_id = 987654321L,
         lat = "51.5074",
         lon = "-0.1278",
         category = "building",
         `type` = "yes",
-        placeRank = 30,
+        place_rank = 30,
         importance = 0.5,
         addresstype = "building",
         name = None,
-        displayName = "London, UK",
+        display_name = "London, UK",
         address = GeoLookupResponse.Address(
           country = Some("United Kingdom"),
-          countryCode = Some("gb")
+          country_code = Some("gb")
         ),
         extratags = None,
         boundingbox = Seq("51.5073", "51.5075", "-0.1279", "-0.1277")

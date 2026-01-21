@@ -1,15 +1,14 @@
 package com.jackpf.locationhistory.server.service
 
+import com.jackpf.locationhistory.server.service.OSMService.GeoLookupResponse
 import com.jackpf.locationhistory.server.util.STTPUtils.*
-import io.circe.derivation.{Configuration, ConfiguredDecoder}
+import io.circe.generic.auto.*
 import sttp.client4.*
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 object OSMService {
-  given Configuration = Configuration.default.withSnakeCaseMemberNames
-
   private def geoLookupUrl(lat: Double, lon: Double): String =
     s"https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&extratags=1&format=jsonv2"
 
@@ -19,7 +18,7 @@ object OSMService {
       * Availability depends on OSM data for the location
       */
     case class Address(
-        houseNumber: Option[String] = None,
+        house_number: Option[String] = None,
         road: Option[String] = None,
         quarter: Option[String] = None,
         suburb: Option[String] = None,
@@ -29,37 +28,35 @@ object OSMService {
         village: Option[String] = None,
         county: Option[String] = None,
         state: Option[String] = None,
-        stateDistrict: Option[String] = None,
-        ISO31662Lvl4: Option[String] = None,
+        state_district: Option[String] = None,
+        `ISO3166-2-lvl4`: Option[String] = None,
         postcode: Option[String] = None,
         country: Option[String] = None,
-        countryCode: Option[String] = None
-    ) derives ConfiguredDecoder
+        country_code: Option[String] = None
+    )
   }
   case class GeoLookupResponse(
-      placeId: Long,
+      place_id: Long,
       licence: String,
-      osmType: String,
-      osmId: Long,
+      osm_type: String,
+      osm_id: Long,
       lat: String,
       lon: String,
       category: String,
       `type`: String,
-      placeRank: Int,
+      place_rank: Int,
       importance: Double,
       addresstype: String,
       /** Can be null for unnamed places */
       name: Option[String],
-      displayName: String,
+      display_name: String,
       address: GeoLookupResponse.Address,
       extratags: Option[Map[String, String]],
       boundingbox: Seq[String]
-  ) derives ConfiguredDecoder
+  )
 }
 
 class OSMService(backend: Backend[Future]) {
-  import OSMService.*
-
   def reverseGeoLookup(lat: Double, lon: Double)(using
       ec: ExecutionContext
   ): Future[Try[GeoLookupResponse]] = {
