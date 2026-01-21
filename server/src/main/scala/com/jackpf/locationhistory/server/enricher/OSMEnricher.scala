@@ -22,6 +22,8 @@ class OSMEnricher(osmService: OSMService) extends MetadataEnricher with Logging 
 
   private def metaToMap(meta: OSMService.GeoLookupResponse): Map[String, String] =
     Map(
+      "osmType" -> Some(meta.osm_type),
+      "osmId" -> Some(meta.osm_id.toString),
       "displayName" -> Some(meta.display_name),
       "name" -> meta.name,
       "category" -> Some(meta.category),
