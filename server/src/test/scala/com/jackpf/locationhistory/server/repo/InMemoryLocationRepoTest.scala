@@ -1,6 +1,7 @@
 package com.jackpf.locationhistory.server.repo
 
-import com.jackpf.locationhistory.server.model.{DeviceId, Location}
+import com.jackpf.locationhistory.server.model.DeviceId
+import com.jackpf.locationhistory.server.testutil.MockModels
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Future
@@ -19,7 +20,7 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends LocationRepoTe
       def storeLocation(ts: Long): Future[Try[Unit]] =
         context.locationRepo.storeDeviceLocation(
           deviceId,
-          Location(lat = 0.1, lon = 0.2, accuracy = 0.3),
+          MockModels.location(),
           ts
         )
 

@@ -25,6 +25,7 @@ message Location {
   double lat = 1;
   double lon = 2;
   double accuracy = 3;
+  map<string, string> metadata = 4;
 }
 
 message StoredLocation {

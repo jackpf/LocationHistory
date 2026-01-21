@@ -8,11 +8,12 @@ object Location {
   ): Location = Location(
     lat = proto.lat,
     lon = proto.lon,
-    accuracy = proto.accuracy
+    accuracy = proto.accuracy,
+    proto.metadata
   )
 }
 
-case class Location(lat: Double, lon: Double, accuracy: Double) {
+case class Location(lat: Double, lon: Double, accuracy: Double, metadata: Map[String, String]) {
   def toProto: ProtoLocation = ProtoLocation(
     lat = lat,
     lon = lon,
