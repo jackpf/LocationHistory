@@ -79,6 +79,17 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
         };
     }, [history]);
 
+    // Parse popup metadata
+    const popupMetadata = useMemo(() => {
+        if (!popupInfo) return {};
+        try {
+            return JSON.parse(popupInfo.properties.metadata);
+        } catch (e) {
+            console.error("Error parsing metadata", e);
+            return {};
+        }
+    }, [popupInfo]);
+
     // Calculate cutoff ratio for faded-out lines
     let cutoffRatio = 0;
     if (history.length > 0) {
@@ -178,17 +189,25 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                         onClose={() => setPopupInfo(null)}
                     >
                         <div>
+                            {/* Special handling for metadata.displatName */}
+                            {popupMetadata?.displayName &&
+                                <div><strong>{popupMetadata.displayName}</strong><br/><br/>
+                                </div>
+                            }
                             <strong>Latitude:</strong> {popupInfo.properties.lat}<br/>
                             <strong>Longitude:</strong> {popupInfo.properties.lon}<br/>
                             <strong>Accuracy:</strong> {popupInfo.properties.accuracy}m<br/>
                             <strong>Time:</strong> {format(new Date(popupInfo.properties.time), "yyyy-MM-dd HH:mm:ss")}
-                            {Object.entries(JSON.parse(popupInfo.properties.metadata)).map(([key, value]) => {
-                                return (
-                                    <div>
-                                        <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {value}<br/>
-                                    </div>
-                                )
-                            })}
+                            {popupMetadata && <div><br/><strong>Metadata:</strong></div>}
+                            {popupMetadata && Object.entries(popupMetadata)
+                                .sort(([k1, v1], [k2, v2]) => k1.localeCompare(k2))
+                                .map(([key, value]) => {
+                                    return (
+                                        <div>
+                                            <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {value}<br/>
+                                        </div>
+                                    )
+                                })}
                         </div>
                     </Popup>
                 )}

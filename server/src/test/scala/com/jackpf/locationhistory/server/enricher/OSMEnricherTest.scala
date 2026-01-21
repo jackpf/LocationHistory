@@ -56,6 +56,7 @@ class OSMEnricherTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
   "OSMEnricher" should {
     "extract metadata from successful geo lookup" >> in(new Context {}) { context =>
       context.result must contain(
+        "displayName" -> "Test Building, Test Road, London, UK",
         "name" -> "Test Building",
         "category" -> "building",
         "type" -> "pub",
