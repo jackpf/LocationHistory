@@ -16,6 +16,11 @@ public class ConsumerAggregator<T> {
         this.totalTasks = totalTasks;
         this.finalConsumer = finalConsumer;
         this.results = Collections.synchronizedList(new ArrayList<>(totalTasks));
+
+        // If no tasks, complete instantly
+        if (totalTasks == 0) {
+            finalConsumer.accept(results);
+        }
     }
 
     public Consumer<T> newChildConsumer() {
