@@ -8,8 +8,10 @@ import scalasql.simple.SimpleTable
 
 import scala.concurrent.{ExecutionContext, Future, blocking}
 import scala.util.{Failure, Try}
-import scalasql.*, SqliteDialect.*
+import scalasql.*
+import SqliteDialect.*
 import scalasql.core.SqlStr.SqlStringSyntax
+import com.jackpf.locationhistory.server.util.SQLiteMapper.*
 
 private case class StoredLocationRow(
     id: Long,
@@ -17,11 +19,12 @@ private case class StoredLocationRow(
     lat: Double,
     lon: Double,
     accuracy: Double,
-    timestamp: Long
+    timestamp: Long,
+    metadata: JsonColumn[Map[String, String]]
 ) {
   def toStoredLocation: StoredLocation = StoredLocation(
     id = id,
-    location = Location(lat = lat, lon = lon, accuracy = accuracy),
+    location = Location(lat = lat, lon = lon, accuracy = accuracy, metadata.value),
     timestamp = timestamp
   )
 }
@@ -39,7 +42,8 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
             lat DOUBLE,
             lon DOUBLE,
             accuracy DOUBLE,
-            timestamp UNSIGNED BIG INT
+            timestamp UNSIGNED BIG INT,
+            metadata TEXT
           );"""
         )
         val _ = db.updateRaw(
@@ -63,7 +67,8 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
               _.lat := location.lat,
               _.lon := location.lon,
               _.accuracy := location.accuracy,
-              _.timestamp := timestamp
+              _.timestamp := timestamp,
+              _.metadata := JsonColumn(location.metadata)
             )
           )
           ()
@@ -124,7 +129,8 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
                     _.lat := updatedStoredDevice.location.lat,
                     _.lon := updatedStoredDevice.location.lon,
                     _.accuracy := updatedStoredDevice.location.accuracy,
-                    _.timestamp := updatedStoredDevice.timestamp
+                    _.timestamp := updatedStoredDevice.timestamp,
+                    _.metadata := JsonColumn(updatedStoredDevice.location.metadata)
                   )
               )
             }

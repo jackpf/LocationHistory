@@ -2,7 +2,12 @@ package com.jackpf.locationhistory.server.repo
 
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.LocationNotFoundException
 import com.jackpf.locationhistory.server.model.{DeviceId, Location, StoredLocation}
-import com.jackpf.locationhistory.server.testutil.{DefaultScope, DefaultSpecification, GrpcMatchers}
+import com.jackpf.locationhistory.server.testutil.{
+  DefaultScope,
+  DefaultSpecification,
+  GrpcMatchers,
+  MockModels
+}
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.duration.Duration
@@ -21,7 +26,7 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
 
   trait StoredLocationContext extends Context {
     lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
-      (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L)
+      (DeviceId("123"), MockModels.location(), 123L)
     )
 
     lazy val result: Future[Try[Unit]] = {
@@ -49,22 +54,22 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
     "get locations by device" >> in(new StoredLocationContext {}) { context =>
       context.locationRepo
         .getForDevice(DeviceId("123"), limit = None) must beEqualTo(
-        Seq(StoredLocation(1L, context.locations.head._2, context.locations.head._3))
+        Seq(MockModels.storedLocation(1L, context.locations.head._2, context.locations.head._3))
       ).await
     }
 
     "get locations by device with limit" >> in(new StoredLocationContext {
       override lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
-        (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
-        (DeviceId("123"), Location(lat = 0.2, lon = 0.3, accuracy = 0.4), 456L),
-        (DeviceId("123"), Location(lat = 0.5, lon = 0.6, accuracy = 0.4), 789L)
+        (DeviceId("123"), MockModels.location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
+        (DeviceId("123"), MockModels.location(lat = 0.2, lon = 0.3, accuracy = 0.4), 456L),
+        (DeviceId("123"), MockModels.location(lat = 0.5, lon = 0.6, accuracy = 0.4), 789L)
       )
     }) { context =>
       context.locationRepo
         .getForDevice(DeviceId("123"), limit = Some(2)) must beEqualTo(
         Seq(
-          StoredLocation(2L, context.locations(1)._2, context.locations(1)._3),
-          StoredLocation(3L, context.locations(2)._2, context.locations(2)._3)
+          MockModels.storedLocation(2L, context.locations(1)._2, context.locations(1)._3),
+          MockModels.storedLocation(3L, context.locations(2)._2, context.locations(2)._3)
         )
       ).await
     }
@@ -78,15 +83,15 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
 
     "delete locations for a device" >> in(new StoredLocationContext {
       override lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
-        (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
-        (DeviceId("456"), Location(lat = 0.3, lon = 0.4, accuracy = 0.3), 123L)
+        (DeviceId("123"), MockModels.location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
+        (DeviceId("456"), MockModels.location(lat = 0.3, lon = 0.4, accuracy = 0.3), 123L)
       )
     }) { context =>
       context.locationRepo.deleteForDevice(DeviceId("456")) must beEqualTo(()).await
 
       context.locationRepo
         .getForDevice(DeviceId("123"), limit = None) must beEqualTo(
-        Seq(StoredLocation(1L, context.locations.head._2, context.locations.head._3))
+        Seq(MockModels.storedLocation(1L, context.locations.head._2, context.locations.head._3))
       ).await
       context.locationRepo
         .getForDevice(DeviceId("456"), limit = None) must beEmpty[Seq[StoredLocation]].await
@@ -94,8 +99,8 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
 
     "delete all locations" >> in(new StoredLocationContext {
       override lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
-        (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
-        (DeviceId("456"), Location(lat = 0.3, lon = 0.4, accuracy = 0.3), 123L)
+        (DeviceId("123"), MockModels.location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
+        (DeviceId("456"), MockModels.location(lat = 0.3, lon = 0.4, accuracy = 0.3), 123L)
       )
     }) { context =>
       context.locationRepo.deleteAll() must beEqualTo(()).await
@@ -108,8 +113,8 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
 
     "update a location" >> in(new StoredLocationContext {
       override lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
-        (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
-        (DeviceId("456"), Location(lat = 0.3, lon = 0.4, accuracy = 0.3), 123L)
+        (DeviceId("123"), MockModels.location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
+        (DeviceId("456"), MockModels.location(lat = 0.3, lon = 0.4, accuracy = 0.3), 123L)
       )
     }) { context =>
       {
@@ -118,7 +123,11 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
           updated <- context.locationRepo.getForDevice(DeviceId("123"), limit = None)
         } yield updated must beEqualTo(
           Seq(
-            StoredLocation(1L, Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 999)
+            MockModels.storedLocation(
+              1L,
+              MockModels.location(lat = 0.1, lon = 0.2, accuracy = 0.3),
+              999
+            )
           )
         )
       }.await
@@ -126,8 +135,8 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
 
     "not update a missing location" >> in(new StoredLocationContext {
       override lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
-        (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
-        (DeviceId("456"), Location(lat = 0.3, lon = 0.4, accuracy = 0.3), 123L)
+        (DeviceId("123"), MockModels.location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
+        (DeviceId("456"), MockModels.location(lat = 0.3, lon = 0.4, accuracy = 0.3), 123L)
       )
     }) { context =>
       context.locationRepo.update(
@@ -139,9 +148,9 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
 
     "not update a location on an incorrect device" >> in(new StoredLocationContext {
       override lazy val locations: Seq[(DeviceId.Type, Location, Long)] = Seq(
-        (DeviceId("123"), Location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
-        (DeviceId("456"), Location(lat = 0.3, lon = 0.4, accuracy = 0.3), 123L),
-        (DeviceId("456"), Location(lat = 0.4, lon = 0.5, accuracy = 0.6), 123L)
+        (DeviceId("123"), MockModels.location(lat = 0.1, lon = 0.2, accuracy = 0.3), 123L),
+        (DeviceId("456"), MockModels.location(lat = 0.3, lon = 0.4, accuracy = 0.3), 123L),
+        (DeviceId("456"), MockModels.location(lat = 0.4, lon = 0.5, accuracy = 0.6), 123L)
       )
     }) { context =>
       context.locationRepo.update(

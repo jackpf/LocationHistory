@@ -235,26 +235,32 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
       "list locations for the given device" >> in(new ListLocationsContext {
         override lazy val getResponse: Future[Vector[model.StoredLocation]] = Future.successful(
           Vector(
-            model
-              .StoredLocation(
-                1L,
-                model.Location(lat = 0.1, lon = 0.2, accuracy = 0.3),
-                timestamp = 1L
-              ),
-            model
-              .StoredLocation(
-                2L,
-                model.Location(lat = 0.4, lon = 0.5, accuracy = 0.6),
-                timestamp = 2L
-              )
+            MockModels.storedLocation(
+              1L,
+              MockModels
+                .location(lat = 0.1, lon = 0.2, accuracy = 0.3, metadata = Map("k1" -> "v1")),
+              timestamp = 1L
+            ),
+            MockModels.storedLocation(
+              2L,
+              MockModels
+                .location(lat = 0.4, lon = 0.5, accuracy = 0.6, metadata = Map("k2" -> "v2")),
+              timestamp = 2L
+            )
           )
         )
       }) { context =>
         context.result must beEqualTo(
           ListLocationsResponse(locations =
             Seq(
-              StoredLocation(Some(Location(lat = 0.1, lon = 0.2, accuracy = 0.3)), timestamp = 1L),
-              StoredLocation(Some(Location(lat = 0.4, lon = 0.5, accuracy = 0.6)), timestamp = 2L)
+              StoredLocation(
+                Some(Location(lat = 0.1, lon = 0.2, accuracy = 0.3, metadata = Map("k1" -> "v1"))),
+                timestamp = 1L
+              ),
+              StoredLocation(
+                Some(Location(lat = 0.4, lon = 0.5, accuracy = 0.6, metadata = Map("k2" -> "v2"))),
+                timestamp = 2L
+              )
             )
           )
         ).await

@@ -27,8 +27,13 @@ object MockModels {
       pushHandler: Option[PushHandler] = None
   ): StoredDevice = StoredDevice(device = device, status = status, pushHandler = pushHandler)
 
-  def location(lat: Double = 0.1, lon: Double = 0.2, accuracy: Double = 0.3): Location =
-    Location(lat = lat, lon = lon, accuracy = accuracy)
+  def location(
+      lat: Double = 0.1,
+      lon: Double = 0.2,
+      accuracy: Double = 0.3,
+      metadata: Map[String, String] = Map("key1" -> "value1", "key2" -> "value2")
+  ): Location =
+    Location(lat = lat, lon = lon, accuracy = accuracy, metadata = metadata)
 
   def storedLocation(
       id: Long = 1,
