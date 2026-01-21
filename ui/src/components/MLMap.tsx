@@ -200,11 +200,11 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                             <strong>Time:</strong> {format(new Date(popupInfo.properties.time), "yyyy-MM-dd HH:mm:ss")}
                             {popupMetadata && <div><br/><strong>Metadata:</strong></div>}
                             {popupMetadata && Object.entries(popupMetadata)
-                                .sort(([k1, v1], [k2, v2]) => k1.localeCompare(k2))
+                                .sort(([k1], [k2]) => k1.localeCompare(k2))
                                 .map(([key, value]) => {
                                     return (
                                         <div>
-                                            <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {value}<br/>
+                                            <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {String(value)}<br/>
                                         </div>
                                     )
                                 })}
