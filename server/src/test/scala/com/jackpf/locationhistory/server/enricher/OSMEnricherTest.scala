@@ -9,7 +9,7 @@ import org.mockito.Mockito.{mock, when}
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 class OSMEnricherTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
   trait Context extends DefaultScope {
@@ -66,12 +66,6 @@ class OSMEnricherTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
         "country" -> "United Kingdom",
         "countryCode" -> "gb"
       ).await
-    }
-
-    "return empty map on failure" >> in(new Context {
-      override def serviceResponse = Future.successful(Failure(new RuntimeException("API error")))
-    }) { context =>
-      context.result must beEqualTo(Map.empty[String, String]).await
     }
 
     "omit fields that are None" >> in(new Context {

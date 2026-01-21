@@ -61,13 +61,16 @@ class EnricherExecutorTest(implicit ee: ExecutionEnv) extends DefaultSpecificati
       ).await
     }
 
-    "later enricher overwrites earlier enricher for same key" >> in(new Context {
+    "duplicate keys may be overwritten" >> in(new Context {
       override val enrichers = Seq(
         successfulEnricher(Map("name" -> "First Name", "unique1" -> "value1")),
         successfulEnricher(Map("name" -> "Second Name", "unique2" -> "value2"))
       )
     }) { context =>
-      context.result.map(_.metadata) must haveKey("name").await
+      context.result.map(_.metadata.get("name")) must beOneOf(
+        Some("First Name"),
+        Some("Second Name")
+      ).await
       context.result.map(_.metadata.get("unique1")) must beSome("value1").await
       context.result.map(_.metadata.get("unique2")) must beSome("value2").await
     }
