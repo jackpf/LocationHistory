@@ -1,6 +1,7 @@
 package com.jackpf.locationhistory.server.testutil
 
 import com.jackpf.locationhistory.server.AppServer
+import com.jackpf.locationhistory.server.enricher.EnricherExecutor
 import com.jackpf.locationhistory.server.grpc.{AuthenticationManager, Services}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.service.{JwtAuthService, NotificationService}
@@ -18,7 +19,8 @@ object TestServer {
   def start(
       deviceRepo: DeviceRepo,
       locationRepo: LocationRepo,
-      notificationService: NotificationService
+      notificationService: NotificationService,
+      enricherExecutor: EnricherExecutor
   ): Unit =
     synchronized {
       if (server == null) {
@@ -34,7 +36,8 @@ object TestServer {
             notificationService
           ) ++ Services.beaconServices(
             deviceRepo,
-            locationRepo
+            locationRepo,
+            enricherExecutor
           ))*
         ).start()
       }
