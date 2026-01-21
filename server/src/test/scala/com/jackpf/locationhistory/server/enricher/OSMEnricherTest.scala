@@ -97,6 +97,35 @@ class OSMEnricherTest(implicit ee: ExecutionEnv) extends DefaultSpecification {
       context.result must haveKey("countryCode").await
     }
 
+    "omit fields that are empty strings" >> in(new Context {
+      override def geoLookupResponse = GeoLookupResponse(
+        place_id = 123456789L,
+        licence = "Data",
+        osm_type = "way",
+        osm_id = 987654321L,
+        lat = "51.5074",
+        lon = "-0.1278",
+        category = "building",
+        `type` = "yes",
+        place_rank = 30,
+        importance = 0.5,
+        addresstype = "building",
+        name = Some(""),
+        display_name = "London, UK",
+        address = GeoLookupResponse.Address(
+          country = Some("United Kingdom"),
+          country_code = Some("gb")
+        ),
+        extratags = None,
+        boundingbox = Seq("51.5073", "51.5075", "-0.1279", "-0.1277")
+      )
+    }) { context =>
+      context.result must not(haveKey("name")).await
+      context.result must not(haveKey("city")).await
+      context.result must haveKey("country").await
+      context.result must haveKey("countryCode").await
+    }
+
     "include extratags with tag: prefix" >> in(new Context {}) { context =>
       context.result must havePair("tag:building" -> "yes").await
     }

@@ -4,7 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import {format, formatDistanceToNow} from "date-fns";
 import type {StoredLocation} from "../gen/common.ts";
 import type {MapGeoJSONFeature, StyleSpecification} from "maplibre-gl";
-import type {FeatureCollection, Feature, Point, LineString} from "geojson";
+import type {Feature, FeatureCollection, LineString, Point} from "geojson";
 import {Segmented} from "antd";
 import {useLocalStorage} from "../hooks/use-local-storage.ts";
 import styles from "./MLMap.module.css";
@@ -50,12 +50,13 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                 .map((h, index, locations) => ({
                     type: "Feature" as const,
                     properties: {
+                        index: index,
+                        isLatest: index === locations.length - 1,
                         lat: h.location!.lat,
                         lon: h.location!.lon,
                         accuracy: h.location!.accuracy,
                         time: h.timestamp,
-                        index: index,
-                        isLatest: index === locations.length - 1
+                        metadata: h.location!.metadata
                     },
                     geometry: {
                         type: "Point" as const,
@@ -181,6 +182,13 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                             <strong>Longitude:</strong> {popupInfo.properties.lon}<br/>
                             <strong>Accuracy:</strong> {popupInfo.properties.accuracy}m<br/>
                             <strong>Time:</strong> {format(new Date(popupInfo.properties.time), "yyyy-MM-dd HH:mm:ss")}
+                            {Object.entries(JSON.parse(popupInfo.properties.metadata)).map(([key, value]) => {
+                                return (
+                                    <div>
+                                        <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {value}<br/>
+                                    </div>
+                                )
+                            })}
                         </div>
                     </Popup>
                 )}

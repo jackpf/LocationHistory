@@ -7,6 +7,14 @@ import com.jackpf.locationhistory.server.util.Logging
 import scala.concurrent.{ExecutionContext, Future}
 
 class OSMEnricher(osmService: OSMService) extends MetadataEnricher with Logging {
+
+  /** Filter empty values
+    * Also optional empty string values (e.g. Some("")), which OSM likes to do...
+    */
+  private def nonEmpty: PartialFunction[(String, Option[String]), (String, String)] = {
+    case (k, Some(v)) if v.nonEmpty => k -> v
+  }
+
   private def extraTagsToMap(extraTags: Map[String, String]): Map[String, String] =
     extraTags.map { case (key, value) =>
       s"tag:${key}" -> value
@@ -30,7 +38,8 @@ class OSMEnricher(osmService: OSMService) extends MetadataEnricher with Logging 
       "postcode" -> meta.address.postcode,
       "country" -> meta.address.country,
       "countryCode" -> meta.address.country_code
-    ).collect { case (k, Some(v)) => k -> v } ++ extraTagsToMap(meta.extratags.getOrElse(Map.empty))
+    ).collect(nonEmpty)
+      ++ extraTagsToMap(meta.extratags.getOrElse(Map.empty))
 
   override def enrich(
       location: Location
