@@ -7,6 +7,7 @@ import androidx.concurrent.futures.CallbackToFutureAdapter;
 
 import com.google.common.util.concurrent.AsyncCallable;
 import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.client.client.ssl.TrustedCertStorage;
@@ -29,6 +30,11 @@ public class BeaconTask {
 
     private final Logger log = new Logger(this);
 
+    private static final String START_MESSAGE = "Beacon task started";
+    private static final String SUCCESS_MESSAGE = "Beacon task completed successfully";
+    private static final String FAILED_MESSAGE = "Beacon task failed";
+    private static final String RETRY_MESSAGE = "Beacon task failed as retryable";
+
     public BeaconTask(PermissionsManager permissionsManager,
                       Callable<BeaconContext> beaconContextFactory,
                       Executor executor) {
@@ -43,6 +49,7 @@ public class BeaconTask {
         PermissionsManager permissionsManager = new PermissionsManager(context);
         DeviceState deviceState = DeviceState.fromConfig(configRepository);
         LocationService locationService = LocationService.create(context, executor);
+        Logger.initContext(context); // Enable file logging
 
         BeaconContext beaconContext = new BeaconContext(
                 configRepository,
@@ -60,6 +67,9 @@ public class BeaconTask {
     }
 
     public ListenableFuture<BeaconResult> run() {
+        log.i(START_MESSAGE);
+        log.appendEventToFile(START_MESSAGE);
+
         return Futures.submitAsync(() -> {
             if (!permissionsManager.hasLocationPermissions()) {
                 return Futures.immediateFailedFuture(new NoLocationPermissionsException());
@@ -73,11 +83,35 @@ public class BeaconTask {
                             )
                     )
             );
-            beaconResult.addListener(() -> beaconContext.getDeviceState().storeToConfig(beaconContext.getConfigRepository()),
-                    executor
-            );
+            beaconResult.addListener(storeDeviceStateListener(beaconContext), executor);
+            Futures.addCallback(beaconResult, loggingCallback(), executor);
             return beaconResult;
         }, executor);
+    }
+
+    private Runnable storeDeviceStateListener(BeaconContext beaconContext) {
+        return () -> beaconContext.getDeviceState().storeToConfig(beaconContext.getConfigRepository());
+    }
+
+    private <T> FutureCallback<T> loggingCallback() {
+        return new FutureCallback<T>() {
+            @Override
+            public void onSuccess(T result) {
+                log.i("%s: %s", SUCCESS_MESSAGE, result);
+                log.appendEventToFile("%s: %s", SUCCESS_MESSAGE, result);
+            }
+
+            @Override
+            public void onFailure(@NonNull Throwable t) {
+                if (t instanceof RetryableException) {
+                    log.w(RETRY_MESSAGE, t);
+                    log.appendEventToFile("%s: %s", RETRY_MESSAGE, t.getMessage());
+                } else {
+                    log.e(FAILED_MESSAGE, t);
+                    log.appendEventToFile("%s: %s", FAILED_MESSAGE, t.getMessage());
+                }
+            }
+        };
     }
 
     private <T> ListenableFuture<T> onDeviceReady(BeaconContext beaconContext, AsyncCallable<T> onReady) {
