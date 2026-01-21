@@ -31,7 +31,7 @@ class OSMEnricher(osmService: OSMService) extends MetadataEnricher with Logging 
       "postcode" -> meta.address.postcode,
       "country" -> meta.address.country,
       "countryCode" -> meta.address.countryCode
-    ).collect { case (k, Some(v)) => k -> v } ++ meta.extratags.getOrElse(Map.empty[String, String])
+    ).collect { case (k, Some(v)) => k -> v } ++ extraTagsToMap(meta.extratags.getOrElse(Map.empty))
 
   override def enrich(
       location: Location
@@ -39,26 +39,9 @@ class OSMEnricher(osmService: OSMService) extends MetadataEnricher with Logging 
     osmService.reverseGeoLookup(location.lat, location.lon).map {
       case Failure(exception) =>
         log.error("Error fetching", exception)
-        Map.empty // TODO Do we want to swallow errors here?
+        Map.empty
       case Success(meta) =>
-        Map(
-          "name" -> meta.name,
-          "category" -> Some(meta.category),
-          "type" -> Some(meta.`type`),
-          "houseNumber" -> meta.address.houseNumber,
-          "road" -> meta.address.road,
-          "quarter" -> meta.address.quarter,
-          "suburb" -> meta.address.suburb,
-          "borough" -> meta.address.borough,
-          "city" -> meta.address.city,
-          "town" -> meta.address.town,
-          "village" -> meta.address.village,
-          "county" -> meta.address.county,
-          "state" -> meta.address.state,
-          "postcode" -> meta.address.postcode,
-          "country" -> meta.address.country,
-          "countryCode" -> meta.address.countryCode
-        ).collect { case (k, Some(v)) => k -> v }
+        metaToMap(meta)
     }
   }
 }
