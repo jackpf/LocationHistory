@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.util
 
-import io.circe.{Decoder, DecodingFailure, Encoder}
+import io.circe.{Decoder, Encoder}
 import io.circe.parser.decode
 import io.circe.syntax.*
 import org.sqlite.SQLiteException
@@ -15,11 +15,24 @@ object SQLiteMapper {
     */
   case class JsonColumn[T](value: T)
 
+  trait JsonColumnDefault[T] {
+    def value: T
+  }
+  implicit def mapDefault[K, V]: JsonColumnDefault[Map[K, V]] =
+    new JsonColumnDefault[Map[K, V]] { def value: Map[K, V] = Map.empty }
+  implicit def listDefault[A]: JsonColumnDefault[List[A]] =
+    new JsonColumnDefault[List[A]] { def value: List[A] = Nil }
+  implicit def seqDefault[A]: JsonColumnDefault[Seq[A]] =
+    new JsonColumnDefault[Seq[A]] { def value: Seq[A] = Seq.empty }
+  implicit def optionDefault[A]: JsonColumnDefault[Option[A]] =
+    new JsonColumnDefault[Option[A]] { def value: Option[A] = None }
+
   /** Maps supported (by Circe) types to and from JSON
     */
   implicit def jsonTypeMapper[T](using
       enc: Encoder[T],
-      dec: Decoder[T]
+      dec: Decoder[T],
+      defaultValue: JsonColumnDefault[T]
   ): TypeMapper[JsonColumn[T]] = new TypeMapper[JsonColumn[T]] {
     override def jdbcType = JDBCType.VARCHAR
 
@@ -36,7 +49,7 @@ object SQLiteMapper {
         idx: Int
     ): JsonColumn[T] = {
       val jsonStr = resultSet.getString(idx)
-      if (jsonStr == null || jsonStr.isEmpty) throw DecodingFailure("Empty value", List.empty)
+      if (jsonStr == null || jsonStr.isEmpty) JsonColumn(defaultValue.value)
       else
         decode[T](jsonStr) match {
           case Left(error)  => throw error
