@@ -4,7 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import {format, formatDistanceToNow} from "date-fns";
 import type {StoredLocation} from "../gen/common.ts";
 import type {MapGeoJSONFeature, StyleSpecification} from "maplibre-gl";
-import type {FeatureCollection, Feature, Point, LineString} from "geojson";
+import type {Feature, FeatureCollection, LineString, Point} from "geojson";
 import {Segmented} from "antd";
 import {useLocalStorage} from "../hooks/use-local-storage.ts";
 import styles from "./MLMap.module.css";
@@ -50,12 +50,13 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                 .map((h, index, locations) => ({
                     type: "Feature" as const,
                     properties: {
+                        index: index,
+                        isLatest: index === locations.length - 1,
                         lat: h.location!.lat,
                         lon: h.location!.lon,
                         accuracy: h.location!.accuracy,
                         time: h.timestamp,
-                        index: index,
-                        isLatest: index === locations.length - 1
+                        metadata: h.location!.metadata
                     },
                     geometry: {
                         type: "Point" as const,
@@ -77,6 +78,17 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
             }
         };
     }, [history]);
+
+    // Parse popup metadata
+    const popupMetadata = useMemo(() => {
+        if (!popupInfo) return {};
+        try {
+            return JSON.parse(popupInfo.properties.metadata);
+        } catch (e) {
+            console.error("Error parsing metadata", e);
+            return {};
+        }
+    }, [popupInfo]);
 
     // Calculate cutoff ratio for faded-out lines
     let cutoffRatio = 0;
@@ -177,10 +189,25 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                         onClose={() => setPopupInfo(null)}
                     >
                         <div>
+                            {/* Special handling for metadata.displayName */}
+                            {popupMetadata?.displayName &&
+                                <div><strong>{popupMetadata.displayName}</strong><br/><br/>
+                                </div>
+                            }
                             <strong>Latitude:</strong> {popupInfo.properties.lat}<br/>
                             <strong>Longitude:</strong> {popupInfo.properties.lon}<br/>
                             <strong>Accuracy:</strong> {popupInfo.properties.accuracy}m<br/>
                             <strong>Time:</strong> {format(new Date(popupInfo.properties.time), "yyyy-MM-dd HH:mm:ss")}
+                            {popupMetadata && <div><br/><strong>Metadata:</strong></div>}
+                            {popupMetadata && Object.entries(popupMetadata)
+                                .sort(([k1], [k2]) => k1.localeCompare(k2))
+                                .map(([key, value]) => {
+                                    return (
+                                        <div key={key}>
+                                            <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {String(value)}<br/>
+                                        </div>
+                                    )
+                                })}
                         </div>
                     </Popup>
                 )}

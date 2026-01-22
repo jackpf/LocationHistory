@@ -11,13 +11,12 @@ object LocationRepoExtensions {
 }
 
 trait LocationRepoExtensions { self: LocationRepo =>
-
   // TODO We might want to update an endTimestamp and count so we don't lose info of when the location was first seen
   private def updatePreviousLocation(
       newLocation: Location,
       newTimestamp: Long,
-      previousLocation: StoredLocation
-  ): StoredLocation = previousLocation.copy(
+      storedLocation: StoredLocation
+  ): StoredLocation = storedLocation.copy(
     location = newLocation,
     timestamp = newTimestamp
   )

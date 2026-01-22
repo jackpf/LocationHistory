@@ -1,8 +1,9 @@
 package com.jackpf.locationhistory.server.grpc
 
-import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
 import com.jackpf.locationhistory.beacon_service.*
+import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
 import com.jackpf.locationhistory.common.{Device, DeviceStatus, Location, PushHandler}
+import com.jackpf.locationhistory.server.enricher.EnricherExecutor
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.DeviceNotFoundException
 import com.jackpf.locationhistory.server.model
 import com.jackpf.locationhistory.server.model.{DeviceId, StoredDevice}
@@ -15,12 +16,12 @@ import com.jackpf.locationhistory.server.testutil.{
   MockModels
 }
 import io.grpc.Status.Code
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{mock, when}
 import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 
 class BeaconServiceImplTest(implicit ee: ExecutionEnv)
     extends DefaultSpecification
@@ -28,8 +29,9 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
   trait Context extends DefaultScope {
     val deviceRepo: DeviceRepo = mock(classOf[DeviceRepo])
     val locationRepo: LocationRepo = mock(classOf[LocationRepo])
+    val enricherExecutor: EnricherExecutor = mock(classOf[EnricherExecutor])
     val beaconService: BeaconService =
-      new BeaconServiceImpl(deviceRepo, locationRepo)
+      new BeaconServiceImpl(deviceRepo, locationRepo, enricherExecutor)
   }
 
   "Beacon service" should {
@@ -130,13 +132,20 @@ class BeaconServiceImplTest(implicit ee: ExecutionEnv)
         when(deviceRepo.getRegisteredDevice(DeviceId(deviceId))).thenReturn(getResponse)
 
         lazy val storeDeviceLocationResponse: Future[Try[Unit]]
+        lazy val enrichedLocation: model.Location = MockModels.location()
+        lazy val enrichedLocationResponse: Future[model.Location] =
+          Future.successful(enrichedLocation)
+
         if (location.isDefined) {
           given ec: ExecutionContext = any[ExecutionContext]()
+
+          when(enricherExecutor.enrich(any[model.Location]())(using any[ExecutionContext]()))
+            .thenReturn(enrichedLocationResponse)
           when(
             locationRepo
               .storeDeviceLocationOrUpdatePrevious(
                 eqTo(DeviceId(deviceId)),
-                eqTo(model.Location.fromProto(location.get)),
+                eqTo(enrichedLocation),
                 eqTo(timestamp),
                 any[CheckDuplicateLocationFunc]()
               )
