@@ -16,11 +16,11 @@ object Cache {
   }
 
   trait LowPriorityCacheable {
-    type identity[x] = x
+    private type Identity[x] = x
 
-    implicit val anyCacheable: Cacheable[identity] = new Cacheable[identity] {
-      override def wrap[V](v: V): identity[V] = v
-      override def unwrap[V](v: identity[V]): Option[V] = Some(v)
+    implicit val anyCacheable: Cacheable[Identity] = new Cacheable[Identity] {
+      override def wrap[V](v: V): Identity[V] = v
+      override def unwrap[V](v: Identity[V]): Option[V] = Some(v)
     }
   }
 
