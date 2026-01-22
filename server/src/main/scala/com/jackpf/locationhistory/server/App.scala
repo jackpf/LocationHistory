@@ -1,20 +1,24 @@
 package com.jackpf.locationhistory.server
 
 import com.jackpf.locationhistory.server.db.DataSourceFactory
-import com.jackpf.locationhistory.server.enricher.{EnricherExecutor, OSMEnricher}
-import com.jackpf.locationhistory.server.grpc.interceptors.TokenService
+import com.jackpf.locationhistory.server.enricher.{
+  ConfiguredEnrichers,
+  EnricherExecutor,
+  OSMEnricher
+}
 import com.jackpf.locationhistory.server.grpc.{AuthenticationManager, Services}
 import com.jackpf.locationhistory.server.model.StorageType
 import com.jackpf.locationhistory.server.repo.*
 import com.jackpf.locationhistory.server.service.{JwtAuthService, NotificationService, OSMService}
+import com.jackpf.locationhistory.server.util.Logging
 import scopt.OptionParser
 import sttp.client4.DefaultFutureBackend
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.*
+import scala.concurrent.{Await, Future}
 
-object App {
+object App extends Logging {
   private val ApplicationName: String = "location-history"
 
   private val parser: OptionParser[Args] =
@@ -56,6 +60,12 @@ object App {
         .action((x, c) => c.copy(sslCertsDir = Some(x)))
         .withFallback(() => "/tmp/certs")
         .text("Path to SSL certificates")
+
+      opt[Seq[String]]('e', "enrichers")
+        .valueName("<enricher1,enricher2,...>")
+        .action((x, c) => c.copy(enrichers = x))
+        .withFallback(() => Seq.empty)
+        .text("Comma separated list of enrichers")
     }
 
   def main(args: Array[String]): Unit = {
@@ -64,21 +74,24 @@ object App {
       .getOrElse(sys.exit(1))
 
     val authenticationManager = new AuthenticationManager(parsedArgs.adminPassword.get)
-    val tokenService: TokenService = new JwtAuthService
+    val tokenService = new JwtAuthService
 
     val dataSource = new DataSourceFactory(parsedArgs.dataDirectory.get, "database.db")
       .create(parsedArgs.storageType.get)
-    val repoFactory: RepoFactory = new RepoFactory(dataSource = dataSource)
+    val repoFactory = new RepoFactory(dataSource = dataSource)
 
-    val deviceRepo: DeviceRepo = repoFactory.deviceRepo(parsedArgs.storageType.get)
-    val locationRepo: LocationRepo = repoFactory.locationRepo(parsedArgs.storageType.get)
+    val deviceRepo = repoFactory.deviceRepo(parsedArgs.storageType.get)
+    val locationRepo = repoFactory.locationRepo(parsedArgs.storageType.get)
     val sttpBackend = DefaultFutureBackend()
-    val notificationService: NotificationService = new NotificationService(sttpBackend)
-    val enricherExecutor: EnricherExecutor = new EnricherExecutor(
-      Seq( // TODO Make configurable
-        new OSMEnricher(new OSMService(sttpBackend))
-      )
+    val notificationService = new NotificationService(sttpBackend)
+
+    // Available enrichers
+    val enrichers = Seq(
+      new OSMEnricher(new OSMService(sttpBackend))
     )
+    val loadedEnrichers = ConfiguredEnrichers.fromConfigured(parsedArgs.enrichers, enrichers)
+    log.info(s"Loaded enrichers: ${loadedEnrichers.map(_.name).mkString(", ")}")
+    val enricherExecutor = new EnricherExecutor(loadedEnrichers)
 
     Await.result(
       Future.sequence(

@@ -42,9 +42,8 @@ class AppServer(
   def start(): Server = {
     sslCertsPath match {
       case Some(path) =>
-        log.info(s"${serviceName}: Using SSL")
-        println(
-          SSLUtils.sslFingerprint(path.resolve(serverCrtFile).toFile)
+        log.info(
+          s"${serviceName}: Using SSL\n${SSLUtils.sslFingerprint(path.resolve(serverCrtFile).toFile)}"
         )
       case None =>
         log.warn(s"${serviceName}: Not using SSL")

@@ -47,4 +47,8 @@ else
     JAVA_ARGS="$JAVA_ARGS --data-directory /data"
 fi
 
+if [ -n "$ENRICHERS" ]; then
+    JAVA_ARGS="$JAVA_ARGS --enrichers $ENRICHERS"
+fi
+
 exec java -jar /app/app.jar $JAVA_ARGS "$@"

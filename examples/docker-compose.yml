@@ -17,6 +17,7 @@ services:
       - ALT_SERVER_NAMES=${ALT_SERVER_NAMES}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - STORAGE_TYPE=${STORAGE_TYPE}
+      - ENRICHERS=${ENRICHERS}
   location-history-ui-proxy:
     image: jackpfarrelly/location-history-ui-proxy:latest
     container_name: location-history-ui-proxy

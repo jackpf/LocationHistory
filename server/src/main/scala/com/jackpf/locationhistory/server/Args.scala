@@ -10,7 +10,8 @@ case class Args(
     adminPassword: Option[String] = None,
     dataDirectory: Option[String] = None,
     storageType: Option[StorageType] = None,
-    sslCertsDir: Option[String] = None
+    sslCertsDir: Option[String] = None,
+    enrichers: Seq[String] = Seq.empty
 ) {
   def sslCertsPath: Option[Path] = sslCertsDir.map(Paths.get(_))
 }

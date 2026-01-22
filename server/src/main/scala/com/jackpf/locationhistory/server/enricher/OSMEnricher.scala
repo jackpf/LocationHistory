@@ -7,6 +7,7 @@ import com.jackpf.locationhistory.server.util.Logging
 import scala.concurrent.{ExecutionContext, Future}
 
 class OSMEnricher(osmService: OSMService) extends MetadataEnricher with Logging {
+  override val name: String = "osm"
 
   /** Filter empty values
     * Also optional empty string values (e.g. Some("")), which OSM likes to do...
