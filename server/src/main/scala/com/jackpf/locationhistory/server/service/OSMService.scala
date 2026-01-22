@@ -76,7 +76,7 @@ class OSMService(backend: Backend[Future]) {
   def reverseGeoLookup(lat: Double, lon: Double)(using
       ec: ExecutionContext
   ): Future[Try[GeoLookupResponse]] = {
-    cache.getOrElseTry(
+    cache.getOrElse(
       (toCacheKey(lat), toCacheKey(lon)),
       basicRequest
         .header("Content-Type", "application/json")
