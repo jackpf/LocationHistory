@@ -174,7 +174,6 @@ public class LocationService {
             throw new SecurityException("No location permissions");
         }
 
-
         if (optimisedProvider.isSupported()) {
             /* Optimised provider will automatically use the location cache if available
              * and return a fresh (< ~30s) location if available */
