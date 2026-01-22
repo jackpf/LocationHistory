@@ -83,7 +83,7 @@ class ConcurrentInMemoryCache[K, V](maxSize: Long) extends Cache[K, V] {
       case Some(value) => Future.successful(conv.wrap(value))
       case None        =>
         val result = orElse
-        result.onComplete(t => t.foreach(value => conv.unwrap(value).foreach(set(key, _))))
+        result.onComplete(t => t.toOption.flatMap(conv.unwrap).foreach(set(key, _)))
         result
     }
   }
