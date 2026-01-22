@@ -80,7 +80,10 @@ class OSMService(backend: Backend[Future]) {
       (toCacheKey(lat), toCacheKey(lon)),
       basicRequest
         .header("Content-Type", "application/json")
-        .header("User-Agent", "LocationHistory/1.0 (https://github.com/jackpfarrelly/location-history)")
+        .header(
+          "User-Agent",
+          "LocationHistory/1.0 (https://github.com/jackpfarrelly/location-history)"
+        )
         .get(uri"${OSMService.geoLookupUrl(lat, lon)}")
         .response(asTryJson[GeoLookupResponse])
         .send(backend)
