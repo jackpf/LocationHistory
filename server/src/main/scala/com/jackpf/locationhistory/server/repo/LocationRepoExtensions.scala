@@ -11,19 +11,13 @@ object LocationRepoExtensions {
 }
 
 trait LocationRepoExtensions { self: LocationRepo =>
-
-  /** Don't overwrite any existing meta keys that aren't present in the new location */
-  private def mergeLocations(previousLocation: Location, newLocation: Location): Location = {
-    newLocation.fillMetadata(previousLocation.metadata)
-  }
-
   // TODO We might want to update an endTimestamp and count so we don't lose info of when the location was first seen
   private def updatePreviousLocation(
       newLocation: Location,
       newTimestamp: Long,
       storedLocation: StoredLocation
   ): StoredLocation = storedLocation.copy(
-    location = mergeLocations(storedLocation.location, newLocation),
+    location = newLocation,
     timestamp = newTimestamp
   )
 

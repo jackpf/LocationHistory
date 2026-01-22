@@ -78,18 +78,5 @@ class LocationRepoExtensionsTest(using ee: ExecutionEnv) extends DefaultSpecific
         .update(eqTo(context.deviceId), eqTo(1L), any[StoredLocation => StoredLocation]())
       ok
     }
-
-    "merge locations correctly when updating" >> in(new UpdatePreviousLocationContext {
-      override val newLocation: Location =
-        MockModels.location(metadata = Map("k2" -> "new", "k3" -> "v3"))
-      override lazy val storedLocation: StoredLocation = MockModels.storedLocation(location =
-        MockModels.location(metadata = Map("k1" -> "v1", "k2" -> "v2"))
-      )
-    }) { context =>
-      context.result must beSuccessfulTry.await
-
-      val updatedLocation = context.updateCaptor.getValue.apply(context.storedLocation)
-      updatedLocation.location.metadata === Map("k1" -> "v1", "k2" -> "new", "k3" -> "v3")
-    }
   }
 }
