@@ -22,6 +22,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -37,6 +39,16 @@ public class LocationServiceTest {
 
     private LocationData mockGpsLocation;
     private LocationData mockNetworkLocation;
+
+    private static final List<String> DEFAULT_SOURCES = Arrays.asList(
+            LocationManager.GPS_PROVIDER,
+            LocationManager.NETWORK_PROVIDER
+    );
+
+    private static final List<String> NETWORK_FIRST_SOURCES = Arrays.asList(
+            LocationManager.NETWORK_PROVIDER,
+            LocationManager.GPS_PROVIDER
+    );
 
     @Before
     public void setUp() {
@@ -73,7 +85,7 @@ public class LocationServiceTest {
     public void getLocation_throwsSecurityException_whenNoPermissions() {
         when(permissionsManager.hasLocationPermissions()).thenReturn(false);
 
-        locationService.getLocation(RequestedAccuracy.HIGH, data -> {
+        locationService.getLocation(RequestedAccuracy.HIGH, DEFAULT_SOURCES, data -> {
         });
     }
 
@@ -86,7 +98,7 @@ public class LocationServiceTest {
         stubProviderToReturnForSource(optimisedProvider, LocationManager.NETWORK_PROVIDER, mockNetworkLocation);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.HIGH, result::set);
+        locationService.getLocation(RequestedAccuracy.HIGH, DEFAULT_SOURCES, result::set);
 
         verify(optimisedProvider).provide(eq(LocationManager.GPS_PROVIDER), anyInt(), any());
         verify(optimisedProvider).provide(eq(LocationManager.NETWORK_PROVIDER), anyInt(), any());
@@ -99,7 +111,7 @@ public class LocationServiceTest {
         stubProviderToReturnForSource(optimisedProvider, LocationManager.NETWORK_PROVIDER, mockNetworkLocation);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.HIGH, result::set);
+        locationService.getLocation(RequestedAccuracy.HIGH, DEFAULT_SOURCES, result::set);
 
         // Both providers should be called for HIGH accuracy (parallel)
         verify(optimisedProvider).provide(eq(LocationManager.GPS_PROVIDER), anyInt(), any());
@@ -113,7 +125,7 @@ public class LocationServiceTest {
         stubProviderToReturnForSource(optimisedProvider, LocationManager.NETWORK_PROVIDER, mockNetworkLocation);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.HIGH, result::set);
+        locationService.getLocation(RequestedAccuracy.HIGH, DEFAULT_SOURCES, result::set);
 
         // GPS has better accuracy (5.0f vs 50.0f), so it should be selected
         assertNotNull(result.get());
@@ -133,7 +145,7 @@ public class LocationServiceTest {
         stubProviderToReturnForSource(optimisedProvider, LocationManager.NETWORK_PROVIDER, accurateNetwork); // 3.0f accuracy
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.HIGH, result::set);
+        locationService.getLocation(RequestedAccuracy.HIGH, DEFAULT_SOURCES, result::set);
 
         // Network has better accuracy, so it should be selected
         assertEquals(LocationManager.NETWORK_PROVIDER, result.get().getSource());
@@ -145,9 +157,9 @@ public class LocationServiceTest {
         stubProviderToReturnForSource(optimisedProvider, LocationManager.NETWORK_PROVIDER, mockNetworkLocation);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.BALANCED, result::set);
+        locationService.getLocation(RequestedAccuracy.BALANCED, NETWORK_FIRST_SOURCES, result::set);
 
-        // Network is first for BALANCED, returns successfully, so GPS shouldn't be called
+        // Network is first in sources, returns successfully, so GPS shouldn't be called
         verify(optimisedProvider).provide(eq(LocationManager.NETWORK_PROVIDER), anyInt(), any());
         verify(optimisedProvider, never()).provide(eq(LocationManager.GPS_PROVIDER), anyInt(), any());
         assertEquals(LocationManager.NETWORK_PROVIDER, result.get().getSource());
@@ -160,7 +172,7 @@ public class LocationServiceTest {
         stubProviderToReturnForSource(optimisedProvider, LocationManager.GPS_PROVIDER, mockGpsLocation);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.BALANCED, result::set);
+        locationService.getLocation(RequestedAccuracy.BALANCED, DEFAULT_SOURCES, result::set);
 
         assertEquals(LocationManager.GPS_PROVIDER, result.get().getSource());
     }
@@ -172,7 +184,7 @@ public class LocationServiceTest {
         stubProviderToReturnForSource(optimisedProvider, LocationManager.NETWORK_PROVIDER, mockNetworkLocation);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.HIGH, result::set);
+        locationService.getLocation(RequestedAccuracy.HIGH, DEFAULT_SOURCES, result::set);
 
         // Even though GPS failed, network succeeded
         assertNotNull(result.get());
@@ -189,7 +201,7 @@ public class LocationServiceTest {
         stubProviderToReturn(legacyHighAccuracyProvider, mockGpsLocation);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.HIGH, result::set);
+        locationService.getLocation(RequestedAccuracy.HIGH, DEFAULT_SOURCES, result::set);
 
         verify(legacyHighAccuracyProvider).provide(eq(LocationManager.GPS_PROVIDER), anyInt(), any());
         verify(optimisedProvider, never()).provide(any(), anyInt(), any());
@@ -204,7 +216,7 @@ public class LocationServiceTest {
         stubProviderToReturnForSource(legacyCachedProvider, LocationManager.NETWORK_PROVIDER, null);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.HIGH, result::set);
+        locationService.getLocation(RequestedAccuracy.HIGH, DEFAULT_SOURCES, result::set);
 
         // All 4 providers should be called in parallel for HIGH accuracy
         verify(legacyHighAccuracyProvider).provide(eq(LocationManager.GPS_PROVIDER), anyInt(), any());
@@ -222,7 +234,7 @@ public class LocationServiceTest {
         stubProviderToReturnForSource(legacyCachedProvider, LocationManager.NETWORK_PROVIDER, null);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.HIGH, result::set);
+        locationService.getLocation(RequestedAccuracy.HIGH, DEFAULT_SOURCES, result::set);
 
         // GPS has better accuracy, should be selected
         assertNotNull(result.get());
@@ -235,7 +247,7 @@ public class LocationServiceTest {
         stubProviderToReturnForSource(legacyCachedProvider, LocationManager.GPS_PROVIDER, mockGpsLocation);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.BALANCED, result::set);
+        locationService.getLocation(RequestedAccuracy.BALANCED, DEFAULT_SOURCES, result::set);
 
         verify(legacyCachedProvider).provide(eq(LocationManager.GPS_PROVIDER), anyInt(), any());
         // High accuracy provider shouldn't be called since cached succeeded
@@ -248,11 +260,13 @@ public class LocationServiceTest {
         // All cached providers return null
         stubProviderToReturnForSource(legacyCachedProvider, LocationManager.GPS_PROVIDER, null);
         stubProviderToReturnForSource(legacyCachedProvider, LocationManager.NETWORK_PROVIDER, null);
+        // High accuracy GPS also returns null
+        stubProviderToReturnForSource(legacyHighAccuracyProvider, LocationManager.GPS_PROVIDER, null);
         // High accuracy network returns a result
         stubProviderToReturnForSource(legacyHighAccuracyProvider, LocationManager.NETWORK_PROVIDER, mockNetworkLocation);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.BALANCED, result::set);
+        locationService.getLocation(RequestedAccuracy.BALANCED, DEFAULT_SOURCES, result::set);
 
         assertEquals(LocationManager.NETWORK_PROVIDER, result.get().getSource());
     }
@@ -268,7 +282,7 @@ public class LocationServiceTest {
         stubProviderToReturnForSource(optimisedProvider, LocationManager.NETWORK_PROVIDER, mockNetworkLocation);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.HIGH, result::set);
+        locationService.getLocation(RequestedAccuracy.HIGH, DEFAULT_SOURCES, result::set);
 
         verify(optimisedProvider, never()).provide(eq(LocationManager.GPS_PROVIDER), anyInt(), any());
         assertEquals(LocationManager.NETWORK_PROVIDER, result.get().getSource());
@@ -281,7 +295,7 @@ public class LocationServiceTest {
         stubProviderToReturnForSource(optimisedProvider, LocationManager.GPS_PROVIDER, mockGpsLocation);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.BALANCED, result::set);
+        locationService.getLocation(RequestedAccuracy.BALANCED, DEFAULT_SOURCES, result::set);
 
         verify(optimisedProvider, never()).provide(eq(LocationManager.NETWORK_PROVIDER), anyInt(), any());
         assertEquals(LocationManager.GPS_PROVIDER, result.get().getSource());
@@ -293,7 +307,7 @@ public class LocationServiceTest {
         stubProviderToReturn(optimisedProvider, null);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.HIGH, result::set);
+        locationService.getLocation(RequestedAccuracy.HIGH, DEFAULT_SOURCES, result::set);
 
         assertNull(result.get());
     }
@@ -305,7 +319,7 @@ public class LocationServiceTest {
         when(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)).thenReturn(false);
 
         AtomicReference<LocationData> result = new AtomicReference<>();
-        locationService.getLocation(RequestedAccuracy.HIGH, result::set);
+        locationService.getLocation(RequestedAccuracy.HIGH, DEFAULT_SOURCES, result::set);
 
         assertNull(result.get());
     }
