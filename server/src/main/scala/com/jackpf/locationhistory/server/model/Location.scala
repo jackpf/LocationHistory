@@ -21,6 +21,11 @@ case class Location(lat: Double, lon: Double, accuracy: Double, metadata: Map[St
     metadata = metadata
   )
 
-  def withExtraMetadata(extraMetadata: Map[String, String]): Location =
-    copy(metadata = metadata ++ extraMetadata)
+  /** Overwrites metadata keys with patch */
+  def patchMetadata(patch: Map[String, String]): Location =
+    copy(metadata = metadata ++ patch)
+
+  /** Fills missing metadata keys with fill */
+  def fillMetadata(fill: Map[String, String]): Location =
+    copy(metadata = fill ++ metadata)
 }
