@@ -11,7 +11,7 @@ class EnricherExecutor(enrichers: Iterable[MetadataEnricher]) extends Logging {
       result: Future[Map[String, String]]
   )(using ec: ExecutionContext): Future[Map[String, String]] = {
     result.recover { case e: Exception =>
-      log.error(s"Enricher failed: ${enricher.getClass.getName}", e)
+      log.error(s"Enricher failed: ${enricher.name}", e)
       Map.empty
     }
   }
