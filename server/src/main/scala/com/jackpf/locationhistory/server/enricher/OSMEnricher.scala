@@ -49,6 +49,7 @@ class OSMEnricher(osmService: OSMService) extends MetadataEnricher with Logging 
   )(using ec: ExecutionContext): Future[Map[String, String]] = {
     osmService
       .reverseGeoLookup(location.lat, location.lon)
-      .flatMap(responseTry => Future.fromTry(responseTry.map(metaToMap)))
+      .flatMap(Future.fromTry)
+      .map(metaToMap)
   }
 }

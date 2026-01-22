@@ -189,7 +189,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                         onClose={() => setPopupInfo(null)}
                     >
                         <div>
-                            {/* Special handling for metadata.displatName */}
+                            {/* Special handling for metadata.displayName */}
                             {popupMetadata?.displayName &&
                                 <div><strong>{popupMetadata.displayName}</strong><br/><br/>
                                 </div>
@@ -203,7 +203,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                                 .sort(([k1], [k2]) => k1.localeCompare(k2))
                                 .map(([key, value]) => {
                                     return (
-                                        <div>
+                                        <div key={key}>
                                             <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {String(value)}<br/>
                                         </div>
                                     )
