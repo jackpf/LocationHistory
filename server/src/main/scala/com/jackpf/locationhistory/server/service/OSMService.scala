@@ -1,6 +1,7 @@
 package com.jackpf.locationhistory.server.service
 
-import com.jackpf.locationhistory.server.service.OSMService.GeoLookupResponse
+import com.jackpf.locationhistory.server.service.OSMService.{GeoLookupResponse, cache}
+import com.jackpf.locationhistory.server.util.ConcurrentInMemoryCache
 import com.jackpf.locationhistory.server.util.STTPUtils.*
 import io.circe.generic.auto.*
 import sttp.client4.*
@@ -9,6 +10,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 object OSMService {
+
+  /** Use a simple in-memory cache for OSM responses
+    * Helps in cases where we're stationary for a long time (no need to continuously look up locations)
+    */
+  private val cache: ConcurrentInMemoryCache[(Long, Long), GeoLookupResponse] =
+    new ConcurrentInMemoryCache(1024)
+
   private def geoLookupUrl(lat: Double, lon: Double): String =
     s"https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&extratags=1&format=jsonv2"
 
@@ -57,14 +65,25 @@ object OSMService {
 }
 
 class OSMService(backend: Backend[Future]) {
+
+  /** Drop precision for cache keys to 4 points (~11m accuracy)
+    * Otherwise we'll never get cache hits
+    */
+  private def toCacheKey(c: Double): Long = {
+    Math.round(c * 10000)
+  }
+
   def reverseGeoLookup(lat: Double, lon: Double)(using
       ec: ExecutionContext
   ): Future[Try[GeoLookupResponse]] = {
-    basicRequest
-      .header("content-type", "application/json")
-      .get(uri"${OSMService.geoLookupUrl(lat, lon)}")
-      .response(asTryJson[GeoLookupResponse])
-      .send(backend)
-      .map(_.body)
+    cache.getOrElseTry(
+      (toCacheKey(lat), toCacheKey(lon)),
+      basicRequest
+        .header("content-type", "application/json")
+        .get(uri"${OSMService.geoLookupUrl(lat, lon)}")
+        .response(asTryJson[GeoLookupResponse])
+        .send(backend)
+        .map(_.body)
+    )
   }
 }

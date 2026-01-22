@@ -28,7 +28,7 @@ class EnricherExecutor(enrichers: Iterable[MetadataEnricher]) extends Logging {
 
     Future.sequence(responses).map { results =>
       val metadata = mergeMetadata(results)
-      location.withExtraMetadata(metadata)
+      location.patchMetadata(metadata)
     }
   }
 }
