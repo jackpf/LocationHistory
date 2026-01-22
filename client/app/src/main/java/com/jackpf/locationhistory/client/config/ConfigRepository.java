@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.provider.Settings;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class ConfigRepository {
@@ -24,6 +27,8 @@ public class ConfigRepository {
     public static final String HIGH_ACCURACY_TRIGGERED_AT_KEY = "high-accuracy-triggered-at";
 
     public static final String LAST_RUN_TIMESTAMP_KEY = "last-run-timestamp";
+
+    public static final String ENABLED_LOCATION_PROVIDERS_KEY = "enabled-location-providers";
 
     /**
      * How long do we stay in high accuracy mode after a trigger
@@ -116,5 +121,26 @@ public class ConfigRepository {
 
     public void setLastRunTimestamp(long lastRunTime) {
         prefs.edit().putLong(LAST_RUN_TIMESTAMP_KEY, lastRunTime).apply();
+    }
+
+    /**
+     * Get the list of enabled location providers in order.
+     * Returns an empty list if not set.
+     */
+    public List<String> getEnabledLocationProviders() {
+        String providersString = prefs.getString(ENABLED_LOCATION_PROVIDERS_KEY, "");
+        if (providersString.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(Arrays.asList(providersString.split(",")));
+    }
+
+    /**
+     * Set the list of enabled location providers in order.
+     * The list is stored as a comma-separated string.
+     */
+    public void setEnabledLocationProviders(List<String> providers) {
+        String providersString = String.join(",", providers);
+        prefs.edit().putString(ENABLED_LOCATION_PROVIDERS_KEY, providersString).apply();
     }
 }

@@ -56,7 +56,7 @@ public class BeaconContext {
     }
 
     public void getLocation(RequestedAccuracy accuracy, Consumer<LocationData> consumer) throws SecurityException {
-        locationService.getLocation(accuracy, consumer);
+        locationService.getLocation(accuracy, configRepository.getEnabledLocationProviders(), consumer);
     }
 
     public ListenableFuture<SetLocationResponse> setLocation(LocationData locationData) {

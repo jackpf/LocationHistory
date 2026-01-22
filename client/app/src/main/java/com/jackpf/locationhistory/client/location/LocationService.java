@@ -15,9 +15,11 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 
 public class LocationService {
     private final LocationManager locationManager;
@@ -37,12 +39,17 @@ public class LocationService {
      */
     private static final int NETWORK_TIMEOUT = 10_000;
     /**
+     * If we don't know what we're calling
+     */
+    private static final int DEFAULT_TIMEOUT = 30_000;
+    /**
      * Timeout doesn't apply to cache requests
      */
     private static final int CACHE_TIMEOUT = -1;
 
     @Getter
     @AllArgsConstructor
+    @ToString
     private static class ProviderRequest {
         private String source;
         private int timeout;
@@ -72,6 +79,16 @@ public class LocationService {
                 new LegacyCachedProvider(locationManager, threadExecutor),
                 new OptimisedProvider(locationManager, threadExecutor)
         );
+    }
+
+    public List<String> getAvailableSources() {
+        return filterEnabledSources(locationManager.getAllProviders());
+    }
+
+    private List<String> filterEnabledSources(List<String> sources) {
+        return sources.stream()
+                .filter(locationManager::isProviderEnabled)
+                .collect(Collectors.toList());
     }
 
     private void callSequentialProviders(Iterator<ProviderRequest> providers, Consumer<LocationData> consumer) {
@@ -123,49 +140,69 @@ public class LocationService {
         return best;
     }
 
+    private List<ProviderRequest> createRequests(List<String> sources, LocationProvider provider) {
+        List<ProviderRequest> requests = new ArrayList<>();
+
+        for (String source : filterEnabledSources(sources)) {
+            int timeout = timeoutForSource(source);
+            requests.add(new ProviderRequest(source, timeout, provider));
+        }
+
+        return requests;
+    }
+
+    private int timeoutForSource(String source) {
+        switch (source) {
+            case LocationManager.GPS_PROVIDER:
+                return GPS_TIMEOUT;
+            case LocationManager.NETWORK_PROVIDER:
+                return NETWORK_TIMEOUT;
+            default:
+                return DEFAULT_TIMEOUT;
+        }
+    }
+
     /**
      * @param accuracy Defines priority of accuracy vs battery use (GPS v.s. network v.s. cached location sources)
      * @param consumer Callback for location data
      * @throws SecurityException If we're missing location permissions
      */
-    public void getLocation(RequestedAccuracy accuracy, Consumer<LocationData> consumer) throws SecurityException {
+    public void getLocation(RequestedAccuracy accuracy,
+                            List<String> sources,
+                            Consumer<LocationData> consumer) throws SecurityException {
         if (!permissionsManager.hasLocationPermissions()) {
             throw new SecurityException("No location permissions");
         }
 
-        List<ProviderRequest> providers = new ArrayList<>();
 
         if (optimisedProvider.isSupported()) {
             /* Optimised provider will automatically use the location cache if available
              * and return a fresh (< ~30s) location if available */
             log.d("Using optimised location manager");
 
-            ProviderRequest gpsRequest = new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, optimisedProvider);
-            ProviderRequest networkRequest = new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, optimisedProvider);
+            List<ProviderRequest> requests = createRequests(sources, optimisedProvider);
+            log.d("Requesting location from providers: %s", Arrays.toString(requests.toArray()));
 
             if (accuracy == RequestedAccuracy.HIGH) {
-                providers.addAll(Arrays.asList(gpsRequest, networkRequest));
-                callParallelProviders(providers.iterator(), this::chooseBestLocation, consumer);
+                callParallelProviders(requests.iterator(), this::chooseBestLocation, consumer);
             } else {
-                providers.addAll(Arrays.asList(networkRequest, gpsRequest));
-                callSequentialProviders(providers.iterator(), consumer);
+                callSequentialProviders(requests.iterator(), consumer);
             }
         } else {
             /* The legacy provider will directly request location from the hardware,
              * so we've  gotta implement our own cache checks */
             log.d("Using legacy location manager");
 
-            ProviderRequest highGps = new ProviderRequest(LocationManager.GPS_PROVIDER, GPS_TIMEOUT, legacyHighAccuracyProvider);
-            ProviderRequest highNetwork = new ProviderRequest(LocationManager.NETWORK_PROVIDER, NETWORK_TIMEOUT, legacyHighAccuracyProvider);
-            ProviderRequest cachedGps = new ProviderRequest(LocationManager.GPS_PROVIDER, CACHE_TIMEOUT, legacyCachedProvider);
-            ProviderRequest cachedNetwork = new ProviderRequest(LocationManager.NETWORK_PROVIDER, CACHE_TIMEOUT, legacyCachedProvider);
+            List<ProviderRequest> cachedRequests = createRequests(sources, legacyCachedProvider);
+            List<ProviderRequest> highAccuracyRequests = createRequests(sources, legacyHighAccuracyProvider);
+            List<ProviderRequest> allRequests = Stream.concat(cachedRequests.stream(), highAccuracyRequests.stream())
+                    .collect(Collectors.toList());
+            log.d("Requesting location from providers: %s", Arrays.toString(allRequests.toArray()));
 
             if (accuracy == RequestedAccuracy.HIGH) {
-                providers.addAll(Arrays.asList(highGps, highNetwork, cachedGps, cachedNetwork));
-                callParallelProviders(providers.iterator(), this::chooseBestLocation, consumer);
+                callParallelProviders(allRequests.iterator(), this::chooseBestLocation, consumer);
             } else {
-                providers.addAll(Arrays.asList(cachedGps, cachedNetwork, highNetwork, highGps));
-                callSequentialProviders(providers.iterator(), consumer);
+                callSequentialProviders(allRequests.iterator(), consumer);
             }
         }
     }

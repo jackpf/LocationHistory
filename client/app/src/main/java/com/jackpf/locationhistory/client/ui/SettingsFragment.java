@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.jackpf.locationhistory.client.R;
@@ -24,6 +26,7 @@ public class SettingsFragment extends Fragment {
 
     private FragmentSettingsBinding binding;
     private SettingsViewModel viewModel;
+    private LocationProviderAdapter providerAdapter;
 
     @Nullable
     private SSLPrompt sslPrompt;
@@ -43,6 +46,7 @@ public class SettingsFragment extends Fragment {
         sslPrompt = new SSLPrompt(requireActivity());
 
         setupInputs();
+        setupLocationProviders();
         setupUnifiedPushListener();
         observeEvents();
     }
@@ -73,11 +77,29 @@ public class SettingsFragment extends Fragment {
                 binding.serverPortInput.getText().toString()
         ));
 
-        binding.saveButton.setOnClickListener(v -> viewModel.saveSettings(
-                binding.serverHostInput.getText().toString(),
-                binding.serverPortInput.getText().toString(),
-                binding.updateFrequencyInput.getText().toString()
-        ));
+        binding.saveButton.setOnClickListener(v -> {
+            viewModel.saveSettings(
+                    binding.serverHostInput.getText().toString(),
+                    binding.serverPortInput.getText().toString(),
+                    binding.updateFrequencyInput.getText().toString()
+            );
+            if (providerAdapter != null) {
+                viewModel.saveEnabledLocationProviders(providerAdapter.getProviders());
+            }
+        });
+    }
+
+    private void setupLocationProviders() {
+        List<LocationProviderItem> providerItems = viewModel.getLocationProviderItems();
+        providerAdapter = new LocationProviderAdapter(providerItems);
+
+        binding.providersRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        binding.providersRecyclerView.setAdapter(providerAdapter);
+
+        ItemTouchHelper.Callback callback = new LocationProviderAdapter.DragCallback(providerAdapter);
+        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+        touchHelper.attachToRecyclerView(binding.providersRecyclerView);
+        providerAdapter.setItemTouchHelper(touchHelper);
     }
 
     private void setupUnifiedPushListener() {
