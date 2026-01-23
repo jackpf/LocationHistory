@@ -17,8 +17,7 @@ trait LocationRepoExtensions { self: LocationRepo =>
       storedLocation: StoredLocation
   ): StoredLocation = storedLocation.copy(
     location = newLocation,
-    endTimestamp = newTimestamp,
-    count = storedLocation.count + 1
+    metadata = storedLocation.metadata.updated(newTimestamp)
   )
 
   /** Note that this is a "best effort" approach and not strictly thread safe:
@@ -43,7 +42,7 @@ trait LocationRepoExtensions { self: LocationRepo =>
             storedLocation => updatePreviousLocation(location, timestamp, storedLocation)
         )
       case _ =>
-        storeDeviceLocation(deviceId, location, timestamp, timestamp, 1L)
+        storeDeviceLocation(deviceId, location, StoredLocation.Metadata.initial(timestamp))
     }
   }
 

@@ -48,9 +48,7 @@ class LocationRepoExtensionsTest(using ee: ExecutionEnv) extends DefaultSpecific
       repository.storeDeviceLocation(
         deviceId,
         newLocation,
-        newTimestamp,
-        newTimestamp,
-        1L
+        StoredLocation.Metadata.initial(newTimestamp)
       )
     ).thenReturn(Future.successful(Success(())))
   }
@@ -77,9 +75,7 @@ class LocationRepoExtensionsTest(using ee: ExecutionEnv) extends DefaultSpecific
         .storeDeviceLocation(
           context.deviceId,
           context.newLocation,
-          context.newTimestamp,
-          context.newTimestamp,
-          1L
+          StoredLocation.Metadata.initial(context.newTimestamp)
         )
       ok
     }

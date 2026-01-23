@@ -27,9 +27,11 @@ private case class StoredLocationRow(
   def toStoredLocation: StoredLocation = StoredLocation(
     id = id,
     location = Location(lat = lat, lon = lon, accuracy = accuracy, metadata.value),
-    startTimestamp = startTimestamp,
-    endTimestamp = endTimestamp,
-    count = count
+    metadata = StoredLocation.Metadata(
+      startTimestamp = startTimestamp,
+      endTimestamp = endTimestamp,
+      count = count
+    )
   )
 }
 private object StoredLocationTable extends SimpleTable[StoredLocationRow]
@@ -62,9 +64,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
   override def storeDeviceLocation(
       deviceId: DeviceId.Type,
       location: Location,
-      startTimestamp: Long,
-      endTimestamp: Long,
-      count: Long
+      metadata: StoredLocation.Metadata
   ): Future[Try[Unit]] = Future {
     db.transaction { implicit db =>
       Try {
@@ -76,9 +76,9 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
               _.lon := location.lon,
               _.accuracy := location.accuracy,
               _.metadata := JsonColumn(location.metadata),
-              _.startTimestamp := startTimestamp,
-              _.endTimestamp := endTimestamp,
-              _.count := count
+              _.startTimestamp := metadata.startTimestamp,
+              _.endTimestamp := metadata.endTimestamp,
+              _.count := metadata.count
             )
           )
           ()
@@ -140,9 +140,9 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
                     _.lon := updatedStoredDevice.location.lon,
                     _.accuracy := updatedStoredDevice.location.accuracy,
                     _.metadata := JsonColumn(updatedStoredDevice.location.metadata),
-                    _.startTimestamp := updatedStoredDevice.startTimestamp,
-                    _.endTimestamp := updatedStoredDevice.endTimestamp,
-                    _.count := updatedStoredDevice.count
+                    _.startTimestamp := updatedStoredDevice.metadata.startTimestamp,
+                    _.endTimestamp := updatedStoredDevice.metadata.endTimestamp,
+                    _.count := updatedStoredDevice.metadata.count
                   )
               )
             }

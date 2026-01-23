@@ -28,18 +28,10 @@ class InMemoryLocationRepo(maxItemsPerDevice: Long = DefaultMaxItemsPerDevice)
   override def storeDeviceLocation(
       deviceId: DeviceId.Type,
       location: Location,
-      startTimestamp: Long,
-      endTimestamp: Long,
-      count: Long
+      metadata: StoredLocation.Metadata
   ): Future[Try[Unit]] = Future.successful {
     val storedLocation =
-      StoredLocation.fromLocation(
-        location,
-        id = generateId(),
-        startTimestamp = startTimestamp,
-        endTimestamp = endTimestamp,
-        count = count
-      )
+      StoredLocation.fromLocation(location, id = generateId(), metadata = metadata)
 
     storedLocations.updateWith(deviceId) {
       case Some(existingLocations) =>

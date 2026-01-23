@@ -38,14 +38,10 @@ object MockModels {
   def storedLocation(
       id: Long = 1,
       location: Location = location(),
-      startTimestamp: Long = 123L,
-      endTimestamp: Long = 123L,
-      count: Long = 1L
+      metadata: StoredLocation.Metadata = StoredLocation.Metadata.initial(123L)
   ): StoredLocation = StoredLocation(
     id = id,
     location = location,
-    startTimestamp = startTimestamp,
-    endTimestamp = endTimestamp,
-    count = count
+    metadata = metadata
   )
 }

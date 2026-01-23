@@ -239,17 +239,13 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
               1L,
               MockModels
                 .location(lat = 0.1, lon = 0.2, accuracy = 0.3, metadata = Map("k1" -> "v1")),
-              startTimestamp = 1L,
-              endTimestamp = 2L,
-              count = 3L
+              model.StoredLocation.Metadata(startTimestamp = 1L, endTimestamp = 2L, count = 3L)
             ),
             MockModels.storedLocation(
               2L,
               MockModels
                 .location(lat = 0.4, lon = 0.5, accuracy = 0.6, metadata = Map("k2" -> "v2")),
-              startTimestamp = 2L,
-              endTimestamp = 2L,
-              count = 1L
+              model.StoredLocation.Metadata.initial(2L)
             )
           )
         )
