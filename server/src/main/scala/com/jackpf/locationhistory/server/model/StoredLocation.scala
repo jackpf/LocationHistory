@@ -3,6 +3,11 @@ package com.jackpf.locationhistory.server.model
 import com.jackpf.locationhistory.common.StoredLocation as ProtoStoredLocation
 
 object StoredLocation {
+  object Metadata {
+    def initial(timestamp: Long): Metadata =
+      Metadata(startTimestamp = timestamp, endTimestamp = timestamp, count = 1L)
+  }
+
   case class Metadata(
       startTimestamp: Long,
       endTimestamp: Long,
@@ -10,11 +15,6 @@ object StoredLocation {
   ) {
     def updated(newTimestamp: Long): Metadata =
       copy(endTimestamp = newTimestamp, count = count + 1)
-  }
-
-  object Metadata {
-    def initial(timestamp: Long): Metadata =
-      Metadata(startTimestamp = timestamp, endTimestamp = timestamp, count = 1L)
   }
 
   def fromLocation(
