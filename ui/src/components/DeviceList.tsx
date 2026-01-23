@@ -189,7 +189,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
                                 <div className="detail-row">
                                     <span className="detail-label">Last seen</span>
                                     <span
-                                        className="detail-value">{lastLocation ? formatDistanceToNow(new Date(lastLocation.timestamp), {addSuffix: true}) : "never"}</span>
+                                        className="detail-value">{lastLocation ? formatDistanceToNow(new Date(lastLocation.endTimestamp), {addSuffix: true}) : "never"}</span>
                                 </div>
                                 {storedDevice.pushHandler &&
                                     <div className="detail-row">

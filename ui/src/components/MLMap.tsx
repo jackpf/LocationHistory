@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useState} from "react";
 import Map, {Layer, NavigationControl, Popup, Source} from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import {format, formatDistanceToNow} from "date-fns";
+import {format, formatDistance, formatDistanceToNow} from "date-fns";
 import type {StoredLocation} from "../gen/common.ts";
 import type {MapGeoJSONFeature, StyleSpecification} from "maplibre-gl";
 import type {Feature, FeatureCollection, LineString, Point} from "geojson";
@@ -9,7 +9,15 @@ import {Segmented} from "antd";
 import {useLocalStorage} from "../hooks/use-local-storage.ts";
 import styles from "./MLMap.module.css";
 import {accuracyCircleStyle, circlePoint, lineStyle, pointStyle} from "./MLMapStyles.tsx";
-import {DEFAULT_CENTER, DEFAULT_ZOOM, getMapUrl, mapStyleOptions, MapType, POINT_LIMIT} from "./MLMapConfig.tsx";
+import {
+    DEFAULT_CENTER,
+    DEFAULT_DATE_FORMAT,
+    DEFAULT_ZOOM,
+    getMapUrl,
+    mapStyleOptions,
+    MapType,
+    POINT_LIMIT
+} from "./MLMapConfig.tsx";
 import {MapUpdater} from "./MLMapUpdater.tsx";
 import {MAP_TYPE} from "../config/config.ts";
 
@@ -55,7 +63,9 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                         lat: h.location!.lat,
                         lon: h.location!.lon,
                         accuracy: h.location!.accuracy,
-                        time: h.timestamp,
+                        startTime: h.startTimestamp,
+                        endTime: h.endTimestamp,
+                        count: h.count,
                         metadata: h.location!.metadata
                     },
                     geometry: {
@@ -93,8 +103,8 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
     // Calculate cutoff ratio for faded-out lines
     let cutoffRatio = 0;
     if (history.length > 0) {
-        const startTime = history[0].timestamp;
-        const endTime = history[history.length - 1].timestamp;
+        const startTime = history[0].startTimestamp;
+        const endTime = history[history.length - 1].endTimestamp;
         const totalDuration = endTime - startTime;
         const twentyFourHoursAgo = currentTime - (24 * 60 * 60 * 1000);
         cutoffRatio = totalDuration > 0 ? (twentyFourHoursAgo - startTime) / totalDuration : 0;
@@ -129,7 +139,7 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                     <strong>Points:</strong> {history.length} <br/>
                     <small>
                         Updated: {lastLocation
-                        ? formatDistanceToNow(new Date(lastLocation.timestamp), {addSuffix: true})
+                        ? formatDistanceToNow(new Date(lastLocation.endTimestamp), {addSuffix: true})
                         : "never"}
                     </small>
                 </div>
@@ -197,9 +207,15 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                             <strong>Latitude:</strong> {popupInfo.properties.lat}<br/>
                             <strong>Longitude:</strong> {popupInfo.properties.lon}<br/>
                             <strong>Accuracy:</strong> {popupInfo.properties.accuracy}m<br/>
-                            <strong>Time:</strong> {format(new Date(popupInfo.properties.time), "yyyy-MM-dd HH:mm:ss")}
-                            {popupMetadata && <div><br/><strong>Metadata:</strong></div>}
+                            <strong>Start
+                                Time:</strong> {format(new Date(popupInfo.properties.startTime), DEFAULT_DATE_FORMAT)}<br/>
+                            <strong>End
+                                Time:</strong> {format(new Date(popupInfo.properties.endTime), DEFAULT_DATE_FORMAT)}<br/>
+                            <strong>Duration:</strong> {formatDistance(new Date(popupInfo.properties.endTime), new Date(popupInfo.properties.startTime))}<br/>
+                            <strong>Count:</strong> {popupInfo.properties.count}
+                            {Object.entries(popupMetadata).length > 0 && <div><br/><strong>Metadata:</strong></div>}
                             {popupMetadata && Object.entries(popupMetadata)
+                                .filter(([key]) => key !== 'displayName') // Filter since we display it above
                                 .sort(([k1], [k2]) => k1.localeCompare(k2))
                                 .map(([key, value]) => {
                                     return (

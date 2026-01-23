@@ -44,8 +44,13 @@ class LocationRepoExtensionsTest(using ee: ExecutionEnv) extends DefaultSpecific
     when(repository.getForDevice(deviceId, limit = Some(1))).thenReturn(
       Future.successful(Vector.empty)
     )
-    when(repository.storeDeviceLocation(deviceId, newLocation, newTimestamp))
-      .thenReturn(Future.successful(Success(())))
+    when(
+      repository.storeDeviceLocation(
+        deviceId,
+        newLocation,
+        StoredLocation.Metadata.initial(newTimestamp)
+      )
+    ).thenReturn(Future.successful(Success(())))
   }
 
   trait UpdatePreviousLocationContext extends Context {
@@ -67,7 +72,11 @@ class LocationRepoExtensionsTest(using ee: ExecutionEnv) extends DefaultSpecific
       context.result must beSuccessfulTry.await
 
       verify(context.repository, Times(1))
-        .storeDeviceLocation(context.deviceId, context.newLocation, context.newTimestamp)
+        .storeDeviceLocation(
+          context.deviceId,
+          context.newLocation,
+          StoredLocation.Metadata.initial(context.newTimestamp)
+        )
       ok
     }
 
