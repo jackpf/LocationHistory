@@ -21,7 +21,9 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends LocationRepoTe
         context.locationRepo.storeDeviceLocation(
           deviceId,
           MockModels.location(),
-          ts
+          startTimestamp = ts,
+          endTimestamp = None,
+          count = 1L
         )
 
       {
@@ -35,7 +37,7 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends LocationRepoTe
           locations <- context.locationRepo.getForDevice(deviceId, limit = None)
         } yield {
           locations must haveSize(4)
-          locations.map(_.timestamp) must beEqualTo(
+          locations.map(_.startTimestamp) must beEqualTo(
             Seq(
               3L,
               4L,

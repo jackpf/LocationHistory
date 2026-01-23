@@ -11,7 +11,9 @@ trait LocationRepo extends LocationRepoExtensions {
   def storeDeviceLocation(
       deviceId: DeviceId.Type,
       location: Location,
-      timestamp: Long
+      startTimestamp: Long,
+      endTimestamp: Option[Long],
+      count: Long
   ): Future[Try[Unit]]
 
   def getForDevice(deviceId: DeviceId.Type, limit: Option[Int]): Future[Vector[StoredLocation]]

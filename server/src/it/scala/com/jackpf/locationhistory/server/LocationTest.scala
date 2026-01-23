@@ -103,7 +103,9 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
       listLocationsResponse.locations must haveSize(1)
       listLocationsResponse.locations.head === StoredLocation(
         location = Some(location),
-        timestamp = timestamp
+        startTimestamp = timestamp,
+        endTimestamp = None,
+        count = 1L
       )
     }
 
@@ -134,11 +136,15 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
       listLocationsResponse.locations === Seq(
         StoredLocation(
           location = Some(Location(lat = 51.500800, lon = -0.124500, accuracy = 0.2)),
-          timestamp = 3L
+          startTimestamp = 1L,
+          endTimestamp = Some(3L),
+          count = 3L
         ),
         StoredLocation(
           location = Some(Location(lat = 35.659500, lon = 139.700500, accuracy = 0.1)),
-          timestamp = 4L
+          startTimestamp = 4L,
+          endTimestamp = None,
+          count = 1L
         )
       )
     }

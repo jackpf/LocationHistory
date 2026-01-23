@@ -6,6 +6,7 @@ import com.jackpf.locationhistory.admin_service.{
   DeleteDeviceRequest,
   DeleteDeviceResponse,
   ListDevicesRequest,
+  ListLocationsRequest,
   LoginRequest,
   SendNotificationRequest,
   SendNotificationResponse
@@ -15,9 +16,11 @@ import com.jackpf.locationhistory.beacon_service.{
   RegisterDeviceRequest,
   RegisterDeviceResponse,
   RegisterPushHandlerRequest,
-  RegisterPushHandlerResponse
+  RegisterPushHandlerResponse,
+  SetLocationRequest,
+  SetLocationResponse
 }
-import com.jackpf.locationhistory.common.{Device, PushHandler}
+import com.jackpf.locationhistory.common.{Device, Location, PushHandler, StoredLocation}
 import com.jackpf.locationhistory.server.testutil.{GrpcMatchers, IntegrationTest, TestServer}
 import io.grpc.Status.Code
 import org.mockito.ArgumentMatchers.{any, anyString}
@@ -198,6 +201,76 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
           Code.INVALID_ARGUMENT,
           "Device 123 has no registered push handler"
         )
+      }
+    }
+
+    "list locations endpoint" >> {
+      trait ApprovedDeviceContext extends RegisteredDeviceContext {
+        adminClient.approveDevice(
+          ApproveDeviceRequest(deviceId = device.id)
+        ) === ApproveDeviceResponse(success = true)
+      }
+
+      "list locations with metadata fields" >> in(new ApprovedDeviceContext {}) { context =>
+        val timestamp = System.currentTimeMillis()
+        val location = Location(lat = 51.5007, lon = -0.1246, accuracy = 10.0)
+
+        // Set a location
+        context.client.setLocation(
+          SetLocationRequest(
+            timestamp = timestamp,
+            deviceId = context.device.id,
+            location = Some(location)
+          )
+        ) === SetLocationResponse(success = true)
+
+        // Retrieve locations via admin endpoint
+        val response = context.adminClient.listLocations(
+          ListLocationsRequest(deviceId = context.device.id)
+        )
+
+        response.locations must haveSize(1)
+        val storedLocation = response.locations.head
+
+        // Verify the new metadata fields are present
+        storedLocation.location must beSome(location)
+        storedLocation.startTimestamp === timestamp
+        storedLocation.endTimestamp must beNone
+        storedLocation.count === 1L
+      }
+
+      "list locations with updated metadata after duplicates" >> in(new ApprovedDeviceContext {}) {
+        context =>
+          // Insert initial location
+          context.client.setLocation(
+            SetLocationRequest(
+              timestamp = 1000L,
+              deviceId = context.device.id,
+              location = Some(Location(lat = 51.5007, lon = -0.1246, accuracy = 10.0))
+            )
+          ) === SetLocationResponse(success = true)
+
+          // Insert duplicate location (same coordinates, different timestamp)
+          context.client.setLocation(
+            SetLocationRequest(
+              timestamp = 2000L,
+              deviceId = context.device.id,
+              location = Some(Location(lat = 51.5007, lon = -0.1246, accuracy = 10.0))
+            )
+          ) === SetLocationResponse(success = true)
+
+          // Retrieve locations via admin endpoint
+          val response = context.adminClient.listLocations(
+            ListLocationsRequest(deviceId = context.device.id)
+          )
+
+          response.locations must haveSize(1)
+          val storedLocation = response.locations.head
+
+          // Verify metadata reflects the duplicate handling
+          storedLocation.startTimestamp === 1000L
+          storedLocation.endTimestamp must beSome(2000L)
+          storedLocation.count === 2L
       }
     }
   }

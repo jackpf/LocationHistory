@@ -239,13 +239,17 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
               1L,
               MockModels
                 .location(lat = 0.1, lon = 0.2, accuracy = 0.3, metadata = Map("k1" -> "v1")),
-              timestamp = 1L
+              startTimestamp = 1L,
+              endTimestamp = Some(2L),
+              count = 3L
             ),
             MockModels.storedLocation(
               2L,
               MockModels
                 .location(lat = 0.4, lon = 0.5, accuracy = 0.6, metadata = Map("k2" -> "v2")),
-              timestamp = 2L
+              startTimestamp = 2L,
+              endTimestamp = None,
+              count = 1L
             )
           )
         )
@@ -255,11 +259,15 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
             Seq(
               StoredLocation(
                 Some(Location(lat = 0.1, lon = 0.2, accuracy = 0.3, metadata = Map("k1" -> "v1"))),
-                timestamp = 1L
+                startTimestamp = 1L,
+                endTimestamp = Some(2L),
+                count = 3L
               ),
               StoredLocation(
                 Some(Location(lat = 0.4, lon = 0.5, accuracy = 0.6, metadata = Map("k2" -> "v2"))),
-                timestamp = 2L
+                startTimestamp = 2L,
+                endTimestamp = None,
+                count = 1L
               )
             )
           )
