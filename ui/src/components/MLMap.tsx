@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useState} from "react";
 import Map, {Layer, NavigationControl, Popup, Source} from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import {format, formatDistanceToNow} from "date-fns";
+import {format, formatDistance, formatDistanceToNow} from "date-fns";
 import type {StoredLocation} from "../gen/common.ts";
 import type {MapGeoJSONFeature, StyleSpecification} from "maplibre-gl";
 import type {Feature, FeatureCollection, LineString, Point} from "geojson";
@@ -211,9 +211,11 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                                 Time:</strong> {format(new Date(popupInfo.properties.startTime), DEFAULT_DATE_FORMAT)}<br/>
                             <strong>End
                                 Time:</strong> {format(new Date(popupInfo.properties.endTime), DEFAULT_DATE_FORMAT)}<br/>
+                            <strong>Duration:</strong> {formatDistance(new Date(popupInfo.properties.endTime), new Date(popupInfo.properties.startTime))}<br/>
                             <strong>Count:</strong> {popupInfo.properties.count}
                             {Object.entries(popupMetadata).length > 0 && <div><br/><strong>Metadata:</strong></div>}
                             {popupMetadata && Object.entries(popupMetadata)
+                                .filter(([key]) => key !== 'displayName') // Filter since we display it above
                                 .sort(([k1], [k2]) => k1.localeCompare(k2))
                                 .map(([key, value]) => {
                                     return (
