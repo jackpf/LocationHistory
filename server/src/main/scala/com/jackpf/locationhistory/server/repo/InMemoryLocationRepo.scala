@@ -29,7 +29,7 @@ class InMemoryLocationRepo(maxItemsPerDevice: Long = DefaultMaxItemsPerDevice)
       deviceId: DeviceId.Type,
       location: Location,
       startTimestamp: Long,
-      endTimestamp: Option[Long],
+      endTimestamp: Long,
       count: Long
   ): Future[Try[Unit]] = Future.successful {
     val storedLocation =

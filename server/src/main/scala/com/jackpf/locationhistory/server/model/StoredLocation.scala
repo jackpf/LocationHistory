@@ -7,7 +7,7 @@ object StoredLocation {
       location: Location,
       id: Long,
       startTimestamp: Long,
-      endTimestamp: Option[Long],
+      endTimestamp: Long,
       count: Long
   ): StoredLocation =
     StoredLocation(id, location, startTimestamp, endTimestamp, count)
@@ -17,7 +17,7 @@ case class StoredLocation(
     id: Long,
     location: Location,
     startTimestamp: Long,
-    endTimestamp: Option[Long],
+    endTimestamp: Long,
     count: Long
 ) {
   def toProto: ProtoStoredLocation = ProtoStoredLocation(

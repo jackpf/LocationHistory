@@ -35,7 +35,7 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
         acc.flatMap {
           case Success(_) =>
             val (d, l, t) = item
-            locationRepo.storeDeviceLocation(d, l, t, None, 1L)
+            locationRepo.storeDeviceLocation(d, l, t, t, 1L)
 
           case failure =>
             Future.successful(failure)
@@ -58,7 +58,8 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
           MockModels.storedLocation(
             1L,
             context.locations.head._2,
-            startTimestamp = context.locations.head._3
+            startTimestamp = context.locations.head._3,
+            endTimestamp = context.locations.head._3
           )
         )
       ).await
@@ -77,12 +78,14 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
           MockModels.storedLocation(
             2L,
             context.locations(1)._2,
-            startTimestamp = context.locations(1)._3
+            startTimestamp = context.locations(1)._3,
+            endTimestamp = context.locations(1)._3
           ),
           MockModels.storedLocation(
             3L,
             context.locations(2)._2,
-            startTimestamp = context.locations(2)._3
+            startTimestamp = context.locations(2)._3,
+            endTimestamp = context.locations(2)._3
           )
         )
       ).await
@@ -109,7 +112,8 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
           MockModels.storedLocation(
             1L,
             context.locations.head._2,
-            startTimestamp = context.locations.head._3
+            startTimestamp = context.locations.head._3,
+            endTimestamp = context.locations.head._3
           )
         )
       ).await
@@ -146,7 +150,8 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
             MockModels.storedLocation(
               1L,
               MockModels.location(lat = 0.1, lon = 0.2, accuracy = 0.3),
-              startTimestamp = 999
+              startTimestamp = 999,
+              endTimestamp = 123L
             )
           )
         )

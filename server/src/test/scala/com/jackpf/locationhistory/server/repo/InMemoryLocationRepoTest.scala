@@ -21,9 +21,9 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends LocationRepoTe
         context.locationRepo.storeDeviceLocation(
           deviceId,
           MockModels.location(),
-          startTimestamp = ts,
-          endTimestamp = None,
-          count = 1L
+          ts,
+          ts,
+          1L
         )
 
       {

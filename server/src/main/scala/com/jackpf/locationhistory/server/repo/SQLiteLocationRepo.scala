@@ -21,7 +21,7 @@ private case class StoredLocationRow(
     accuracy: Double,
     metadata: JsonColumn[Map[String, String]],
     startTimestamp: Long,
-    endTimestamp: Option[Long],
+    endTimestamp: Long,
     count: Long
 ) {
   def toStoredLocation: StoredLocation = StoredLocation(
@@ -63,7 +63,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
       deviceId: DeviceId.Type,
       location: Location,
       startTimestamp: Long,
-      endTimestamp: Option[Long],
+      endTimestamp: Long,
       count: Long
   ): Future[Try[Unit]] = Future {
     db.transaction { implicit db =>
@@ -97,7 +97,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
           {
             val q = StoredLocationTable.select
               .filter(_.deviceId === deviceId.toString)
-              .sortBy(r => r.endTimestamp.getOrElse(r.startTimestamp))
+              .sortBy(_.endTimestamp)
               .desc
 
             limit match {
@@ -187,7 +187,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
           val result = db.runSql[StoredLocationRow](sql"""
           SELECT * FROM (
             SELECT *,
-              ROW_NUMBER() OVER (PARTITION BY device_id ORDER BY COALESCE(end_timestamp, start_timestamp) DESC) as rn
+              ROW_NUMBER() OVER (PARTITION BY device_id ORDER BY end_timestamp DESC) as rn
             FROM stored_location_table
             WHERE device_id IN ($deviceIds)
           )

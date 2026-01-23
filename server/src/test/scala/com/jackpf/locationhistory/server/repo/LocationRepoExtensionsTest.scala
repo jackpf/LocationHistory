@@ -49,8 +49,8 @@ class LocationRepoExtensionsTest(using ee: ExecutionEnv) extends DefaultSpecific
         deviceId,
         newLocation,
         newTimestamp,
-        endTimestamp = None,
-        count = 1L
+        newTimestamp,
+        1L
       )
     ).thenReturn(Future.successful(Success(())))
   }
@@ -78,8 +78,8 @@ class LocationRepoExtensionsTest(using ee: ExecutionEnv) extends DefaultSpecific
           context.deviceId,
           context.newLocation,
           context.newTimestamp,
-          endTimestamp = None,
-          count = 1L
+          context.newTimestamp,
+          1L
         )
       ok
     }

@@ -17,7 +17,7 @@ trait LocationRepoExtensions { self: LocationRepo =>
       storedLocation: StoredLocation
   ): StoredLocation = storedLocation.copy(
     location = newLocation,
-    endTimestamp = Some(newTimestamp),
+    endTimestamp = newTimestamp,
     count = storedLocation.count + 1
   )
 
@@ -43,7 +43,7 @@ trait LocationRepoExtensions { self: LocationRepo =>
             storedLocation => updatePreviousLocation(location, timestamp, storedLocation)
         )
       case _ =>
-        storeDeviceLocation(deviceId, location, timestamp, None, 1L)
+        storeDeviceLocation(deviceId, location, timestamp, timestamp, 1L)
     }
   }
 

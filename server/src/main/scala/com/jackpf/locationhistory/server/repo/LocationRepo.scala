@@ -12,7 +12,7 @@ trait LocationRepo extends LocationRepoExtensions {
       deviceId: DeviceId.Type,
       location: Location,
       startTimestamp: Long,
-      endTimestamp: Option[Long],
+      endTimestamp: Long,
       count: Long
   ): Future[Try[Unit]]
 

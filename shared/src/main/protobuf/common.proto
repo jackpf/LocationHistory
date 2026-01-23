@@ -31,7 +31,7 @@ message Location {
 message StoredLocation {
   Location location = 1;
   int64 start_timestamp = 2;
-  optional int64 end_timestamp = 3;
+  int64 end_timestamp = 3;
   int64 count = 4;
 }
 

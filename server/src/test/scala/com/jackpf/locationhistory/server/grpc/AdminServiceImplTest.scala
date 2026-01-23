@@ -240,7 +240,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
               MockModels
                 .location(lat = 0.1, lon = 0.2, accuracy = 0.3, metadata = Map("k1" -> "v1")),
               startTimestamp = 1L,
-              endTimestamp = Some(2L),
+              endTimestamp = 2L,
               count = 3L
             ),
             MockModels.storedLocation(
@@ -248,7 +248,7 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
               MockModels
                 .location(lat = 0.4, lon = 0.5, accuracy = 0.6, metadata = Map("k2" -> "v2")),
               startTimestamp = 2L,
-              endTimestamp = None,
+              endTimestamp = 2L,
               count = 1L
             )
           )
@@ -260,13 +260,13 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
               StoredLocation(
                 Some(Location(lat = 0.1, lon = 0.2, accuracy = 0.3, metadata = Map("k1" -> "v1"))),
                 startTimestamp = 1L,
-                endTimestamp = Some(2L),
+                endTimestamp = 2L,
                 count = 3L
               ),
               StoredLocation(
                 Some(Location(lat = 0.4, lon = 0.5, accuracy = 0.6, metadata = Map("k2" -> "v2"))),
                 startTimestamp = 2L,
-                endTimestamp = None,
+                endTimestamp = 2L,
                 count = 1L
               )
             )

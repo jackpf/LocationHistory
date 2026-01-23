@@ -39,7 +39,7 @@ object MockModels {
       id: Long = 1,
       location: Location = location(),
       startTimestamp: Long = 123L,
-      endTimestamp: Option[Long] = None,
+      endTimestamp: Long = 123L,
       count: Long = 1L
   ): StoredLocation = StoredLocation(
     id = id,

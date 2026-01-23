@@ -104,7 +104,7 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
       listLocationsResponse.locations.head === StoredLocation(
         location = Some(location),
         startTimestamp = timestamp,
-        endTimestamp = None,
+        endTimestamp = timestamp,
         count = 1L
       )
     }
@@ -137,13 +137,13 @@ class LocationTest extends IntegrationTest with GrpcMatchers {
         StoredLocation(
           location = Some(Location(lat = 51.500800, lon = -0.124500, accuracy = 0.2)),
           startTimestamp = 1L,
-          endTimestamp = Some(3L),
+          endTimestamp = 3L,
           count = 3L
         ),
         StoredLocation(
           location = Some(Location(lat = 35.659500, lon = 139.700500, accuracy = 0.1)),
           startTimestamp = 4L,
-          endTimestamp = None,
+          endTimestamp = 4L,
           count = 1L
         )
       )

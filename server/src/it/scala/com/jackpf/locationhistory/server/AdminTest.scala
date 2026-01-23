@@ -229,7 +229,7 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
         val storedLocation = response.locations.head
         storedLocation.location must beSome(location)
         storedLocation.startTimestamp === timestamp
-        storedLocation.endTimestamp must beNone
+        storedLocation.endTimestamp === timestamp
         storedLocation.count === 1L
       }
 
@@ -258,7 +258,7 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
           response.locations must haveSize(1)
           val storedLocation = response.locations.head
           storedLocation.startTimestamp === 1000L
-          storedLocation.endTimestamp must beSome(2000L)
+          storedLocation.endTimestamp === 2000L
           storedLocation.count === 2L
       }
     }
