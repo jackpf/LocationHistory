@@ -13,8 +13,13 @@ object StoredLocation {
       endTimestamp: Long,
       count: Long
   ) {
-    def updated(newTimestamp: Long): Metadata =
-      copy(endTimestamp = newTimestamp, count = count + 1)
+    def updated(newTimestamp: Long): Metadata = {
+      // Handle mismatched newTimestamp (e.g. out-of-order events)
+      val newStartTimestamp = math.min(startTimestamp, newTimestamp)
+      val newEndTimestamp = math.max(endTimestamp, newTimestamp)
+
+      copy(startTimestamp = newStartTimestamp, endTimestamp = newEndTimestamp, count = count + 1)
+    }
   }
 
   def fromLocation(
