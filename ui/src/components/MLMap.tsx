@@ -207,10 +207,10 @@ export const MLMap: React.FC<MLMapProps> = ({history, selectedDeviceId, forceRec
                             <strong>Latitude:</strong> {popupInfo.properties.lat}<br/>
                             <strong>Longitude:</strong> {popupInfo.properties.lon}<br/>
                             <strong>Accuracy:</strong> {popupInfo.properties.accuracy}m<br/>
-                            <strong>Start Time:</strong>
-                            {format(new Date(popupInfo.properties.startTime), DEFAULT_DATE_FORMAT)}<br/>
-                            <strong>End Time:</strong>
-                            {format(new Date(popupInfo.properties.startTime), DEFAULT_DATE_FORMAT)}<br/>
+                            <strong>Start
+                                Time:</strong> {format(new Date(popupInfo.properties.startTime), DEFAULT_DATE_FORMAT)}<br/>
+                            <strong>End
+                                Time:</strong> {format(new Date(popupInfo.properties.endTime), DEFAULT_DATE_FORMAT)}<br/>
                             <strong>Count:</strong> {popupInfo.properties.count}
                             {Object.entries(popupMetadata).length > 0 && <div><br/><strong>Metadata:</strong></div>}
                             {popupMetadata && Object.entries(popupMetadata)
