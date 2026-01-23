@@ -55,7 +55,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
           );"""
         )
         val _ = db.updateRaw(
-          """CREATE INDEX IF NOT EXISTS idx_device_time ON stored_location_table (device_id, start_timestamp);"""
+          """CREATE INDEX IF NOT EXISTS idx_device_time ON stored_location_table (device_id, end_timestamp);"""
         )
       }
     }
