@@ -19,10 +19,10 @@ private case class StoredLocationRow(
     lat: Double,
     lon: Double,
     accuracy: Double,
-    metadata: JsonColumn[Map[String, String]],
     startTimestamp: Long,
     endTimestamp: Long,
-    count: Long
+    count: Long,
+    metadata: JsonColumn[Map[String, String]]
 ) {
   def toStoredLocation: StoredLocation = StoredLocation(
     id = id,

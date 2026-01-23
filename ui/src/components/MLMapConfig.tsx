@@ -1,6 +1,7 @@
 import {MAPTILER_API_KEY} from "../config/config.ts";
 import {GlobalOutlined, MoonFilled, SunOutlined} from "@ant-design/icons";
 
+export const DEFAULT_DATE_FORMAT: string = "yyyy-MM-dd HH:mm:ss";
 export const DEFAULT_CENTER: [number, number] = [40, 0];
 export const DEFAULT_ZOOM = 2;
 export const DEFAULT_ZOOM_IN = 15;
