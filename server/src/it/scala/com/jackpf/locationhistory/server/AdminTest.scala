@@ -111,12 +111,10 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
       }
 
       "fail to approve already approved device" >> in(new RegisteredDeviceContext {}) { context =>
-        // First approval should succeed
         context.adminClient.approveDevice(
           ApproveDeviceRequest(deviceId = context.device.id)
         ) === ApproveDeviceResponse(success = true)
 
-        // Second approval should fail
         context.adminClient.approveDevice(
           ApproveDeviceRequest(deviceId = context.device.id)
         ) must throwAGrpcRuntimeException(
@@ -215,7 +213,6 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
         val timestamp = System.currentTimeMillis()
         val location = Location(lat = 51.5007, lon = -0.1246, accuracy = 10.0)
 
-        // Set a location
         context.client.setLocation(
           SetLocationRequest(
             timestamp = timestamp,
@@ -224,15 +221,12 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
           )
         ) === SetLocationResponse(success = true)
 
-        // Retrieve locations via admin endpoint
         val response = context.adminClient.listLocations(
           ListLocationsRequest(deviceId = context.device.id)
         )
 
         response.locations must haveSize(1)
         val storedLocation = response.locations.head
-
-        // Verify the new metadata fields are present
         storedLocation.location must beSome(location)
         storedLocation.startTimestamp === timestamp
         storedLocation.endTimestamp must beNone
@@ -241,7 +235,6 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
 
       "list locations with updated metadata after duplicates" >> in(new ApprovedDeviceContext {}) {
         context =>
-          // Insert initial location
           context.client.setLocation(
             SetLocationRequest(
               timestamp = 1000L,
@@ -250,7 +243,6 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
             )
           ) === SetLocationResponse(success = true)
 
-          // Insert duplicate location (same coordinates, different timestamp)
           context.client.setLocation(
             SetLocationRequest(
               timestamp = 2000L,
@@ -259,15 +251,12 @@ class AdminTest extends IntegrationTest with GrpcMatchers {
             )
           ) === SetLocationResponse(success = true)
 
-          // Retrieve locations via admin endpoint
           val response = context.adminClient.listLocations(
             ListLocationsRequest(deviceId = context.device.id)
           )
 
           response.locations must haveSize(1)
           val storedLocation = response.locations.head
-
-          // Verify metadata reflects the duplicate handling
           storedLocation.startTimestamp === 1000L
           storedLocation.endTimestamp must beSome(2000L)
           storedLocation.count === 2L
