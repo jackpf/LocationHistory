@@ -22,6 +22,7 @@ import com.jackpf.locationhistory.client.util.Logger;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class SettingsViewModel extends AndroidViewModel {
     private final Logger log = new Logger(this);
@@ -78,11 +79,11 @@ public class SettingsViewModel extends AndroidViewModel {
         }
     }
 
-    public void saveSettings(String host, String portText, String updateInterval) {
+    public void saveSettings(String host, String portText, String updateIntervalMinutes) {
         try {
             configRepository.setServerHost(host);
             configRepository.setServerPort(Integer.parseInt(portText));
-            configRepository.setUpdateIntervalMinutes(Long.parseLong(updateInterval));
+            configRepository.setUpdateIntervalMillis(TimeUnit.MINUTES.toMillis(Long.parseLong(updateIntervalMinutes)));
 
             events.postValue(new SettingsViewEvent.Toast(R.string.toast_saved));
         } catch (NumberFormatException e) {

@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class BeaconService extends Service {
     private static final Logger log = new Logger("BeaconService");
@@ -72,6 +73,10 @@ public class BeaconService extends Service {
                 return beaconResult;
             });
 
+    private final Consumer<LocationData> passiveBeaconTaskRunnable = locationData -> {
+        beaconScheduler.runWithWakeLock(() -> beaconTask.passiveRun(locationData));
+    };
+
     private void scheduleNext(long delayMillis) {
         beaconScheduler.scheduleNext(this, BeaconService.class, ACTION_RUN_TASK, delayMillis);
     }
@@ -88,8 +93,20 @@ public class BeaconService extends Service {
         }
     };
 
+    private boolean hasRecentRun() {
+        long millisSinceLastRun = System.currentTimeMillis() - configRepository.getLastRunTimestamp();
+        long updateIntervalMillis = configRepository.getUpdateIntervalMillis();
+        return millisSinceLastRun < updateIntervalMillis;
+    }
+
     private long regularDelayMillis() {
-        return TimeUnit.MINUTES.toMillis(configRepository.getUpdateIntervalMinutes());
+        return configRepository.getUpdateIntervalMillis();
+    }
+
+    private long rescheduledDelayMillis() {
+        long millisSinceLastRun = System.currentTimeMillis() - configRepository.getLastRunTimestamp();
+        long millisToNextRun = Math.max(configRepository.getUpdateIntervalMillis() - millisSinceLastRun, 0);
+        return Math.min(configRepository.getUpdateIntervalMillis(), millisToNextRun);
     }
 
     private long retryDelayMillis() {
@@ -125,15 +142,21 @@ public class BeaconService extends Service {
     }
 
     private void handleRunAction() {
-        beaconTaskRunnable.run();
+        if (!hasRecentRun()) {
+            beaconTaskRunnable.run();
+        } else {
+            log.d("Re-scheduling due to recent run");
+            scheduleNext(rescheduledDelayMillis());
+        }
     }
 
     private void handlePassiveLocationAction(Intent intent) {
         if (intent.hasExtra(LocationManager.KEY_LOCATION_CHANGED)) {
             Location location = (Location) intent.getExtras().get(LocationManager.KEY_LOCATION_CHANGED);
             log.i("Passive location received: %s", location);
+
             if (location != null) {
-                beaconTask.passiveRun(LocationData.passive(location));
+                passiveBeaconTaskRunnable.accept(LocationData.passive(location));
             }
         } else {
             log.w("Passive location intent had no location data");
@@ -149,8 +172,6 @@ public class BeaconService extends Service {
             handleRunAction();
         } else if (ACTION_PASSIVE_LOCATION.equals(intent.getAction())) {
             handlePassiveLocationAction(intent);
-            /* TODO For handleRunAction we should check the last run time
-             *   if it was < our interval, schedule next for interval - how long ago last run time was  */
         }
 
         return START_STICKY;
