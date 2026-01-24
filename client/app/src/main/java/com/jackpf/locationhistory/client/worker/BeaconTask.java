@@ -66,7 +66,7 @@ public class BeaconTask {
         );
     }
 
-    public ListenableFuture<BeaconResult> run() {
+    private <T> ListenableFuture<T> runInternal(AsyncFunction<BeaconContext, T> beaconTask) {
         log.i(START_MESSAGE);
         log.appendEventToFile(START_MESSAGE);
 
@@ -76,17 +76,33 @@ public class BeaconTask {
             }
 
             BeaconContext beaconContext = beaconContextFactory.call();
-            ListenableFuture<BeaconResult> beaconResult = onDeviceReady(beaconContext, () ->
-                    requestLocationUpdate(beaconContext, (locationData) ->
-                            handleLocationUpdate(beaconContext, locationData, () ->
-                                    Futures.immediateFuture(new BeaconResult(beaconContext.getDeviceState(), locationData))
-                            )
-                    )
-            );
+            ListenableFuture<T> beaconResult = beaconTask.apply(beaconContext);
             beaconResult.addListener(storeDeviceStateListener(beaconContext), executor);
             Futures.addCallback(beaconResult, loggingCallback(), executor);
             return beaconResult;
         }, executor);
+    }
+
+    /**
+     * Full flow: fetch location & update
+     */
+    public ListenableFuture<BeaconResult> run() {
+        return runInternal(beaconContext -> onDeviceReady(beaconContext, () ->
+                requestLocationUpdate(beaconContext, (locationData) ->
+                        handleLocationUpdate(beaconContext, locationData, () ->
+                                Futures.immediateFuture(new BeaconResult(beaconContext.getDeviceState(), locationData))
+                        )
+                )
+        ));
+    }
+
+    /**
+     * Handle passive locations
+     */
+    public ListenableFuture<BeaconResult> passiveRun(LocationData locationData) {
+        return runInternal(beaconContext -> handleLocationUpdate(beaconContext, locationData, () ->
+                Futures.immediateFuture(new BeaconResult(beaconContext.getDeviceState(), locationData))
+        ));
     }
 
     private Runnable storeDeviceStateListener(BeaconContext beaconContext) {
