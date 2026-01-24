@@ -44,7 +44,7 @@ public class BeaconService extends Service {
     private BeaconTask beaconTask;
     private PassiveLocationListener passiveLocationListener;
     private static final long PASSIVE_LISTENER_MIN_TIME_MS = TimeUnit.MINUTES.toMillis(1);
-    private static final float PASSIVE_LISTENER_MIN_DISTANCE_M = 0L;
+    private static final float PASSIVE_LISTENER_MIN_DISTANCE_M = 0.0f;
     private static final int PERSISTENT_NOTIFICATION_ID = 1;
     private static final String ACTION_RUN_TASK = "com.jackpf.locationhistory.client.ACTION_BEACON_SERVICE";
     private static final String ACTION_PASSIVE_LOCATION = "com.jackpf.locationhistory.client.ACTION_PASSIVE_LOCATION";
@@ -112,15 +112,16 @@ public class BeaconService extends Service {
         configRepository.registerOnSharedPreferenceChangeListener(configChangeListener);
 
         beaconScheduler = BeaconScheduler.create(this, BeaconScheduler.DEFAULT_WAKELOCK_TIMEOUT);
-        passiveLocationListener = new PassiveLocationListener(this, new PermissionsManager(this),
-                ACTION_PASSIVE_LOCATION, BeaconService.class);
+        try {
+            beaconTask = BeaconTask.create(this, executorService);
+        } catch (IOException e) {
+            log.e("Unable to create beacon task", e);
+        }
 
         // Listen for passive location updates
-        try {
-            passiveLocationListener.startMonitoring(PASSIVE_LISTENER_MIN_TIME_MS, PASSIVE_LISTENER_MIN_DISTANCE_M);
-        } catch (Exception e) {
-            log.e("Unable to start passive listener");
-        }
+        passiveLocationListener = new PassiveLocationListener(this, new PermissionsManager(this),
+                ACTION_PASSIVE_LOCATION, BeaconService.class);
+        passiveLocationListener.startMonitoring(PASSIVE_LISTENER_MIN_TIME_MS, PASSIVE_LISTENER_MIN_DISTANCE_M);
     }
 
     private void handleRunAction() {
@@ -132,8 +133,7 @@ public class BeaconService extends Service {
             Location location = (Location) intent.getExtras().get(LocationManager.KEY_LOCATION_CHANGED);
             log.i("Passive location received: %s", location);
             if (location != null) {
-                LocationData locationData = new LocationData(location, "passive", "passive");
-                beaconTask.passiveRun(locationData);
+                beaconTask.passiveRun(LocationData.passive(location));
             }
         } else {
             log.w("Passive location intent had no location data");
@@ -144,12 +144,6 @@ public class BeaconService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
         createPersistentNotification();
-
-        try {
-            beaconTask = BeaconTask.create(this, executorService);
-        } catch (IOException e) {
-            log.e("Unable to create beacon task", e);
-        }
 
         if (intent == null || ACTION_RUN_TASK.equals(intent.getAction())) {
             handleRunAction();

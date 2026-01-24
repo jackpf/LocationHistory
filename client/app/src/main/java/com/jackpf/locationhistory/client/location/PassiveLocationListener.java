@@ -1,5 +1,6 @@
 package com.jackpf.locationhistory.client.location;
 
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -30,7 +31,8 @@ public class PassiveLocationListener {
         );
     }
 
-    public void startMonitoring(long minTimeMs, float minDistanceM) throws Exception {
+    @SuppressLint("MissingPermission")
+    public void startMonitoring(long minTimeMs, float minDistanceM) throws SecurityException {
         if (!permissionsManager.hasLocationPermissions()) {
             throw new SecurityException("No permission for passive location");
         }
