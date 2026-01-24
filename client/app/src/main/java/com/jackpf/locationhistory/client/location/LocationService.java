@@ -82,7 +82,9 @@ public class LocationService {
     }
 
     public List<String> getAvailableSources() {
-        return filterEnabledSources(locationManager.getAllProviders());
+        return filterEnabledSources(locationManager.getAllProviders()).stream()
+                .filter(p -> !p.equals(LocationManager.PASSIVE_PROVIDER))
+                .collect(Collectors.toList());
     }
 
     private List<String> filterEnabledSources(List<String> sources) {
