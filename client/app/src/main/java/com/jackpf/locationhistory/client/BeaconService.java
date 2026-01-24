@@ -42,6 +42,7 @@ public class BeaconService extends Service {
     private ExecutorService executorService;
     private ConfigRepository configRepository;
     private BeaconScheduler beaconScheduler;
+    @Nullable
     private BeaconTask beaconTask;
     private PassiveLocationListener passiveLocationListener;
     private static final long PASSIVE_LISTENER_MIN_TIME_MS = TimeUnit.MINUTES.toMillis(1);
@@ -133,6 +134,8 @@ public class BeaconService extends Service {
             beaconTask = BeaconTask.create(this, executorService);
         } catch (IOException e) {
             log.e("Unable to create beacon task", e);
+            scheduleNext(retryDelayMillis());
+            return;
         }
 
         // Listen for passive location updates
@@ -166,6 +169,14 @@ public class BeaconService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+
+        // Can be null if init failed in onCreate
+        if (beaconTask == null) {
+            log.e("Empty beacon task");
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
         createPersistentNotification();
 
         if (intent == null || ACTION_RUN_TASK.equals(intent.getAction())) {
