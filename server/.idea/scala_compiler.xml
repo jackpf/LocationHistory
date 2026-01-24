@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ScalaCompilerConfiguration">
     <option name="separateProdTestSources" value="true" />
-    <profile name="sbt 1" modules="server,server_9093,server_9093.main,server_9093.test" />
+    <profile name="sbt 1" modules="server,server_9797,server_9797.main,server_9797.test" />
     <profile name="sbt 2" modules="server.test">
       <option name="implicitConversions" value="true" />
       <option name="deprecationWarnings" value="true" />
