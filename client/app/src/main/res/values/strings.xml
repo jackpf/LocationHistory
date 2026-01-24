@@ -74,4 +74,8 @@
     <string name="notification_alarm_title">Alarm Triggered</string>
     <string name="notification_alarm_description">Alarm triggered via Location History</string>
 
+    <string name="location_providers">Location Providers</string>
+    <string name="location_providers_description">Enable and reorder location providers. Drag to change priority. Note that the order will affect battery life (e.g. prioritising GPS over Network).</string>
+    <string name="drag_to_reorder">Drag to reorder</string>
+
 </resources>
