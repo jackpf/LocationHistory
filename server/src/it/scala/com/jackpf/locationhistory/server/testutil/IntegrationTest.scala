@@ -2,6 +2,7 @@ package com.jackpf.locationhistory.server.testutil
 
 import com.jackpf.locationhistory.admin_service.AdminServiceGrpc
 import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc
+import com.jackpf.locationhistory.server.enricher.EnricherExecutor
 import com.jackpf.locationhistory.server.grpc.interceptors.TokenService
 import com.jackpf.locationhistory.server.repo.{
   DeviceRepo,
@@ -24,6 +25,7 @@ import scala.concurrent.{Await, Future}
 object IntegrationTest {
   val deviceRepo: DeviceRepo = new InMemoryDeviceRepo
   val locationRepo: LocationRepo = new InMemoryLocationRepo
+  val enricherExecutor: EnricherExecutor = new EnricherExecutor(Seq.empty)
   // TODO Use wiremock
   val notificationService: NotificationService = mock(classOf[NotificationService])
 
@@ -35,7 +37,7 @@ object IntegrationTest {
       Duration.Inf
     ): Unit
 
-    TestServer.start(deviceRepo, locationRepo, notificationService)
+    TestServer.start(deviceRepo, locationRepo, enricherExecutor, notificationService)
   }
 
   def resetState(): Unit = {

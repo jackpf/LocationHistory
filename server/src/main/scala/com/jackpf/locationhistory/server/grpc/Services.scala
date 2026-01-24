@@ -2,6 +2,7 @@ package com.jackpf.locationhistory.server.grpc
 
 import com.jackpf.locationhistory.admin_service.AdminServiceGrpc
 import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc
+import com.jackpf.locationhistory.server.enricher.EnricherExecutor
 import com.jackpf.locationhistory.server.grpc.interceptors.{AuthenticationInterceptor, TokenService}
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
 import com.jackpf.locationhistory.server.service.NotificationService
@@ -37,10 +38,11 @@ object Services {
 
   def beaconServices(
       deviceRepo: DeviceRepo,
-      locationRepo: LocationRepo
+      locationRepo: LocationRepo,
+      enricherExecutor: EnricherExecutor
   ): Seq[ServerServiceDefinition] = Seq(
     BeaconServiceGrpc.bindService(
-      new BeaconServiceImpl(deviceRepo, locationRepo),
+      new BeaconServiceImpl(deviceRepo, locationRepo, enricherExecutor),
       global
     )
   )

@@ -19,6 +19,7 @@ import com.jackpf.locationhistory.client.push.Ntfy;
 import com.jackpf.locationhistory.client.push.ObservableUnifiedPushState;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
@@ -70,7 +71,7 @@ public class SettingsFragment extends Fragment {
     private void setupInputs() {
         binding.serverHostInput.setText(viewModel.getConfig().getServerHost());
         binding.serverPortInput.setText(String.valueOf(viewModel.getConfig().getServerPort()));
-        binding.updateFrequencyInput.setText(Long.toString(viewModel.getConfig().getUpdateIntervalMinutes()));
+        binding.updateFrequencyInput.setText(Long.toString(TimeUnit.MILLISECONDS.toMinutes(viewModel.getConfig().getUpdateIntervalMillis())));
 
         binding.testButton.setOnClickListener(v -> viewModel.testConnection(
                 binding.serverHostInput.getText().toString(),

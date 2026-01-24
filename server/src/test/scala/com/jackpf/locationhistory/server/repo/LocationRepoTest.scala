@@ -35,7 +35,7 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
         acc.flatMap {
           case Success(_) =>
             val (d, l, t) = item
-            locationRepo.storeDeviceLocation(d, l, t)
+            locationRepo.storeDeviceLocation(d, l, StoredLocation.Metadata.initial(t))
 
           case failure =>
             Future.successful(failure)
@@ -54,7 +54,13 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
     "get locations by device" >> in(new StoredLocationContext {}) { context =>
       context.locationRepo
         .getForDevice(DeviceId("123"), limit = None) must beEqualTo(
-        Seq(MockModels.storedLocation(1L, context.locations.head._2, context.locations.head._3))
+        Seq(
+          MockModels.storedLocation(
+            1L,
+            context.locations.head._2,
+            StoredLocation.Metadata.initial(context.locations.head._3)
+          )
+        )
       ).await
     }
 
@@ -68,8 +74,16 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
       context.locationRepo
         .getForDevice(DeviceId("123"), limit = Some(2)) must beEqualTo(
         Seq(
-          MockModels.storedLocation(2L, context.locations(1)._2, context.locations(1)._3),
-          MockModels.storedLocation(3L, context.locations(2)._2, context.locations(2)._3)
+          MockModels.storedLocation(
+            2L,
+            context.locations(1)._2,
+            StoredLocation.Metadata.initial(context.locations(1)._3)
+          ),
+          MockModels.storedLocation(
+            3L,
+            context.locations(2)._2,
+            StoredLocation.Metadata.initial(context.locations(2)._3)
+          )
         )
       ).await
     }
@@ -91,7 +105,13 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
 
       context.locationRepo
         .getForDevice(DeviceId("123"), limit = None) must beEqualTo(
-        Seq(MockModels.storedLocation(1L, context.locations.head._2, context.locations.head._3))
+        Seq(
+          MockModels.storedLocation(
+            1L,
+            context.locations.head._2,
+            StoredLocation.Metadata.initial(context.locations.head._3)
+          )
+        )
       ).await
       context.locationRepo
         .getForDevice(DeviceId("456"), limit = None) must beEmpty[Seq[StoredLocation]].await
@@ -119,14 +139,18 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
     }) { context =>
       {
         for {
-          _ <- context.locationRepo.update(DeviceId("123"), 1L, _.copy(timestamp = 999))
+          _ <- context.locationRepo.update(
+            DeviceId("123"),
+            1L,
+            sl => sl.copy(metadata = sl.metadata.copy(startTimestamp = 999))
+          )
           updated <- context.locationRepo.getForDevice(DeviceId("123"), limit = None)
         } yield updated must beEqualTo(
           Seq(
             MockModels.storedLocation(
               1L,
               MockModels.location(lat = 0.1, lon = 0.2, accuracy = 0.3),
-              999
+              StoredLocation.Metadata(startTimestamp = 999, endTimestamp = 123L, count = 1L)
             )
           )
         )
@@ -142,7 +166,7 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
       context.locationRepo.update(
         DeviceId("123"),
         999L,
-        _.copy(timestamp = 999)
+        sl => sl.copy(metadata = sl.metadata.copy(startTimestamp = 999))
       ) must beEqualTo[Try[Unit]](Failure(LocationNotFoundException(DeviceId("123"), 999L))).await
     }
 
@@ -156,7 +180,7 @@ abstract class LocationRepoTest(implicit ee: ExecutionEnv)
       context.locationRepo.update(
         DeviceId("123"),
         2L,
-        _.copy(timestamp = 999)
+        sl => sl.copy(metadata = sl.metadata.copy(startTimestamp = 999))
       ) must beEqualTo[Try[Unit]](Failure(LocationNotFoundException(DeviceId("123"), 2L))).await
     }
   }

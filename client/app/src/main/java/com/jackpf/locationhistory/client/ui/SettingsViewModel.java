@@ -18,6 +18,7 @@ import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.location.LocationService;
 import com.jackpf.locationhistory.client.push.UnifiedPushContext;
+import com.jackpf.locationhistory.client.util.AppExecutors;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class SettingsViewModel extends AndroidViewModel {
@@ -45,7 +47,7 @@ public class SettingsViewModel extends AndroidViewModel {
         this.unifiedPushContext = new UnifiedPushContext(application);
         this.locationService = LocationService.create(
                 application,
-                com.jackpf.locationhistory.client.AppExecutors.getInstance().background()
+                AppExecutors.getInstance().background()
         );
     }
 
@@ -88,11 +90,11 @@ public class SettingsViewModel extends AndroidViewModel {
         }
     }
 
-    public void saveSettings(String host, String portText, String updateInterval) {
+    public void saveSettings(String host, String portText, String updateIntervalMinutes) {
         try {
             configRepository.setServerHost(host);
             configRepository.setServerPort(Integer.parseInt(portText));
-            configRepository.setUpdateIntervalMinutes(Long.parseLong(updateInterval));
+            configRepository.setUpdateIntervalMillis(TimeUnit.MINUTES.toMillis(Long.parseLong(updateIntervalMinutes)));
 
             events.postValue(new SettingsViewEvent.Toast(R.string.toast_saved));
         } catch (NumberFormatException e) {

@@ -3,21 +3,23 @@ package com.jackpf.locationhistory.server.grpc
 import com.jackpf.locationhistory.beacon_service.*
 import com.jackpf.locationhistory.beacon_service.BeaconServiceGrpc.BeaconService
 import com.jackpf.locationhistory.common.DeviceStatus
+import com.jackpf.locationhistory.server.enricher.EnricherExecutor
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.{
   NoDeviceProvidedException,
   NoLocationProvidedException
 }
 import com.jackpf.locationhistory.server.model.*
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
-import com.jackpf.locationhistory.server.util.{LocationUtils, Logging}
 import com.jackpf.locationhistory.server.util.ParamExtractor.*
 import com.jackpf.locationhistory.server.util.ResponseMapper.*
+import com.jackpf.locationhistory.server.util.{LocationUtils, Logging}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class BeaconServiceImpl(
     deviceRepo: DeviceRepo,
-    locationRepo: LocationRepo
+    locationRepo: LocationRepo,
+    enricherExecutor: EnricherExecutor
 )(using ec: ExecutionContext)
     extends BeaconService
     with Logging {
@@ -51,12 +53,14 @@ class BeaconServiceImpl(
       request: SetLocationRequest
   ): Future[SetLocationResponse] = {
     for {
-      location <- request.location.toFutureOr(NoLocationProvidedException())
+      protoLocation <- request.location.toFutureOr(NoLocationProvidedException())
+      location = Location.fromProto(protoLocation)
       storedDevice <- deviceRepo.getRegisteredDevice(DeviceId(request.deviceId)).toFuture
+      enrichedLocation <- enricherExecutor.enrich(location)
       storeLocationResponse <- locationRepo
         .storeDeviceLocationOrUpdatePrevious(
           storedDevice.device.id,
-          Location.fromProto(location),
+          enrichedLocation,
           timestamp = request.timestamp,
           LocationUtils.isDuplicate
         )

@@ -1,6 +1,6 @@
 package com.jackpf.locationhistory.server.repo
 
-import com.jackpf.locationhistory.server.model.DeviceId
+import com.jackpf.locationhistory.server.model.{DeviceId, StoredLocation}
 import com.jackpf.locationhistory.server.testutil.MockModels
 import org.specs2.concurrent.ExecutionEnv
 
@@ -21,7 +21,7 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends LocationRepoTe
         context.locationRepo.storeDeviceLocation(
           deviceId,
           MockModels.location(),
-          ts
+          StoredLocation.Metadata.initial(ts)
         )
 
       {
@@ -35,7 +35,7 @@ class InMemoryLocationRepoTest(implicit ee: ExecutionEnv) extends LocationRepoTe
           locations <- context.locationRepo.getForDevice(deviceId, limit = None)
         } yield {
           locations must haveSize(4)
-          locations.map(_.timestamp) must beEqualTo(
+          locations.map(_.metadata.startTimestamp) must beEqualTo(
             Seq(
               3L,
               4L,

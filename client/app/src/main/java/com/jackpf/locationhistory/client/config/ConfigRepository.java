@@ -93,16 +93,12 @@ public class ConfigRepository {
         prefs.edit().putInt(SERVER_PORT_KEY, port).apply();
     }
 
-    public long getLastRunTimestamp() {
-        return prefs.getLong(LAST_RUN_TIMESTAMP_KEY, 0L);
+    public long getUpdateIntervalMillis() {
+        return prefs.getLong(UPDATE_INTERVAL_KEY, TimeUnit.MINUTES.toMillis(15));
     }
 
-    public long getUpdateIntervalMinutes() {
-        return prefs.getLong(UPDATE_INTERVAL_KEY, 15L);
-    }
-
-    public void setUpdateIntervalMinutes(long minutes) {
-        prefs.edit().putLong(UPDATE_INTERVAL_KEY, minutes).apply();
+    public void setUpdateIntervalMillis(long millis) {
+        prefs.edit().putLong(UPDATE_INTERVAL_KEY, millis).apply();
     }
 
     public long getHighAccuracyTriggeredAt() {
@@ -117,6 +113,10 @@ public class ConfigRepository {
         long highAccuracyTriggeredAt = getHighAccuracyTriggeredAt();
         return highAccuracyTriggeredAt > 0
                 && System.currentTimeMillis() - highAccuracyTriggeredAt < HIGH_ACCURACY_DURATION;
+    }
+
+    public long getLastRunTimestamp() {
+        return prefs.getLong(LAST_RUN_TIMESTAMP_KEY, 0L);
     }
 
     public void setLastRunTimestamp(long lastRunTime) {

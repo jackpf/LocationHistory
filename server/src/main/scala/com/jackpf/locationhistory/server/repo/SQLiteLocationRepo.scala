@@ -19,13 +19,19 @@ private case class StoredLocationRow(
     lat: Double,
     lon: Double,
     accuracy: Double,
-    timestamp: Long,
+    startTimestamp: Long,
+    endTimestamp: Long,
+    count: Long,
     metadata: JsonColumn[Map[String, String]]
 ) {
   def toStoredLocation: StoredLocation = StoredLocation(
     id = id,
     location = Location(lat = lat, lon = lon, accuracy = accuracy, metadata.value),
-    timestamp = timestamp
+    metadata = StoredLocation.Metadata(
+      startTimestamp = startTimestamp,
+      endTimestamp = endTimestamp,
+      count = count
+    )
   )
 }
 private object StoredLocationTable extends SimpleTable[StoredLocationRow]
@@ -42,12 +48,14 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
             lat DOUBLE,
             lon DOUBLE,
             accuracy DOUBLE,
-            timestamp UNSIGNED BIG INT,
+            start_timestamp UNSIGNED BIG INT,
+            end_timestamp UNSIGNED BIG INT,
+            count UNSIGNED BIG INT,
             metadata TEXT
           );"""
         )
         val _ = db.updateRaw(
-          """CREATE INDEX IF NOT EXISTS idx_device_time ON stored_location_table (device_id, timestamp);"""
+          """CREATE INDEX IF NOT EXISTS idx_device_time ON stored_location_table (device_id, end_timestamp);"""
         )
       }
     }
@@ -56,7 +64,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
   override def storeDeviceLocation(
       deviceId: DeviceId.Type,
       location: Location,
-      timestamp: Long
+      metadata: StoredLocation.Metadata
   ): Future[Try[Unit]] = Future {
     db.transaction { implicit db =>
       Try {
@@ -67,8 +75,10 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
               _.lat := location.lat,
               _.lon := location.lon,
               _.accuracy := location.accuracy,
-              _.timestamp := timestamp,
-              _.metadata := JsonColumn(location.metadata)
+              _.metadata := JsonColumn(location.metadata),
+              _.startTimestamp := metadata.startTimestamp,
+              _.endTimestamp := metadata.endTimestamp,
+              _.count := metadata.count
             )
           )
           ()
@@ -87,7 +97,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
           {
             val q = StoredLocationTable.select
               .filter(_.deviceId === deviceId.toString)
-              .sortBy(_.timestamp)
+              .sortBy(_.endTimestamp)
               .desc
 
             limit match {
@@ -129,8 +139,10 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
                     _.lat := updatedStoredDevice.location.lat,
                     _.lon := updatedStoredDevice.location.lon,
                     _.accuracy := updatedStoredDevice.location.accuracy,
-                    _.timestamp := updatedStoredDevice.timestamp,
-                    _.metadata := JsonColumn(updatedStoredDevice.location.metadata)
+                    _.metadata := JsonColumn(updatedStoredDevice.location.metadata),
+                    _.startTimestamp := updatedStoredDevice.metadata.startTimestamp,
+                    _.endTimestamp := updatedStoredDevice.metadata.endTimestamp,
+                    _.count := updatedStoredDevice.metadata.count
                   )
               )
             }
@@ -175,7 +187,7 @@ class SQLiteLocationRepo(db: DbClient.DataSource)(using executionContext: Execut
           val result = db.runSql[StoredLocationRow](sql"""
           SELECT * FROM (
             SELECT *,
-              ROW_NUMBER() OVER (PARTITION BY device_id ORDER BY timestamp DESC) as rn
+              ROW_NUMBER() OVER (PARTITION BY device_id ORDER BY end_timestamp DESC) as rn
             FROM stored_location_table
             WHERE device_id IN ($deviceIds)
           )

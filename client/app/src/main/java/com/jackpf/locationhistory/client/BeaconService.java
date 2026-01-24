@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.IBinder;
 
@@ -17,31 +19,41 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
+import com.jackpf.locationhistory.client.location.LocationData;
+import com.jackpf.locationhistory.client.location.PassiveLocationListener;
 import com.jackpf.locationhistory.client.permissions.AppRequirement;
 import com.jackpf.locationhistory.client.permissions.AppRequirementsUtil;
+import com.jackpf.locationhistory.client.permissions.PermissionsManager;
 import com.jackpf.locationhistory.client.ui.Notifications;
 import com.jackpf.locationhistory.client.util.Logger;
 import com.jackpf.locationhistory.client.worker.BeaconResult;
 import com.jackpf.locationhistory.client.worker.BeaconTask;
 import com.jackpf.locationhistory.client.worker.RetryableException;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class BeaconService extends Service {
     private static final Logger log = new Logger("BeaconService");
     private ExecutorService executorService;
     private ConfigRepository configRepository;
     private BeaconScheduler beaconScheduler;
+    @Nullable
+    private BeaconTask beaconTask;
+    private PassiveLocationListener passiveLocationListener;
+    private static final long PASSIVE_LISTENER_MIN_TIME_MS = TimeUnit.MINUTES.toMillis(1);
+    private static final float PASSIVE_LISTENER_MIN_DISTANCE_M = 0.0f;
     private static final int PERSISTENT_NOTIFICATION_ID = 1;
     private static final String ACTION_RUN_TASK = "com.jackpf.locationhistory.client.ACTION_BEACON_SERVICE";
+    private static final String ACTION_PASSIVE_LOCATION = "com.jackpf.locationhistory.client.ACTION_PASSIVE_LOCATION";
 
-    private final Runnable beaconTask = () ->
+    private final Runnable beaconTaskRunnable = () ->
             beaconScheduler.runWithWakeLock(() -> {
-                ListenableFuture<BeaconResult> beaconResult = BeaconTask
-                        .runSafe(BeaconService.this, executorService);
+                ListenableFuture<BeaconResult> beaconResult = beaconTask.run();
 
                 Futures.addCallback(beaconResult, new FutureCallback<BeaconResult>() {
                     @Override
@@ -62,6 +74,10 @@ public class BeaconService extends Service {
                 return beaconResult;
             });
 
+    private final Consumer<LocationData> passiveBeaconTaskRunnable = locationData -> {
+        beaconScheduler.runWithWakeLock(() -> beaconTask.passiveRun(locationData));
+    };
+
     private void scheduleNext(long delayMillis) {
         beaconScheduler.scheduleNext(this, BeaconService.class, ACTION_RUN_TASK, delayMillis);
     }
@@ -78,8 +94,20 @@ public class BeaconService extends Service {
         }
     };
 
+    private boolean hasRecentRun() {
+        long millisSinceLastRun = System.currentTimeMillis() - configRepository.getLastRunTimestamp();
+        long updateIntervalMillis = configRepository.getUpdateIntervalMillis();
+        return millisSinceLastRun < updateIntervalMillis;
+    }
+
     private long regularDelayMillis() {
-        return TimeUnit.MINUTES.toMillis(configRepository.getUpdateIntervalMinutes());
+        return configRepository.getUpdateIntervalMillis();
+    }
+
+    private long rescheduledDelayMillis() {
+        long millisSinceLastRun = System.currentTimeMillis() - configRepository.getLastRunTimestamp();
+        long millisToNextRun = Math.max(configRepository.getUpdateIntervalMillis() - millisSinceLastRun, 0);
+        return Math.min(configRepository.getUpdateIntervalMillis(), millisToNextRun);
     }
 
     private long retryDelayMillis() {
@@ -102,24 +130,59 @@ public class BeaconService extends Service {
         configRepository.registerOnSharedPreferenceChangeListener(configChangeListener);
 
         beaconScheduler = BeaconScheduler.create(this, BeaconScheduler.DEFAULT_WAKELOCK_TIMEOUT);
+        try {
+            beaconTask = BeaconTask.create(this, executorService);
+        } catch (IOException e) {
+            log.e("Unable to create beacon task", e);
+            scheduleNext(retryDelayMillis());
+            return;
+        }
+
+        // Listen for passive location updates
+        passiveLocationListener = new PassiveLocationListener(this, new PermissionsManager(this),
+                ACTION_PASSIVE_LOCATION, BeaconService.class);
+        passiveLocationListener.startMonitoring(PASSIVE_LISTENER_MIN_TIME_MS, PASSIVE_LISTENER_MIN_DISTANCE_M);
+    }
+
+    private void handleRunAction() {
+        if (!hasRecentRun()) {
+            beaconTaskRunnable.run();
+        } else {
+            log.d("Re-scheduling due to recent run");
+            scheduleNext(rescheduledDelayMillis());
+        }
+    }
+
+    private void handlePassiveLocationAction(Intent intent) {
+        if (intent.hasExtra(LocationManager.KEY_LOCATION_CHANGED)) {
+            Location location = (Location) intent.getExtras().get(LocationManager.KEY_LOCATION_CHANGED);
+            log.i("Passive location received: %s", location);
+
+            if (location != null) {
+                passiveBeaconTaskRunnable.accept(LocationData.passive(location));
+            }
+        } else {
+            log.w("Passive location intent had no location data");
+        }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
-        Notifications notifications = new Notifications(this);
-        ServiceCompat.startForeground(this,
-                PERSISTENT_NOTIFICATION_ID,
-                notifications.createPersistentNotification(
-                        getString(R.string.persistent_notification_title),
-                        configRepository.inHighAccuracyMode() ? getString(R.string.persistent_notification_high_accuracy_mode)
-                                : getString(R.string.persistent_notification_message)
-                ),
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION : 0);
+        // Can be null if init failed in onCreate
+        if (beaconTask == null) {
+            log.e("Empty beacon task");
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
+        createPersistentNotification();
 
         if (intent == null || ACTION_RUN_TASK.equals(intent.getAction())) {
-            beaconTask.run();
+            handleRunAction();
+        } else if (ACTION_PASSIVE_LOCATION.equals(intent.getAction())) {
+            handlePassiveLocationAction(intent);
         }
 
         return START_STICKY;
@@ -132,6 +195,19 @@ public class BeaconService extends Service {
         if (executorService != null) executorService.shutdown();
         if (configRepository != null)
             configRepository.unregisterOnSharedPreferenceChangeListener(configChangeListener);
+        if (passiveLocationListener != null) passiveLocationListener.stopMonitoring();
+    }
+
+    private void createPersistentNotification() {
+        Notifications notifications = new Notifications(this);
+        ServiceCompat.startForeground(this,
+                PERSISTENT_NOTIFICATION_ID,
+                notifications.createPersistentNotification(
+                        getString(R.string.persistent_notification_title),
+                        configRepository.inHighAccuracyMode() ? getString(R.string.persistent_notification_high_accuracy_mode)
+                                : getString(R.string.persistent_notification_message)
+                ),
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION : 0);
     }
 
     public static void startForeground(Context context) {

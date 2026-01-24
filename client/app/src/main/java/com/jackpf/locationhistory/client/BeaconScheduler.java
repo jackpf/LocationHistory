@@ -92,7 +92,7 @@ public class BeaconScheduler {
     }
 
     public void scheduleNext(Context context, Class<?> cls, String action, long delayMillis) {
-        log.d("Scheduling next task via alarm in %dms", delayMillis);
+        log.d("Scheduling next task for now + %dms", delayMillis);
 
         PendingIntent pendingIntent = createPendingIntent(context, cls, action);
         schedulePendingIntent(pendingIntent, delayMillis);
