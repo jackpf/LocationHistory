@@ -3,7 +3,11 @@ package com.jackpf.locationhistory.server.grpc
 import com.jackpf.locationhistory.admin_service.*
 import com.jackpf.locationhistory.admin_service.AdminServiceGrpc.AdminService
 import com.jackpf.locationhistory.server.errors.ApplicationErrors.*
-import com.jackpf.locationhistory.server.grpc.AdminServiceImpl.{DefaultUser, TokenDuration}
+import com.jackpf.locationhistory.server.grpc.AdminServiceImpl.{
+  DefaultLocationLimit,
+  DefaultUser,
+  TokenDuration
+}
 import com.jackpf.locationhistory.server.grpc.interceptors.TokenService
 import com.jackpf.locationhistory.server.model.DeviceId
 import com.jackpf.locationhistory.server.repo.{DeviceRepo, LocationRepo}
@@ -18,6 +22,8 @@ import scala.util.{Failure, Success}
 object AdminServiceImpl {
   val DefaultUser: String = "admin"
   val TokenDuration: Long = 3600
+
+  val DefaultLocationLimit: Option[Int] = Some(1000)
 }
 
 class AdminServiceImpl(
@@ -80,7 +86,10 @@ class AdminServiceImpl(
       request: ListLocationsRequest
   ): Future[ListLocationsResponse] = {
     for {
-      locations <- locationRepo.getForDevice(DeviceId(request.deviceId), limit = None)
+      locations <- locationRepo.getForDevice(
+        DeviceId(request.deviceId),
+        limit = DefaultLocationLimit
+      )
     } yield ListLocationsResponse(locations.map(_.toProto))
   }
 
