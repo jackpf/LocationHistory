@@ -26,8 +26,11 @@ import org.specs2.concurrent.ExecutionEnv
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
-import com.jackpf.locationhistory.server.grpc.AdminServiceImpl.DefaultUser
-import com.jackpf.locationhistory.server.grpc.AdminServiceImpl.TokenDuration
+import com.jackpf.locationhistory.server.grpc.AdminServiceImpl.{
+  DefaultLocationLimit,
+  DefaultUser,
+  TokenDuration
+}
 
 class AdminServiceImplTest(implicit ee: ExecutionEnv)
     extends DefaultSpecification
@@ -226,7 +229,8 @@ class AdminServiceImplTest(implicit ee: ExecutionEnv)
         lazy val deviceId: String = "123"
 
         lazy val getResponse: Future[Vector[model.StoredLocation]]
-        when(locationRepo.getForDevice(DeviceId(deviceId), limit = None)).thenReturn(getResponse)
+        when(locationRepo.getForDevice(DeviceId(deviceId), limit = DefaultLocationLimit))
+          .thenReturn(getResponse)
 
         val request: ListLocationsRequest = ListLocationsRequest(deviceId = deviceId)
         lazy val result: Future[ListLocationsResponse] = adminService.listLocations(request)
