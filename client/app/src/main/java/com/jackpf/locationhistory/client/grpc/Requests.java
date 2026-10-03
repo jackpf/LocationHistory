@@ -9,6 +9,8 @@ import com.jackpf.locationhistory.RegisterDeviceRequest;
 import com.jackpf.locationhistory.RegisterPushHandlerRequest;
 import com.jackpf.locationhistory.SetLocationRequest;
 
+import java.util.Map;
+
 public class Requests {
     private static Device device(String deviceId, String deviceName) {
         return Device.newBuilder()
@@ -20,12 +22,14 @@ public class Requests {
     private static Location location(
             Double lat,
             Double lon,
-            Double accuracy
+            Double accuracy,
+            Map<String, String> metadata
     ) {
         return Location.newBuilder()
                 .setLat(lat)
                 .setLon(lon)
                 .setAccuracy(accuracy)
+                .putAllMetadata(metadata)
                 .build();
     }
 
@@ -54,12 +58,13 @@ public class Requests {
             Double lat,
             Double lon,
             Double accuracy,
-            Long timestamp
+            Long timestamp,
+            Map<String, String> metadata
     ) {
         return SetLocationRequest
                 .newBuilder()
                 .setDeviceId(deviceId)
-                .setLocation(location(lat, lon, accuracy))
+                .setLocation(location(lat, lon, accuracy, metadata))
                 .setTimestamp(timestamp)
                 .build();
     }

@@ -96,7 +96,8 @@ public class BeaconClient extends PoolableClient {
                 beaconRequest.getLat(),
                 beaconRequest.getLon(),
                 (double) beaconRequest.getAccuracy(),
-                beaconRequest.getTimestamp()
+                beaconRequest.getTimestamp(),
+                beaconRequest.getMetadata()
         );
         ListenableFuture<SetLocationResponse> future = createStub().setLocation(request);
         Futures.addCallback(future, callback, threadExecutor);

@@ -3,5 +3,6 @@
   <component name="ScalaProjectSettings">
     <option name="migrateConfigurationsNotificationShown" value="true" />
     <option name="scala3DisclaimerShown" value="true" />
+    <option name="useCompilerTypes" value="false" />
   </component>
 </project>

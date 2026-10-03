@@ -18,7 +18,7 @@
             android:layout_marginStart="4dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/topLink"
-            app:layout_constraintBottom_toBottomOf="@id/pushDesc" />
+            app:layout_constraintBottom_toBottomOf="@id/providersRecyclerView" />
 
         <View
             android:id="@+id/topLink"
@@ -202,6 +202,58 @@
             app:layout_constraintStart_toStartOf="@id/pushRegisterSwitch"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/pushRegisterSwitch" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/providersDivider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            app:layout_constraintStart_toStartOf="@id/divider"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/pushDesc" />
+
+        <TextView
+            android:id="@+id/providersLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/location_providers"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            app:layout_constraintStart_toStartOf="@id/providersDivider"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/providersDivider" />
+
+        <TextView
+            android:id="@+id/providersDesc"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/location_providers_description"
+            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+            android:alpha="0.7"
+            app:layout_constraintStart_toStartOf="@id/providersLabel"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/providersLabel" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:background="?attr/colorPrimary"
+            android:alpha="0.5"
+            app:layout_constraintStart_toStartOf="@id/topLink"
+            app:layout_constraintEnd_toEndOf="@id/topLink"
+            app:layout_constraintTop_toTopOf="@id/providersLabel"
+            app:layout_constraintBottom_toBottomOf="@id/providersLabel" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/providersRecyclerView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:nestedScrollingEnabled="false"
+            app:layout_constraintStart_toStartOf="@id/providersLabel"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/providersDesc" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

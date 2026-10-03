@@ -16,13 +16,20 @@ import com.jackpf.locationhistory.client.client.ssl.UntrustedCertException;
 import com.jackpf.locationhistory.client.client.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
+import com.jackpf.locationhistory.client.location.LocationService;
 import com.jackpf.locationhistory.client.push.UnifiedPushContext;
+import com.jackpf.locationhistory.client.util.AppExecutors;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class SettingsViewModel extends AndroidViewModel {
     private final Logger log = new Logger(this);
@@ -30,6 +37,7 @@ public class SettingsViewModel extends AndroidViewModel {
     private final ConfigRepository configRepository;
     private final TrustedCertStorage trustedCertStorage;
     private final UnifiedPushContext unifiedPushContext;
+    private final LocationService locationService;
 
     private final SingleLiveEvent<SettingsViewEvent> events = new SingleLiveEvent<>();
 
@@ -38,6 +46,10 @@ public class SettingsViewModel extends AndroidViewModel {
         this.configRepository = new ConfigRepository(application);
         this.trustedCertStorage = new TrustedCertStorage(application);
         this.unifiedPushContext = new UnifiedPushContext(application);
+        this.locationService = LocationService.create(
+                application,
+                AppExecutors.getInstance().background()
+        );
     }
 
     public LiveData<SettingsViewEvent> getEvents() {
@@ -111,5 +123,53 @@ public class SettingsViewModel extends AndroidViewModel {
     public void registerUnifiedPush(String distributor) {
         log.d("Registering with distributor: %s", distributor);
         unifiedPushContext.register(distributor);
+    }
+
+    /**
+     * Get the list of location provider items for the settings UI.
+     * Providers are returned in priority order based on saved preferences.
+     * If no preferences have been saved yet, all available providers are enabled by default.
+     * Providers not in saved preferences are added at the end (disabled by default).
+     */
+    public List<LocationProviderItem> getLocationProviderItems() {
+        List<String> availableProviders = locationService.getAvailableSources();
+        List<String> savedProviders = configRepository.getEnabledLocationProviders();
+        boolean isFirstRun = savedProviders == null;
+        List<String> enabledProviders = isFirstRun ? Collections.emptyList() : savedProviders;
+
+        Set<String> enabledSet = new HashSet<>(enabledProviders);
+        Set<String> availableSet = new HashSet<>(availableProviders);
+
+        List<LocationProviderItem> items = new ArrayList<>();
+
+        // First add enabled providers in their saved order (if still available)
+        for (String provider : enabledProviders) {
+            if (availableSet.contains(provider)) {
+                items.add(new LocationProviderItem(provider, true));
+            }
+        }
+
+        // Then add remaining available providers at the end.
+        // On first run, enable all of them; otherwise respect the user's saved choice (disabled).
+        for (String provider : availableProviders) {
+            if (!enabledSet.contains(provider)) {
+                items.add(new LocationProviderItem(provider, isFirstRun));
+            }
+        }
+
+        return items;
+    }
+
+    /**
+     * Save the enabled location providers in order.
+     */
+    public void saveEnabledLocationProviders(List<LocationProviderItem> items) {
+        List<String> enabledProviders = items.stream()
+                .filter(LocationProviderItem::isEnabled)
+                .map(LocationProviderItem::getProviderName)
+                .collect(Collectors.toList());
+
+        configRepository.setEnabledLocationProviders(enabledProviders);
+        log.d("Saved enabled providers: %s", enabledProviders);
     }
 }
