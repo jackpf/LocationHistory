@@ -1,6 +1,7 @@
 package com.jackpf.locationhistory.client.ui;
 
 import android.annotation.SuppressLint;
+import android.location.LocationManager;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -43,7 +44,7 @@ public class LocationProviderAdapter extends RecyclerView.Adapter<LocationProvid
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         LocationProviderItem item = providers.get(position);
 
-        holder.providerName.setText(item.getProviderName());
+        holder.providerName.setText(displayName(item.getProviderName()));
         holder.providerCheckbox.setChecked(item.isEnabled());
 
         holder.providerCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -78,6 +79,18 @@ public class LocationProviderAdapter extends RecyclerView.Adapter<LocationProvid
             }
         }
         notifyItemMoved(fromPosition, toPosition);
+    }
+
+    private static String displayName(String provider) {
+        switch (provider) {
+            case LocationManager.GPS_PROVIDER:     return "GPS";
+            case LocationManager.NETWORK_PROVIDER: return "Network";
+            case LocationManager.FUSED_PROVIDER:   return "Fused";
+            default:
+                // Capitalise first letter for any unknown provider
+                return provider.isEmpty() ? provider
+                        : Character.toUpperCase(provider.charAt(0)) + provider.substring(1);
+        }
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.provider.Settings;
 
+import androidx.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -125,10 +127,15 @@ public class ConfigRepository {
 
     /**
      * Get the list of enabled location providers in order.
-     * Returns an empty list if not set.
+     * Returns {@code null} if the user has never saved provider preferences (first run).
+     * Returns an empty list if the user explicitly disabled all providers.
      */
+    @Nullable
     public List<String> getEnabledLocationProviders() {
-        String providersString = prefs.getString(ENABLED_LOCATION_PROVIDERS_KEY, "");
+        String providersString = prefs.getString(ENABLED_LOCATION_PROVIDERS_KEY, null);
+        if (providersString == null) {
+            return null;
+        }
         if (providersString.isEmpty()) {
             return new ArrayList<>();
         }

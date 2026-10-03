@@ -24,6 +24,7 @@ import com.jackpf.locationhistory.client.util.Logger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -127,11 +128,15 @@ public class SettingsViewModel extends AndroidViewModel {
     /**
      * Get the list of location provider items for the settings UI.
      * Providers are returned in priority order based on saved preferences.
+     * If no preferences have been saved yet, all available providers are enabled by default.
      * Providers not in saved preferences are added at the end (disabled by default).
      */
     public List<LocationProviderItem> getLocationProviderItems() {
         List<String> availableProviders = locationService.getAvailableSources();
-        List<String> enabledProviders = configRepository.getEnabledLocationProviders();
+        List<String> savedProviders = configRepository.getEnabledLocationProviders();
+        boolean isFirstRun = savedProviders == null;
+        List<String> enabledProviders = isFirstRun ? Collections.emptyList() : savedProviders;
+
         Set<String> enabledSet = new HashSet<>(enabledProviders);
         Set<String> availableSet = new HashSet<>(availableProviders);
 
@@ -144,10 +149,11 @@ public class SettingsViewModel extends AndroidViewModel {
             }
         }
 
-        // Then add remaining available providers (not enabled) at the end
+        // Then add remaining available providers at the end.
+        // On first run, enable all of them; otherwise respect the user's saved choice (disabled).
         for (String provider : availableProviders) {
             if (!enabledSet.contains(provider)) {
-                items.add(new LocationProviderItem(provider, false));
+                items.add(new LocationProviderItem(provider, isFirstRun));
             }
         }
 
