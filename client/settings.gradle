@@ -22,3 +22,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "Location History"
 include ':app'
+include ':push-api'
+include ':push-unifiedpush'
+include ':push-firebase'

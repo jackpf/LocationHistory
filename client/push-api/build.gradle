@@ -1,0 +1,24 @@
+plugins {
+    alias(libs.plugins.android.library)
+}
+
+android {
+    namespace 'com.jackpf.locationhistory.client.push.api'
+    compileSdk 36
+
+    defaultConfig {
+        minSdk 22
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation libs.androidx.lifecycle.livedata
+    implementation libs.androidx.annotation
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
+}

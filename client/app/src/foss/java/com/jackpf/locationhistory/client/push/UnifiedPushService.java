@@ -22,7 +22,6 @@ import com.jackpf.locationhistory.client.util.Logger;
 
 import org.unifiedpush.android.connector.FailedReason;
 import org.unifiedpush.android.connector.PushService;
-import org.unifiedpush.android.connector.UnifiedPush;
 import org.unifiedpush.android.connector.data.PushEndpoint;
 import org.unifiedpush.android.connector.data.PushMessage;
 
@@ -37,7 +36,7 @@ public class UnifiedPushService extends PushService {
     @Nullable
     private ConfigRepository configRepository;
     @Nullable
-    private UnifiedPushStorage unifiedPushStorage;
+    private PushStorage pushStorage;
     @Nullable
     private MessageHandler messageHandler;
     @Nullable
@@ -48,7 +47,7 @@ public class UnifiedPushService extends PushService {
     private final static Logger log = new Logger("UnifiedPushService");
 
     private static final String NAME = "UnifiedPush";
-    private static final String CUSTOM_UNREGISTER_ACTION = "com.jackpf.locationhistory.client.MANUAL_UNREGISTER";
+    static final String CUSTOM_UNREGISTER_ACTION = "com.jackpf.locationhistory.client.MANUAL_UNREGISTER";
     private static final long messageHandlerCooldownMillis = TimeUnit.MILLISECONDS.toMillis(5000);
 
     private static BeaconClient createBeaconClient(Context context, ConfigRepository configRepository) throws IOException {
@@ -69,7 +68,7 @@ public class UnifiedPushService extends PushService {
 
         executor = Executors.newSingleThreadExecutor();
         configRepository = new ConfigRepository(getApplicationContext());
-        unifiedPushStorage = new UnifiedPushStorage(getApplicationContext());
+        pushStorage = new PushStorage(getApplicationContext());
         messageHandler = new MessageHandler(this, configRepository, executor, messageHandlerCooldownMillis);
         try {
             beaconClient = createBeaconClient(getApplicationContext(), configRepository);
@@ -81,8 +80,8 @@ public class UnifiedPushService extends PushService {
     }
 
     /**
-     * Manually handle our custom unregister event
-     * since UnifiedPush doesn't trigger onUnregistered for us
+     * Manually handle our custom unregister event since UnifiedPush does not
+     * trigger onUnregistered automatically when we call unregister().
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -108,12 +107,11 @@ public class UnifiedPushService extends PushService {
     public void onNewEndpoint(@NonNull PushEndpoint pushEndpoint, @NonNull String instance) {
         log.i("UnifiedPush: onNewEndpoint: %s", pushEndpoint.getUrl());
 
-        if (configRepository != null && beaconClient != null) {
-            new PushRegistration(getApplicationContext(), configRepository, unifiedPushStorage, beaconClient)
+        if (configRepository != null && beaconClient != null && pushStorage != null) {
+            new PushRegistration(getApplicationContext(), configRepository, pushStorage, beaconClient)
                     .register(NAME, pushEndpoint.getUrl());
         } else {
-            // Register failed, make sure we keep the old state
-            unifiedPushStorage.setEnabled(false);
+            if (pushStorage != null) pushStorage.setEnabled(false);
         }
     }
 
@@ -142,35 +140,11 @@ public class UnifiedPushService extends PushService {
     public void onUnregistered(@NonNull String instance) {
         log.i("UnifiedPush: onUnregistered");
 
-        if (configRepository != null && beaconClient != null) {
-            new PushRegistration(getApplicationContext(), configRepository, unifiedPushStorage, beaconClient)
+        if (configRepository != null && beaconClient != null && pushStorage != null) {
+            new PushRegistration(getApplicationContext(), configRepository, pushStorage, beaconClient)
                     .unregister();
         } else {
-            // Un-register failed, make sure we keep the old state
-            unifiedPushStorage.setEnabled(true);
+            if (pushStorage != null) pushStorage.setEnabled(true);
         }
-    }
-
-    public static void register(Context context, String distributor) {
-        UnifiedPush.saveDistributor(context, distributor);
-
-        UnifiedPush.register(
-                context,
-                INSTANCE_DEFAULT,
-                "",
-                null
-        );
-    }
-
-    public static void unregister(Context context) {
-        UnifiedPush.unregister(
-                context,
-                INSTANCE_DEFAULT
-        );
-
-        Intent intent = new Intent(context, UnifiedPushService.class);
-        intent.setAction(CUSTOM_UNREGISTER_ACTION);
-        intent.putExtra("instance", INSTANCE_DEFAULT);
-        context.startService(intent);
     }
 }

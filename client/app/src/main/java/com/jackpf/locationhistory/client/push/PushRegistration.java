@@ -11,10 +11,10 @@ import com.jackpf.locationhistory.client.grpc.BeaconClient;
 import com.jackpf.locationhistory.client.ui.Toasts;
 import com.jackpf.locationhistory.client.util.Logger;
 
-public class PushRegistration {
+public class PushRegistration implements PushHandlerRegistrar {
     private final Context context;
 
-    private final UnifiedPushStorage storage;
+    private final PushStorage storage;
     private final ConfigRepository configRepository;
     private final BeaconClient beaconClient;
 
@@ -23,13 +23,23 @@ public class PushRegistration {
     public PushRegistration(
             Context context,
             ConfigRepository configRepository,
-            UnifiedPushStorage unifiedPushStorage,
+            PushStorage pushStorage,
             BeaconClient beaconClient
     ) {
         this.context = context;
-        this.storage = unifiedPushStorage;
+        this.storage = pushStorage;
         this.configRepository = configRepository;
         this.beaconClient = beaconClient;
+    }
+
+    @Override
+    public void registerPushHandler(String name, String endpoint) {
+        register(name, endpoint);
+    }
+
+    @Override
+    public void unregisterPushHandler() {
+        unregister();
     }
 
     public ListenableFuture<RegisterPushHandlerResponse> register(String name, String url) {

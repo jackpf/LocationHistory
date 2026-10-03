@@ -3,15 +3,19 @@ package com.jackpf.locationhistory.client.push;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-public class UnifiedPushStorage {
-    private static final String PREFERENCES_KEY = "UnifiedPush";
+/**
+ * Generic SharedPreferences storage for push provider state (enabled flag, endpoint).
+ * Renamed from UnifiedPushStorage to be backend-agnostic.
+ */
+public class PushStorage {
+    private static final String PREFERENCES_KEY = "PushProvider";
     private static final String ENDPOINT_KEY = "endpoint";
     private static final String ENABLED_KEY = "enabled";
 
     private final Context context;
     private final SharedPreferences prefs;
 
-    public UnifiedPushStorage(Context context) {
+    public PushStorage(Context context) {
         this.context = context;
         this.prefs = context.getSharedPreferences(PREFERENCES_KEY, Context.MODE_PRIVATE);
     }
@@ -38,7 +42,7 @@ public class UnifiedPushStorage {
 
     public void setEnabled(boolean enabled) {
         prefs.edit().putBoolean(ENABLED_KEY, enabled).apply();
-        // Update our observers
-        ObservableUnifiedPushState.getInstance(context).setEnabled(enabled);
+        // Notify LiveData observers
+        ObservablePushState.getInstance(context).setEnabled(enabled);
     }
 }

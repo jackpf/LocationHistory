@@ -16,7 +16,8 @@ import com.jackpf.locationhistory.client.client.ssl.UntrustedCertException;
 import com.jackpf.locationhistory.client.client.util.GrpcFutureWrapper;
 import com.jackpf.locationhistory.client.config.ConfigRepository;
 import com.jackpf.locationhistory.client.grpc.BeaconClient;
-import com.jackpf.locationhistory.client.push.UnifiedPushContext;
+import com.jackpf.locationhistory.client.push.PushProvider;
+import com.jackpf.locationhistory.client.push.PushProviderFactory;
 import com.jackpf.locationhistory.client.util.Logger;
 
 import java.io.IOException;
@@ -29,7 +30,7 @@ public class SettingsViewModel extends AndroidViewModel {
 
     private final ConfigRepository configRepository;
     private final TrustedCertStorage trustedCertStorage;
-    private final UnifiedPushContext unifiedPushContext;
+    private final PushProvider pushProvider;
 
     private final SingleLiveEvent<SettingsViewEvent> events = new SingleLiveEvent<>();
 
@@ -37,7 +38,7 @@ public class SettingsViewModel extends AndroidViewModel {
         super(application);
         this.configRepository = new ConfigRepository(application);
         this.trustedCertStorage = new TrustedCertStorage(application);
-        this.unifiedPushContext = new UnifiedPushContext(application);
+        this.pushProvider = PushProviderFactory.create(application);
     }
 
     public LiveData<SettingsViewEvent> getEvents() {
@@ -91,25 +92,35 @@ public class SettingsViewModel extends AndroidViewModel {
         }
     }
 
-    public void handleUnifiedPushToggle(boolean isChecked) {
+    public void handlePushToggle(boolean isChecked) {
         if (isChecked) {
-            List<String> distributors = unifiedPushContext.getDistributors();
+            List<String> distributors = pushProvider.getDistributors();
             log.d("Found distributors: %s", Arrays.toString(distributors.toArray()));
 
             if (distributors.isEmpty()) {
-                events.postValue(new SettingsViewEvent.PromptNtfyInstall());
+                if (pushProvider.requiresDistributorApp()) {
+                    // Provider needs an external app (e.g. Ntfy for UnifiedPush)
+                    events.postValue(new SettingsViewEvent.PromptNtfyInstall());
+                } else {
+                    // Provider is self-contained (e.g. FCM) — auto-register
+                    pushProvider.register(null);
+                }
             } else if (distributors.size() == 1) {
-                unifiedPushContext.register(distributors.get(0));
+                pushProvider.register(distributors.get(0));
             } else {
                 events.postValue(new SettingsViewEvent.ShowDistributorPicker(distributors));
             }
         } else {
-            unifiedPushContext.unregister();
+            pushProvider.unregister();
         }
     }
 
-    public void registerUnifiedPush(String distributor) {
+    public void registerPush(String distributor) {
         log.d("Registering with distributor: %s", distributor);
-        unifiedPushContext.register(distributor);
+        pushProvider.register(distributor);
+    }
+
+    public void promptDistributorInstall(android.content.Context context) {
+        pushProvider.promptDistributorInstall(context);
     }
 }
