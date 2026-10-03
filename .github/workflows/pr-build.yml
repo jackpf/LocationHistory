@@ -43,6 +43,7 @@ jobs:
     with:
       version: "1.0.0-PR${{ github.event.number }}"
       build_type: "debug"
+      flavor: "foss"
       publish: false
     secrets: inherit
 

@@ -12,11 +12,21 @@ jobs:
       publish: true
     secrets: inherit
 
-  release-client-version:
+  release-foss-client:
     uses: ./.github/workflows/build-client.yml
     with:
       version: ${{ github.ref_name }}
       build_type: "release"
+      flavor: "foss"
+      publish: true
+    secrets: inherit
+
+  release-gms-client:
+    uses: ./.github/workflows/build-client.yml
+    with:
+      version: ${{ github.ref_name }}
+      build_type: "release"
+      flavor: "gms"
       publish: true
     secrets: inherit
 
@@ -30,7 +40,8 @@ jobs:
   publish-release:
     needs:
       - release-server-version
-      - release-client-version
+      - release-foss-client
+      - release-gms-client
       - release-ui-version
     runs-on: ubuntu-latest
     permissions:
@@ -38,13 +49,20 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: app-release
+          name: app-foss-release
           path: ./artifacts
 
-      - name: Version APK
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-gms-release
+          path: ./artifacts
+
+      - name: Version APKs
         run: |
-          mv ./artifacts/app-release.apk \
-             ./artifacts/LocationHistory-${{ github.ref_name }}.apk
+          mv ./artifacts/app-foss-release.apk \
+             ./artifacts/LocationHistory-foss-${{ github.ref_name }}.apk
+          mv ./artifacts/app-gms-release.apk \
+             ./artifacts/LocationHistory-gms-${{ github.ref_name }}.apk
 
       - name: Publish Release
         uses: softprops/action-gh-release@v1

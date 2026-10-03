@@ -13,8 +13,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.jackpf.locationhistory.client.R;
 import com.jackpf.locationhistory.client.client.ssl.SSLPrompt;
 import com.jackpf.locationhistory.client.databinding.FragmentSettingsBinding;
-import com.jackpf.locationhistory.client.push.Ntfy;
-import com.jackpf.locationhistory.client.push.ObservableUnifiedPushState;
+import com.jackpf.locationhistory.client.push.ObservablePushState;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +43,7 @@ public class SettingsFragment extends Fragment {
         sslPrompt = new SSLPrompt(requireActivity());
 
         setupInputs();
-        setupUnifiedPushListener();
+        setupPushListener();
         observeEvents();
     }
 
@@ -81,8 +80,8 @@ public class SettingsFragment extends Fragment {
         ));
     }
 
-    private void setupUnifiedPushListener() {
-        ObservableUnifiedPushState.getInstance(requireContext())
+    private void setupPushListener() {
+        ObservablePushState.getInstance(requireContext())
                 .observeEnabled()
                 .observe(getViewLifecycleOwner(), isEnabled -> {
                     if (binding.pushRegisterSwitch.isChecked() != isEnabled) {
@@ -90,7 +89,7 @@ public class SettingsFragment extends Fragment {
                         binding.pushRegisterSwitch.setChecked(isEnabled);
                     }
                     binding.pushRegisterSwitch.setOnCheckedChangeListener((v, isChecked) ->
-                            viewModel.handleUnifiedPushToggle(isChecked)
+                            viewModel.handlePushToggle(isChecked)
                     );
                 });
     }
@@ -117,7 +116,7 @@ public class SettingsFragment extends Fragment {
                     showDistributorPicker(pickerEvent.getDistributors());
                     break;
                 case PROMPT_NTFY_INSTALL:
-                    Ntfy.promptInstall(requireContext());
+                    viewModel.promptDistributorInstall(requireContext());
                     binding.pushRegisterSwitch.setChecked(false); // Make sure we un-check
                     break;
             }
@@ -130,7 +129,7 @@ public class SettingsFragment extends Fragment {
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.select_distributor)
                 .setItems(distributorsArray, (dialog, which) ->
-                        viewModel.registerUnifiedPush(distributorsArray[which])
+                        viewModel.registerPush(distributorsArray[which])
                 )
                 .setNegativeButton(R.string.cancel, (dialog, which) ->
                         binding.pushRegisterSwitch.setChecked(false)
