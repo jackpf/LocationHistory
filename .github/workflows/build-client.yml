@@ -9,6 +9,10 @@ on:
       build_type:
         required: true
         type: string # 'debug' or 'release'
+      flavor:
+        required: false
+        type: string
+        default: 'foss' # 'foss' (UnifiedPush, F-Droid) or 'gms' (Firebase, Google Play)
       publish:
         required: false
         type: boolean
@@ -38,29 +42,22 @@ jobs:
         working-directory: ./shared
         run: make compile publish
 
+      - name: Write google-services.json (GMS only)
+        if: inputs.flavor == 'gms'
+        working-directory: ./client
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          mkdir -p app/src/gms
+          echo "$GOOGLE_SERVICES_JSON" > app/src/gms/google-services.json
+
       - name: Lint
         working-directory: ./client
-        run: make lint
+        run: make lint-${{ inputs.flavor }}
 
       - name: Test
         working-directory: ./client
-        run: make test
-
-      # Enable hardware virtualisation - speeds up emulator
-      # TODO FixMe
-#      - name: Enable KVM
-#        run: |
-#          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-#          sudo udevadm control --reload-rules
-#          sudo udevadm trigger --name-match=kvm
-#
-#      - name: Integration Test
-#        uses: reactivecircus/android-emulator-runner@v2
-#        with:
-#          api-level: 29
-#          arch: x86_64
-#          working-directory: ./client
-#          script: make integration-test
+        run: make test-${{ inputs.flavor }}
 
       - name: Decode Keystore
         if: inputs.publish
@@ -70,20 +67,20 @@ jobs:
       - name: Build Debug
         if: inputs.build_type == 'debug'
         working-directory: ./client
-        run: make VERSION="${{ inputs.version }}" build-debug
+        run: make VERSION="${{ inputs.version }}" build-${{ inputs.flavor }}-debug
 
       - name: Build Release
         if: inputs.build_type == 'release'
         working-directory: ./client
-        run: make VERSION="${{ inputs.version }}" build-release
+        run: make VERSION="${{ inputs.version }}" build-${{ inputs.flavor }}-release
         env:
           KEYSTORE_PATH: '../release.jks'
           KEYSTORE_PASSWORD: '${{ secrets.ANDROID_KEYSTORE_PASSWORD }}'
           KEY_ALIAS: '${{ secrets.ANDROID_KEYSTORE_ALIAS }}'
 
-      - name: Release
+      - name: Upload artifact
         if: inputs.publish
         uses: actions/upload-artifact@v4
         with:
-          name: app-${{ inputs.build_type }}
-          path: client/app/build/outputs/apk/${{ inputs.build_type }}/*.apk
+          name: app-${{ inputs.flavor }}-${{ inputs.build_type }}
+          path: client/app/build/outputs/apk/${{ inputs.flavor }}/${{ inputs.build_type }}/*.apk

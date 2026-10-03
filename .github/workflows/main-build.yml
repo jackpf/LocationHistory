@@ -36,13 +36,25 @@ jobs:
       publish: true
     secrets: inherit
 
-  release-client-latest:
+  release-foss-client-latest:
     needs: changes
     if: ${{ needs.changes.outputs.client == 'true' }}
     uses: ./.github/workflows/build-client.yml
     with:
       version: "latest"
       build_type: "release"
+      flavor: "foss"
+      publish: true
+    secrets: inherit
+
+  release-gms-client-latest:
+    needs: changes
+    if: ${{ needs.changes.outputs.client == 'true' }}
+    uses: ./.github/workflows/build-client.yml
+    with:
+      version: "latest"
+      build_type: "release"
+      flavor: "gms"
       publish: true
     secrets: inherit
 
